@@ -1,0 +1,74 @@
+[project]
+drom-version = "0.1.0"
+
+[project]
+authors = ["Fabrice Le Fessant <fabrice.le_fessant@origin-labs.com>"]
+copyright = "OCamlPro SAS & Origin Labs SAS"
+edition = "4.10.0"
+github-organization = "ocamlpro"
+license = "LGPL2"
+min-edition = "4.10.0"
+mode = "binary"
+name = "digodoc"
+synopsis = "The digodoc project"
+version = "0.1.0"
+windows-ci = true
+
+# keys that you could also define:
+# sphinx-target = "...sphinx-target..."
+# archive = "...archive..."
+# dev-repo = "...dev-repo..."
+# bug-reports = "...bug-reports..."
+# doc-api = "...doc-api..."
+# doc-gen = "...doc-gen..."
+# homepage = "...homepage..."
+
+[project]
+description = """
+This is the description
+of the digodoc OCaml project
+"""
+
+[drom]
+skip = ""
+
+[dependencies]
+ez_file = "0.1.0"
+opam-file-format = "2.0.0"
+[dependencies.ocaml]
+libname = "compiler-libs.common"
+
+[tools.ocamlformat]
+for-test = true
+[tools.odoc]
+for-doc = true
+[tools.ppx_expect]
+for-test = true
+[tools.ppx_inline_test]
+for-test = true
+
+[project]
+pack-modules = true
+skip-dirs = []
+
+
+[[package]]
+dir = "src/digodoc"
+kind = "program"
+name = "digodoc"
+[package.dependencies]
+digodoc_lib = "version"
+
+[[package]]
+dir = "src/digodoc_lib"
+gen-version = "version.ml"
+kind = "library"
+name = "digodoc_lib"
+[package.dependencies]
+meta_file = "version"
+
+[[package]]
+dir = "src/meta_file"
+kind = "library"
+name = "meta_file"
+

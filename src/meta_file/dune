@@ -1,0 +1,11 @@
+(library
+ (name meta_file)
+ (public_name meta_file)
+ (libraries opam-file-format compiler-libs.common ez_file)
+ 
+)
+(ocamllex lexer)
+
+(documentation
+  (package meta_file))
+

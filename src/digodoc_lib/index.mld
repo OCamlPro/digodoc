@@ -1,0 +1,8 @@
+
+{1 Library digodoc_lib}
+
+This is the description
+of the digodoc OCaml project
+
+
+The entry point of this library is the module: {!Digodoc_lib}.

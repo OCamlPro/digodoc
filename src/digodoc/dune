@@ -1,0 +1,11 @@
+(executable
+ (name main)
+ (public_name digodoc)
+ (package digodoc)
+ (libraries digodoc_lib opam-file-format compiler-libs.common ez_file)
+ 
+)
+
+(documentation
+  (package digodoc))
+

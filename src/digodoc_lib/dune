@@ -1,0 +1,10 @@
+(library
+ (name digodoc_lib)
+ (public_name digodoc_lib)
+ (libraries meta_file opam-file-format compiler-libs.common ez_file)
+ 
+)
+
+(documentation
+  (package digodoc_lib))
+
