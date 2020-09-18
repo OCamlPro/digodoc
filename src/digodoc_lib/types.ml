@@ -49,9 +49,14 @@ and ocaml_library = {
   lib_name : string ;
   lib_opam : opam_package ;
   mutable lib_dir : string option ;
+  mutable lib_kinds : lib_kind list ;
+
+  (* the list of metas that require directly this library *)
+  mutable lib_metas : meta_package list;
+
+  (* TODO: not filled for now *)
   mutable lib_modules : string list ;
   mutable lib_interfaces : string list;
-  mutable lib_kinds : lib_kind list ;
 }
 
 and ocaml_module = {
@@ -62,6 +67,7 @@ and ocaml_module = {
 }
 
 and state = {
+  opam_switch_prefix : string ;
   mutable opam_packages : opam_package StringMap.t ;
   mutable meta_packages : meta_package StringMap.t ;
   mutable ocaml_libraries : ( string, ocaml_library ) Hashtbl.t ;
