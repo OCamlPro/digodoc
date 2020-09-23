@@ -29,6 +29,10 @@ type opam_package = {
   mutable opam_metas : meta_package list ;
   (* libraries installed by this package *)
   mutable opam_libs : ocaml_library StringMap.t ;
+  (*
+  mutable opam_deps : opam_package list ;
+  mutable opam_revdeps : opam_package list ;
+*)
 }
 
 and meta_package = {

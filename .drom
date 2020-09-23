@@ -4,12 +4,13 @@ d8d883d14e91ecb2b317b14117bf2ebb .github/workflows/workflow.yml
 be2d226b0dc658a425e86af1847a2316 .ocamlformat
 5574462426a3706b11f5cbdbb0d4ad91 .ocamlformat-ignore
 1281376e351d6c2be9ea4c576a29ebd4 .ocp-indent
-101e7b328d9d67428c506885d973544f CHANGES.md
+215b42a12d99aa89cc6bfbc1b400614c CHANGES.md
 3490cfc0aa14b8da56f1a05329374b43 LICENSE.md
 5107f34c95108b4a441e5612fcf984b1 Makefile
 66499e015126705afe845e7fa0766f02 README.md
 4445d1e9f78aa8606d9276eec4661660 digodoc.opam
 0ddbebd18487cca09467d639ffefe4de digodoc_lib.opam
+0ee632dbd91a1c1842886cb2513e6b65 digodoc_meta.opam
 68b329da9893e34099c7d8ad5cb9c940 docs/.nojekyll
 246b3827e1b411c947b4ac355f9cedb8 docs/doc/index.html
 722681e7b8a90e20027054f1d725ac74 docs/index.html
@@ -18,6 +19,7 @@ a95f1ab7d178b468eff6188a527535d9 docs/style.css
 223d0408db971af3c2c9269386e91c64 drom.toml
 79ebb54d58399284c3d3de4a2b331cae dune
 ebcd9d6f66dc6e444d3fec29a9a3d284 dune-project
+6a0419dd437b916532ae5d84080fd559 lib.opam
 e4d12b946f3401966a0aded59bef58b9 meta_file.opam
 68b329da9893e34099c7d8ad5cb9c940 sphinx/_static/css/fixes.css
 1bfbd6328e8d6814462c3b44cb630708 sphinx/about.rst
