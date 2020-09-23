@@ -44,8 +44,8 @@ let rec create ?meta_parent state ~meta_name ~meta_file ~meta_opam ~meta_dir =
     meta_dir ;
     meta_parent ;
     meta_subs = [] ;
-    meta_deps = [] ;
-    meta_revdeps = [] ;
+    meta_deps = StringMap.empty ;
+    meta_revdeps = StringMap.empty ;
     meta_libs = [] ;
   } in
   state.meta_packages <- StringMap.add meta_name m state.meta_packages;
@@ -86,8 +86,9 @@ let find_requires state m =
                   Printf.eprintf "Warning: unknown meta %S required by %S\n%!"
                     name m.meta_name
               | dep ->
-                  m.meta_deps <- dep :: m.meta_deps ;
-                  dep.meta_revdeps <- m :: dep.meta_revdeps
+                  m.meta_deps <- StringMap.add name dep m.meta_deps ;
+                  dep.meta_revdeps <-
+                    StringMap.add m.meta_name m dep.meta_revdeps
             ) ( EzString.split_simplify (trim_requires requires) ' ' )
         ) ( v.var_assigns @ v.var_additions )
 
@@ -98,12 +99,12 @@ let rec lookup_library m dep archive =
       let rec iter deps =
         match deps with
         | [] -> raise Not_found
-        | dep :: deps ->
+        | (_, dep) :: deps ->
             match lookup_library m dep archive with
             | exception Not_found -> iter deps
             | lib -> lib
       in
-      iter dep.meta_deps
+      iter ( StringMap.bindings dep.meta_deps )
 
 let lookup_library state m archive =
   match

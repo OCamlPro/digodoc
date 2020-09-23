@@ -26,7 +26,13 @@ let print state =
         ) opam_package.opam_metas;
       StringMap.iter (fun _ lib ->
           Printf.printf "    opam_lib: %s\n" lib.lib_name
-        ) opam_package.opam_libs
+        ) opam_package.opam_libs;
+      StringMap.iter (fun _name dep ->
+          Printf.printf "    opam_dep: %s\n%!" dep.opam_name
+        ) opam_package.opam_deps;
+      StringMap.iter (fun _name dep ->
+          Printf.printf "    opam_rev: %s\n%!" dep.opam_name
+        ) opam_package.opam_revdeps;
     ) state.opam_packages ;
 
   Printf.printf "Meta packages:\n";
@@ -38,10 +44,12 @@ let print state =
             (List.map (fun m -> m.meta_name) m.meta_subs)) ;
       Printf.printf "    meta_deps: %s\n"
         ( String.concat " "
-            (List.map (fun m -> m.meta_name) m.meta_deps)) ;
+            (List.map (fun m -> m.meta_name)
+               (StringMap.bindings m.meta_deps |> List.map snd))) ;
       Printf.printf "    meta_revdeps: %s\n"
         ( String.concat " "
-            (List.map (fun m -> m.meta_name) m.meta_revdeps)) ;
+            (List.map (fun m -> m.meta_name)
+               (StringMap.bindings m.meta_revdeps |> List.map snd))) ;
       Printf.printf "    meta_libs: %s\n"
         ( String.concat " "
             (List.map (fun lib ->
