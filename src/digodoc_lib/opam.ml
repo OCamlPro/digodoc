@@ -141,6 +141,21 @@ let find_versions state =
                   | Variable (_, field, value) -> begin
                       match field, value with
 
+                      | "synopsis", String (_, s) ->
+                          opam_package.opam_synopsis <- Some s
+                      | "description", String (_, s) ->
+                          opam_package.opam_description <- Some s
+                      | "homepage", String (_, s) ->
+                          opam_package.opam_homepage <- Some s
+                      | "license", String (_, s) ->
+                          opam_package.opam_license <- Some s
+                      | "authors", String (_, s) ->
+                          opam_package.opam_authors <- Some [ s ]
+                      | "authors", List (_, list) ->
+                          opam_package.opam_authors <-
+                            Some (List.map (function
+                                | String (_,s) -> s
+                                | _ -> "???") list)
                       | ( "name"
                         | "maintainer"
                         | "authors"

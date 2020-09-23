@@ -21,6 +21,13 @@ let print state =
       Printf.printf "    opam_version: %s\n"
         (match opam_package.opam_version with
          | None -> "" | Some version -> version);
+      Printf.printf "    opam_synopsis: %s\n"
+        (match opam_package.opam_synopsis with
+         | None -> "" | Some version -> version);
+      Printf.printf "    opam_authors: %s\n"
+        (match opam_package.opam_authors with
+         | None -> "" | Some list ->
+             String.concat " " list);
       List.iter (fun m ->
           Printf.printf "    opam_meta: %s\n" m.meta_name
         ) opam_package.opam_metas;
