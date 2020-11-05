@@ -47,12 +47,23 @@ let print state =
                 (String.concat ", "(StringSet.to_list mdl.mdl_exts));
             ) lib.lib_mdls;
 
+          if StringMap.is_empty lib.lib_metas then
+            Printf.printf "       LIBRARY %s::%s HAS NO META\n"
+              opam_package.opam_name lib.lib_name
+          else
+            StringMap.iter (fun _ meta ->
+                Printf.printf "      lib_meta: %s\n" meta.meta_name
+              ) lib.lib_metas
         ) opam_package.opam_libs;
 
       StringMap.iter (fun _ mdl ->
           Printf.printf "    opam_mdl: %s (%s)\n" mdl.mdl_name
             (String.concat ", "(StringSet.to_list mdl.mdl_exts));
-
+          Printf.printf "       module %s is part of %d libs:\n" mdl.mdl_name
+            (StringMap.cardinal mdl.mdl_libs);
+          StringMap.iter (fun _ lib ->
+              Printf.printf "             mdl_lib: %s\n" lib.lib_name
+            ) mdl.mdl_libs;
         ) opam_package.opam_mdls;
 
       StringMap.iter (fun _name dep ->

@@ -24,7 +24,7 @@ let file mdl ~ext =
 
 let find state ~mdl_name ~mdl_opam =
   let long_name = long_name ~mdl_name ~mdl_opam in
-  Hashtbl.find state.ocaml_mdls long_name
+  Hashtbl.find state.ocaml_mdls_by_name long_name
 
 let find_or_create ~mdl_ext ~mdl_dir ~mdl_basename state ~mdl_opam ~objinfo =
   let mdl_name = String.capitalize mdl_basename in
@@ -33,6 +33,7 @@ let find_or_create ~mdl_ext ~mdl_dir ~mdl_basename state ~mdl_opam ~objinfo =
     | exception Not_found ->
         let mdl = {
           mdl_name ;
+          mdl_longname = mdl_opam.opam_name ^ "::" ^ mdl_name;
           mdl_basename ;
           mdl_dir ;
           mdl_opam ;
@@ -42,8 +43,9 @@ let find_or_create ~mdl_ext ~mdl_dir ~mdl_basename state ~mdl_opam ~objinfo =
           mdl_intf = None;
           mdl_impl = None;
         } in
-        Hashtbl.add state.ocaml_mdls ( long_name ~mdl_name ~mdl_opam ) mdl;
-        Hashtbl.add state.ocaml_mdls mdl_name mdl ;
+        Hashtbl.add state.ocaml_mdls_by_name
+          ( long_name ~mdl_name ~mdl_opam ) mdl;
+        Hashtbl.add state.ocaml_mdls_by_name mdl_name mdl ;
         mdl_dir.dir_mdls <- StringMap.add mdl.mdl_name mdl mdl_dir.dir_mdls;
         mdl_opam.opam_mdls <-
           StringMap.add mdl_name mdl mdl_opam.opam_mdls ;
@@ -61,8 +63,13 @@ let find_or_create ~mdl_ext ~mdl_dir ~mdl_basename state ~mdl_opam ~objinfo =
   end;
   if objinfo && mdl_ext = "cmi" then begin
     match Objinfo.read state (file mdl ~ext:".cmi") with
-    | [ unit ] -> mdl.mdl_intf <- Some unit
-    | [] | _ -> (* TODO: warning *) ()
+    | [] | _ :: _ :: _ -> (* TODO: warning *) ()
+    | [ unit ] ->
+        mdl.mdl_intf <- Some unit;
+        match StringMap.find unit.unit_name unit.unit_import_cmis with
+        | exception Not_found -> assert false
+        | crc ->
+            Hashtbl.add state.ocaml_mdls_by_cmi_crc crc mdl
   end;
   mdl
 

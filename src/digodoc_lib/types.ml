@@ -89,12 +89,13 @@ and ocaml_lib = {
 
 and ocaml_mdl = {
   mdl_name : string ; (* Capitalized *)
+  mdl_longname : string ;
   mdl_opam : opam_package ;
+  mdl_dir : directory ;
 
   mutable mdl_basename : string ;
-  mdl_dir : directory ;
   mutable mdl_exts : StringSet.t ;
-  mdl_libs : ocaml_lib StringMap.t ; (* OPAM::NAME -> ocaml_lib *)
+  mutable mdl_libs : ocaml_lib StringMap.t ; (* OPAM::NAME -> ocaml_lib *)
 
   (* meta_packages where this module appears EXPLICITELY *)
   mutable mdl_metas : meta_package StringMap.t; (* NAME -> meta_package *)
@@ -111,11 +112,14 @@ and state = {
   mutable directories : directory StringMap.t ;
   (* both NAME -> ocaml_lib and OPAM::NAME -> ocaml_lib.
      Hashtbl because not injective *)
-  mutable ocaml_libs : ( string, ocaml_lib ) Hashtbl.t ;
+  ocaml_libs_by_name : ( string, ocaml_lib ) Hashtbl.t ;
 
   (* both NAME -> ocaml_lib and OPAM::NAME -> ocaml_mdl.
      Hashtbl because not injective *)
-  mutable ocaml_mdls : ( string, ocaml_mdl ) Hashtbl.t ;
+  ocaml_mdls_by_name : ( string, ocaml_mdl ) Hashtbl.t ;
+
+  ocaml_mdls_by_cmi_crc : ( string, ocaml_mdl ) Hashtbl.t;
+  ocaml_mdls_by_cmx_crc : ( string, ocaml_mdl ) Hashtbl.t;
 }
 
 (* Notes:

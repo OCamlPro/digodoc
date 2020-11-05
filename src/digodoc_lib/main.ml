@@ -26,29 +26,56 @@ open EzCompat
 open EzFile.OP
 open Types
 
+let cache_file = "_digodoc/digodoc.state"
+
 let main () =
 
   let opam_switch_prefix = try Sys.getenv "OPAM_SWITCH_PREFIX"
     with Not_found -> failwith "not in an opam switch"
   in
 
+  let get_state ~state ~objinfo =
+    match state with
+    | None ->
+        let state = Compute.compute ~opam_switch_prefix ~objinfo () in
+        if objinfo then begin
+          EzFile.make_dir ~p:true "_digodoc";
+          let oc = open_out_bin cache_file in
+          output_value oc ( state : state );
+          close_out oc;
+          end;
+        state
+    | Some state -> state
+  in
 
-  let rec iter ~objinfo args =
+  let rec iter ~state ~objinfo args =
     match args with
     | [] ->
-        let state = Compute.compute ~opam_switch_prefix ~objinfo () in
+        let state = get_state ~state ~objinfo in
         Printer.print state
     | "--no-objinfo" :: args ->
-        iter ~objinfo:false args
+        iter ~state ~objinfo:false args
+    | "--cached" :: args ->
+        let state =
+          let ic = open_in_bin cache_file  in
+          let ( state : state ) = input_value ic in
+          close_in ic;
+          Some state
+        in
+        iter ~state ~objinfo args
     | ( "--help" | "-h" | "-help" ) :: _ ->
         Printf.eprintf "digodoc [--no-objinfo] [MODULE]\n%!";
         exit 0
     | _ :: _ :: _ ->
         Printf.eprintf "Error: digodoc takes 0 or 1 argument\n%!";
         exit 2
+
+    | [ "--html" ] ->
+        let state = get_state ~state ~objinfo in
+        Odoc.generate ~state
     | [ mdl ] ->
-        let state = Compute.compute ~opam_switch_prefix ~objinfo () in
-        match Hashtbl.find_all state.ocaml_mdls mdl with
+        let state = get_state ~state ~objinfo:false in
+        match Hashtbl.find_all state.ocaml_mdls_by_name mdl with
         | exception Not_found -> failwith "module not found"
         | [ m ] ->
             if StringSet.mem "mli" m.mdl_exts then
@@ -61,6 +88,7 @@ let main () =
                                     opam_switch_prefix //
                                     ( Module.file m "ml") |]
         | list ->
+            Printf.printf "Found %d occurences:\n%!" ( List.length list);
             List.iter (fun m ->
                 Printf.printf "* %s::%s\n%!"
                   m.mdl_opam.opam_name m.mdl_name
@@ -69,4 +97,4 @@ let main () =
   in
 
   let args = Sys.argv |> Array.to_list |> List.tl in
-  iter ~objinfo:true args
+  iter ~state:None ~objinfo:true args

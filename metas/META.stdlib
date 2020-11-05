@@ -1,0 +1,4 @@
+version = "[distributed with Ocaml]"
+description = "Standard Library"
+directory = "^"
+archive(native) = "stdlib.cmxa"

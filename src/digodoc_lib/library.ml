@@ -21,7 +21,7 @@ let file lib ~ext =
 
 let find state ~lib_opam ~lib_name =
   let long_name = long_name ~lib_opam ~lib_name in
-  Hashtbl.find state.ocaml_libs long_name
+  Hashtbl.find state.ocaml_libs_by_name long_name
 
 let find_or_create ~lib_dir state lib_opam ~lib_name ~lib_ext ~objinfo =
   let lib =
@@ -37,9 +37,9 @@ let find_or_create ~lib_dir state lib_opam ~lib_name ~lib_ext ~objinfo =
           lib_exts = StringSet.empty;
           lib_units = [];
         } in
-        Hashtbl.add state.ocaml_libs
+        Hashtbl.add state.ocaml_libs_by_name
           (long_name ~lib_opam ~lib_name) lib;
-        Hashtbl.add state.ocaml_libs lib_name lib;
+        Hashtbl.add state.ocaml_libs_by_name lib_name lib;
         lib_opam.opam_libs <-
           StringMap.add lib_name lib lib_opam.opam_libs ;
         lib_dir.dir_libs <- StringMap.add lib_name lib lib_dir.dir_libs ;

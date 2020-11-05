@@ -82,11 +82,16 @@ let find_modules state =
                   Printf.eprintf "%s::%s.%s has no external module\n%!"
                     opam.opam_name lib.lib_name unit.unit_name
               | mdl ->
-                  lib.lib_mdls <- StringMap.add mdl.mdl_name
-                      mdl lib.lib_mdls;
+                  lib.lib_mdls <- StringMap.add mdl.mdl_name mdl lib.lib_mdls;
+                  mdl.mdl_libs <- StringMap.add lib.lib_name lib mdl.mdl_libs;
                   match mdl.mdl_impl with
-                  | None -> mdl.mdl_impl <- Some unit
                   | Some _ -> () (* TODO: check it is the same one *)
+                  | None ->
+                      mdl.mdl_impl <- Some unit;
+                      match unit.unit_implementation with
+                      | None -> assert false
+                      | Some crc ->
+                          Hashtbl.add state.ocaml_mdls_by_cmx_crc crc mdl
             ) lib.lib_units
         ) opam.opam_libs
     ) state.opam_packages
@@ -97,14 +102,15 @@ let compute ~opam_switch_prefix ?(objinfo=false) () =
     opam_switch_prefix ;
     opam_packages = StringMap.empty ;
     meta_packages = StringMap.empty ;
-    ocaml_libs = Hashtbl.create 13 ;
-    ocaml_mdls = Hashtbl.create 13 ;
+    ocaml_libs_by_name = Hashtbl.create 13 ;
+    ocaml_mdls_by_name = Hashtbl.create 13 ;
+    ocaml_mdls_by_cmi_crc = Hashtbl.create 13 ;
+    ocaml_mdls_by_cmx_crc = Hashtbl.create 13 ;
     directories = StringMap.empty ;
   } in
 
   (* return a list of ( opam_package_name * changes) *)
   let packages = Opam.find_changes state in
-
 
   List.iter (fun (opam_name, opam_files) ->
       (* create the opam_package *)
@@ -114,7 +120,9 @@ let compute ~opam_switch_prefix ?(objinfo=false) () =
          associated to their opam_packages and directories *)
       List.iter (fun (file, _kind) ->
           check_file state ~objinfo opam_package file
-        ) opam_files
+        ) opam_files;
+      if opam_name = "ocaml-base-compiler" then
+        check_file state ~objinfo opam_package "metas/META.stdlib";
     ) packages ;
 
   (* compute dependencies between opam_packages  *)

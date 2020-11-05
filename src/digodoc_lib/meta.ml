@@ -103,7 +103,7 @@ let lookup_archive state ~is_library meta ~archive ~basename =
       with
         Not_found ->
           if is_library then
-            let lib = Hashtbl.find state.ocaml_libs "stdlib" in
+            let lib = Hashtbl.find state.ocaml_libs_by_name "stdlib" in
             Archive_lib ( StringMap.find basename lib.lib_opam.opam_libs )
           else
             raise Not_found

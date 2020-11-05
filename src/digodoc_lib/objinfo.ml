@@ -13,42 +13,10 @@ open EzCompat
 open Types
 open EzFile.OP
 
-exception Error of string
-
-let error fmt = Printf.kprintf (fun s -> raise (Error s)) fmt
-
-let call ?(stdout = Unix.stdout) args =
-  Printf.eprintf "Calling %s\n%!" (String.concat " " (Array.to_list args));
-  let pid = Unix.create_process args.(0) args Unix.stdin stdout Unix.stderr in
-  let rec iter () =
-    match Unix.waitpid [] pid with
-    | exception Unix.Unix_error (EINTR, _, _) -> iter ()
-    | _pid, status -> (
-        match status with
-        | WEXITED 0 -> ()
-        | _ ->
-            error "Command '%s' exited with error code %s"
-              (String.concat " " (Array.to_list args))
-              ( match status with
-                | WEXITED n -> string_of_int n
-                | WSIGNALED n -> Printf.sprintf "SIGNAL %d" n
-                | WSTOPPED n -> Printf.sprintf "STOPPED %d" n ) )
-  in
-  iter ()
-
-let call_stdout args =
-  let stdout =  "/tmp/objinfo.stdout" in
-  let oc = open_out stdout in
-  call ~stdout:(Unix.descr_of_out_channel oc) args ;
-  close_out oc;
-  let lines = EzFile.read_lines stdout in
-  Sys.remove stdout;
-  lines
-
 let read state filename =
   let filename = state.opam_switch_prefix // filename in
   if Sys.file_exists filename then
-    let lines = call_stdout [| "ocamlobjinfo" ;
+    let lines = Process.call_stdout [| "ocamlobjinfo" ;
                                 "-no-approx";
                                 "-no-code" ;
                                 filename
