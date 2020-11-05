@@ -32,30 +32,41 @@ let main () =
     with Not_found -> failwith "not in an opam switch"
   in
 
-  let state =
-    Compute.compute ~opam_switch_prefix ~objinfo:true () in
 
-  for i = 1 to Array.length Sys.argv - 1 do
-    let m = Sys.argv.(i) in
-    match Hashtbl.find_all state.ocaml_mdls m with
-    | exception Not_found -> failwith "module not found"
-    | [ m ] ->
-        if StringSet.mem "mli" m.mdl_exts then
-          Unix.execvp "less" [| "less";
-                                opam_switch_prefix //
-                                ( Module.file m ".mli") |]
-        else
-        if StringSet.mem "ml" m.mdl_exts then
-          Unix.execvp "less" [| "less";
-                                opam_switch_prefix //
-                                ( Module.file m "ml") |]
-    | list ->
-        List.iter (fun m ->
-            Printf.printf "* %s::%s\n%!"
-              m.mdl_opam.opam_name m.mdl_name
-          ) list;
+  let rec iter ~objinfo args =
+    match args with
+    | [] ->
+        let state = Compute.compute ~opam_switch_prefix ~objinfo () in
+        Printer.print state
+    | "--no-objinfo" :: args ->
+        iter ~objinfo:false args
+    | ( "--help" | "-h" | "-help" ) :: _ ->
+        Printf.eprintf "digodoc [--no-objinfo] [MODULE]\n%!";
         exit 0
+    | _ :: _ :: _ ->
+        Printf.eprintf "Error: digodoc takes 0 or 1 argument\n%!";
+        exit 2
+    | [ mdl ] ->
+        let state = Compute.compute ~opam_switch_prefix ~objinfo () in
+        match Hashtbl.find_all state.ocaml_mdls mdl with
+        | exception Not_found -> failwith "module not found"
+        | [ m ] ->
+            if StringSet.mem "mli" m.mdl_exts then
+              Unix.execvp "less" [| "less";
+                                    opam_switch_prefix //
+                                    ( Module.file m ".mli") |]
+            else
+            if StringSet.mem "ml" m.mdl_exts then
+              Unix.execvp "less" [| "less";
+                                    opam_switch_prefix //
+                                    ( Module.file m "ml") |]
+        | list ->
+            List.iter (fun m ->
+                Printf.printf "* %s::%s\n%!"
+                  m.mdl_opam.opam_name m.mdl_name
+              ) list;
+            exit 0
+  in
 
-  done ;
-
-  Printer.print state
+  let args = Sys.argv |> Array.to_list |> List.tl in
+  iter ~objinfo:true args
