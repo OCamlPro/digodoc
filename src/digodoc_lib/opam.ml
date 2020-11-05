@@ -31,6 +31,7 @@ let create state opam_name opam_files =
     opam_license = None ;
     opam_deps = StringMap.empty ;
     opam_revdeps = StringMap.empty ;
+    opam_mdls = StringMap.empty ;
   } in
   state.opam_packages <- StringMap.add opam_name p state.opam_packages ;
   p
@@ -180,6 +181,9 @@ let find_versions state =
                         | "build-env"
                         | "conflicts"
                         | "substs"
+                        | "x-commit-hash"
+                        | "patches"
+                        | "run-test"
                         | "extra-files") , _
                         -> ()
                       | ( "depends" | "depopts" ), v ->

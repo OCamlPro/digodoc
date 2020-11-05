@@ -9,23 +9,63 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open EzCompat
 open Types
+open EzFile.OP
 
-let create ~mod_name ~mod_file ~mod_kind state ~mod_opam =
-  let long_name = mod_opam.opam_name ^ "::" ^ mod_name in
-  match Hashtbl.find state.ocaml_modules long_name with
-  | exception Not_found ->
+(* Assumption: all modules in the same directory are added by the
+   same opam_file *)
 
-      let m = {
-        mod_name ;
-        mod_file ;
-        mod_opam ;
-        mod_kinds = [ mod_kind ];
-      } in
-      Hashtbl.add state.ocaml_modules long_name m ;
-      Hashtbl.add state.ocaml_modules mod_name m ;
-      m
+let long_name ~mdl_name ~mdl_opam =
+  mdl_opam.opam_name ^ "::" ^ mdl_name
 
-  | m ->
-      m.mod_kinds <- mod_kind :: m.mod_kinds ;
-      m
+let file mdl ~ext =
+  mdl.mdl_dir.dir_name // ( mdl.mdl_basename ^ ext )
+
+let find state ~mdl_name ~mdl_opam =
+  let long_name = long_name ~mdl_name ~mdl_opam in
+  Hashtbl.find state.ocaml_mdls long_name
+
+let find_or_create ~mdl_ext ~mdl_dir ~mdl_basename state ~mdl_opam ~objinfo =
+  let mdl_name = String.capitalize mdl_basename in
+  let mdl =
+    match find state ~mdl_name ~mdl_opam with
+    | exception Not_found ->
+        let mdl = {
+          mdl_name ;
+          mdl_basename ;
+          mdl_dir ;
+          mdl_opam ;
+          mdl_exts = StringSet.empty;
+          mdl_libs = StringMap.empty;
+          mdl_metas = StringMap.empty;
+          mdl_intf = None;
+          mdl_impl = None;
+        } in
+        Hashtbl.add state.ocaml_mdls ( long_name ~mdl_name ~mdl_opam ) mdl;
+        Hashtbl.add state.ocaml_mdls mdl_name mdl ;
+        mdl_dir.dir_mdls <- StringMap.add mdl.mdl_name mdl mdl_dir.dir_mdls;
+        mdl_opam.opam_mdls <-
+          StringMap.add mdl_name mdl mdl_opam.opam_mdls ;
+        mdl
+    | mdl -> mdl
+  in
+  mdl.mdl_exts <- StringSet.add mdl_ext mdl.mdl_exts ;
+  (* TODO: check that, if this mdlule is already added, it is the same
+     one. Otherwise, it means two opam packages have added different
+     files for this mdlule *)
+  if objinfo && mdl_ext = "cmx" then begin
+    match Objinfo.read state (file mdl ~ext:".cmx") with
+    | [ unit ] -> mdl.mdl_impl <- Some unit
+    | [] | _ -> (* TODO: warning *) ()
+  end;
+  if objinfo && mdl_ext = "cmi" then begin
+    match Objinfo.read state (file mdl ~ext:".cmi") with
+    | [ unit ] -> mdl.mdl_intf <- Some unit
+    | [] | _ -> (* TODO: warning *) ()
+  end;
+  mdl
+
+let file m ext =
+  (* TODO: check that this extension exists for this mdlule *)
+  Filename.concat m.mdl_dir.dir_name m.mdl_basename ^ "." ^ ext

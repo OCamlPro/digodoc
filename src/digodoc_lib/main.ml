@@ -22,7 +22,7 @@
 
 *)
 
-
+open EzCompat
 open EzFile.OP
 open Types
 
@@ -32,26 +32,27 @@ let main () =
     with Not_found -> failwith "not in an opam switch"
   in
 
-  let state = Compute.compute ~opam_switch_prefix in
+  let state =
+    Compute.compute ~opam_switch_prefix ~objinfo:true () in
 
   for i = 1 to Array.length Sys.argv - 1 do
     let m = Sys.argv.(i) in
-    match Hashtbl.find_all state.ocaml_modules m with
+    match Hashtbl.find_all state.ocaml_mdls m with
     | exception Not_found -> failwith "module not found"
     | [ m ] ->
-        if List.mem MLI m.mod_kinds then
+        if StringSet.mem "mli" m.mdl_exts then
           Unix.execvp "less" [| "less";
                                 opam_switch_prefix //
-                                ( m.mod_file ^ ".mli") |]
+                                ( Module.file m ".mli") |]
         else
-        if List.mem ML m.mod_kinds then
+        if StringSet.mem "ml" m.mdl_exts then
           Unix.execvp "less" [| "less";
                                 opam_switch_prefix //
-                                ( m.mod_file ^ ".ml") |]
+                                ( Module.file m "ml") |]
     | list ->
         List.iter (fun m ->
             Printf.printf "* %s::%s\n%!"
-              m.mod_opam.opam_name m.mod_name
+              m.mdl_opam.opam_name m.mdl_name
           ) list;
         exit 0
 

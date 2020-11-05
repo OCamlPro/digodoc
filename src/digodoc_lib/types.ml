@@ -16,9 +16,13 @@ type file_kind =
   | File
   | Link
 
-type lib_kind = CMA | CMXA
-
-type mod_kind = MLI | ML
+(* As returned by Objinfo.read : string -> unit list *)
+type comp_unit = {
+  unit_name : string ;
+  unit_implementation : string option ; (* None for cmi *)
+  unit_import_cmis : string StringMap.t ; (* Unit -> CMI CRC *)
+  unit_import_cmxs : string StringMap.t ; (* Unit -> CMX CRC *)
+}
 
 type opam_package = {
   opam_name : string ;
@@ -28,7 +32,8 @@ type opam_package = {
   (* meta files declared by this package *)
   mutable opam_metas : meta_package list ;
   (* libraries installed by this package *)
-  mutable opam_libs : ocaml_library StringMap.t ;
+  mutable opam_libs : ocaml_lib StringMap.t ;
+  mutable opam_mdls : ocaml_mdl StringMap.t ;
 
   (* from the opam file *)
   mutable opam_synopsis : string option ;
@@ -46,40 +51,74 @@ and meta_package = {
   meta_opam : opam_package ;
   meta_file : Meta_file.Types.t ;
   meta_parent : meta_package option ;
-  mutable meta_dir : string ;
+  mutable meta_dir : directory ;
   mutable meta_subs : meta_package list ;
   (* which other metas are required by this meta *)
   mutable meta_deps : meta_package StringMap.t ;
   mutable meta_revdeps : meta_package StringMap.t ;
-  (* which libraries are required by this meta *)
-  mutable meta_libs : ocaml_library list ;
+
+  (* which libraries are required by this meta : only .cmx and .cmxa *)
+  mutable meta_archives : meta_archive StringMap.t ;
 }
 
-and ocaml_library = {
+and meta_archive =
+  | Archive_lib of ocaml_lib
+  | Archive_mdl of ocaml_mdl
+  | Archive_missing
+
+and directory = {
+  dir_name : string ;
+  mutable dir_meta : meta_package option ;
+  mutable dir_libs : ocaml_lib StringMap.t ; (* NAME -> ocaml_lib *)
+  mutable dir_mdls : ocaml_mdl StringMap.t ; (* NAME -> ocaml_mdl *)
+}
+
+and ocaml_lib = {
   lib_name : string ;
   lib_opam : opam_package ;
-  mutable lib_dir : string option ;
-  mutable lib_kinds : lib_kind list ;
+  lib_dir : directory ;
+  mutable lib_exts : StringSet.t ;
 
   (* the list of metas that require directly this library *)
-  mutable lib_metas : meta_package list;
+  mutable lib_metas : meta_package StringMap.t; (* NAME -> meta_package *)
 
   (* TODO: not filled for now *)
-  mutable lib_modules : string list ;
-  mutable lib_interfaces : string list;
+  mutable lib_mdls : ocaml_mdl StringMap.t ; (* NAME -> ocaml_mdl *)
+  mutable lib_units : comp_unit list ;
 }
 
-and ocaml_module = {
-  mod_name : string ;
-  mod_file : string ;
-  mod_opam : opam_package ;
-  mutable mod_kinds : mod_kind list ;
+and ocaml_mdl = {
+  mdl_name : string ; (* Capitalized *)
+  mdl_opam : opam_package ;
+
+  mutable mdl_basename : string ;
+  mdl_dir : directory ;
+  mutable mdl_exts : StringSet.t ;
+  mdl_libs : ocaml_lib StringMap.t ; (* OPAM::NAME -> ocaml_lib *)
+
+  (* meta_packages where this module appears EXPLICITELY *)
+  mutable mdl_metas : meta_package StringMap.t; (* NAME -> meta_package *)
+
+  mutable mdl_intf : comp_unit option ;
+  mutable mdl_impl : comp_unit option ;
 }
 
 and state = {
   opam_switch_prefix : string ;
   mutable opam_packages : opam_package StringMap.t ;
   mutable meta_packages : meta_package StringMap.t ;
-  mutable ocaml_libraries : ( string, ocaml_library ) Hashtbl.t ;
-  mutable ocaml_modules : ( string, ocaml_module ) Hashtbl.t ;
+
+  mutable directories : directory StringMap.t ;
+  (* both NAME -> ocaml_lib and OPAM::NAME -> ocaml_lib.
+     Hashtbl because not injective *)
+  mutable ocaml_libs : ( string, ocaml_lib ) Hashtbl.t ;
+
+  (* both NAME -> ocaml_lib and OPAM::NAME -> ocaml_mdl.
+     Hashtbl because not injective *)
+  mutable ocaml_mdls : ( string, ocaml_mdl ) Hashtbl.t ;
 }
+
+(* Notes:
+   * a module interface is public if the cmi is present
+   * a module implementation is public if the [cmx+o/obj] is present
+*)
