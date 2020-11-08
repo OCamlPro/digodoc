@@ -15,6 +15,8 @@ version = "0.1.0"
 windows-ci = true
 
 # keys that you could also define:
+# build-profile = "...build-profile..."
+# odoc-target = "...odoc-target..."
 # sphinx-target = "...sphinx-target..."
 # archive = "...archive..."
 # dev-repo = "...dev-repo..."
@@ -30,7 +32,7 @@ of the digodoc OCaml project
 """
 
 [drom]
-skip = ""
+skip = "src/digodoc/main.ml src/digodoc_lib/main.ml"
 
 [dependencies]
 ez_file = "0.1.0"
@@ -48,27 +50,17 @@ for-test = true
 for-test = true
 
 [project]
+generators = ["ocamllex", "ocamlyacc"]
 pack-modules = true
 skip-dirs = []
 
 
 [[package]]
 dir = "src/digodoc"
-kind = "program"
-name = "digodoc"
-[package.dependencies]
-digodoc_lib = "version"
 
 [[package]]
 dir = "src/digodoc_lib"
-gen-version = "version.ml"
-kind = "library"
-name = "digodoc_lib"
-[package.dependencies]
-meta_file = "version"
 
 [[package]]
 dir = "src/meta_file"
-kind = "library"
-name = "meta_file"
 

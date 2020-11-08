@@ -1,0 +1,5 @@
+gen-version = "version.ml"
+kind = "library"
+name = "digodoc_lib"
+[dependencies]
+meta_file = "version"

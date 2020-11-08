@@ -10,34 +10,16 @@
 (**************************************************************************)
 
 open EzCompat
-open EzFile.OP
 open Types
 
 open Meta_file.Types
 
-let ocaml_directory = "lib/ocaml"
-
-let get_directory meta_file meta_dir =
-  match StringMap.find "directory" meta_file.p_variables with
-  | exception Not_found ->  meta_dir
-  | { var_assigns = [ [], directory ] ; _ } ->
-      let meta_dir =
-        match EzString.chop_prefix directory ~prefix:"^" with
-        | Some directory -> ocaml_directory // directory
-        | None ->
-            match EzString.chop_prefix directory ~prefix:"+" with
-            | Some directory -> ocaml_directory // directory
-            | None ->
-                meta_dir // directory
-      in
-      meta_dir
-  | _ -> assert false
-
-let rec create ?meta_parent state ~meta_name ~meta_file ~meta_opam ~meta_dir =
+let rec create ?meta_parent state ~meta_name ~meta_file ~meta_opam
+    ~meta_dir =
   if StringMap.mem meta_name state.meta_packages then
     Printf.kprintf failwith "Duplicated meta package %s" meta_name;
-  let meta_dir = get_directory meta_file meta_dir in
-  let m = {
+  let meta_dir = Directory.of_meta state meta_file meta_dir in
+  let meta = {
     meta_name ;
     meta_file ;
     meta_opam ;
@@ -46,19 +28,19 @@ let rec create ?meta_parent state ~meta_name ~meta_file ~meta_opam ~meta_dir =
     meta_subs = [] ;
     meta_deps = StringMap.empty ;
     meta_revdeps = StringMap.empty ;
-    meta_libs = [] ;
+    meta_archives = StringMap.empty ;
   } in
-  state.meta_packages <- StringMap.add meta_name m state.meta_packages;
-  meta_opam.opam_metas <- m :: meta_opam.opam_metas;
+  state.meta_packages <- StringMap.add meta_name meta state.meta_packages;
+  meta_opam.opam_metas <- meta :: meta_opam.opam_metas;
 
-  let meta_parent = m in
+  let meta_parent = meta in
   List.iter (fun (name, meta_file) ->
       let meta_name = meta_name ^ "." ^ name in
-      let m = create state ~meta_parent ~meta_name ~meta_file
+      let meta = create state ~meta_parent ~meta_name ~meta_file
           ~meta_opam ~meta_dir in
-      meta_parent.meta_subs <- m :: meta_parent.meta_subs
+      meta_parent.meta_subs <- meta :: meta_parent.meta_subs
     ) meta_file.p_packages;
-  m
+  meta
 
 let trim_requires s =
   let len = String.length s in
@@ -73,10 +55,8 @@ let trim_requires s =
   done;
   Bytes.to_string b
 
-
-
-let find_requires state m =
-  match StringMap.find "requires" m.meta_file.p_variables with
+let find_requires state meta =
+  match StringMap.find "requires" meta.meta_file.p_variables with
   | exception Not_found -> ()
   | v ->
       List.iter (fun (_, requires) ->
@@ -84,67 +64,92 @@ let find_requires state m =
               match StringMap.find name state.meta_packages with
               | exception Not_found ->
                   Printf.eprintf "Warning: unknown meta %S required by %S\n%!"
-                    name m.meta_name
+                    name meta.meta_name
               | dep ->
-                  m.meta_deps <- StringMap.add name dep m.meta_deps ;
+                  meta.meta_deps <- StringMap.add name dep meta.meta_deps ;
                   dep.meta_revdeps <-
-                    StringMap.add m.meta_name m dep.meta_revdeps
+                    StringMap.add meta.meta_name meta dep.meta_revdeps
             ) ( EzString.split_simplify (trim_requires requires) ' ' )
         ) ( v.var_assigns @ v.var_additions )
 
-let rec lookup_library m dep archive =
-  match StringMap.find archive dep.meta_opam.opam_libs with
-  | lib -> lib
-  | exception Not_found ->
-      let rec iter deps =
-        match deps with
-        | [] -> raise Not_found
-        | (_, dep) :: deps ->
-            match lookup_library m dep archive with
-            | exception Not_found -> iter deps
-            | lib -> lib
-      in
-      iter ( StringMap.bindings dep.meta_deps )
 
-let lookup_library state m archive =
-  match
-    try
-      lookup_library m m archive
+
+let rec lookup_archive meta ~dep ~is_library ~basename =
+  if basename = "ocamltoplevel" then
+    Printf.eprintf "lookup_archive meta:%s dep:%s opam:%s\n"
+      meta.meta_name dep.meta_name dep.meta_opam.opam_name;
+  if is_library then
+    match StringMap.find basename dep.meta_opam.opam_libs with
+    | lib -> Archive_lib lib
+    | exception Not_found ->
+        let rec iter deps =
+          match deps with
+          | [] -> raise Not_found
+          | (_, dep) :: deps ->
+              match lookup_archive meta ~dep ~is_library ~basename with
+              | exception Not_found -> iter deps
+              | lib -> lib
+        in
+        iter ( StringMap.bindings dep.meta_deps )
+  else
+    (* TODO for modules, beware of checking ext with .cmx *)
+    raise Not_found
+
+let lookup_archive state ~is_library meta ~archive ~basename =
+  let arch =
+    match
+      try
+        lookup_archive meta ~dep:meta ~is_library ~basename
+      with
+        Not_found ->
+          if is_library then
+            let lib = Hashtbl.find state.ocaml_libs_by_name "stdlib" in
+            Archive_lib ( StringMap.find basename lib.lib_opam.opam_libs )
+          else
+            raise Not_found
     with
-      Not_found ->
-        let lib = Hashtbl.find state.ocaml_libraries  "stdlib" in
-        StringMap.find archive lib.lib_opam.opam_libs
-  with
-  | exception Not_found ->
-      Printf.eprintf "Warning: could not find archive %S in deps of meta %S\n%!"
-        archive m.meta_name
-  | lib ->
-      (*      Printf.eprintf "meta %S uses library %s::%s\n%!"
-              m.meta_name lib.lib_opam.opam_name lib.lib_name; *)
-      if not (List.memq lib m.meta_libs) then begin
-        m.meta_libs <- lib :: m.meta_libs;
-        lib.lib_metas <- m :: lib.lib_metas
-      end
+    | exception Not_found ->
+        Printf.eprintf
+          "Warning: could not find archive %S (%s) in deps of meta %S\n%!"
+          basename (if is_library then "library" else "module") meta.meta_name;
+        Archive_missing
+    | arch -> arch
+  in
 
-let find_archives state m =
-  match StringMap.find "archive" m.meta_file.p_variables with
+  meta.meta_archives <- StringMap.add archive arch meta.meta_archives;
+  match arch with
+  | Archive_lib lib ->
+      lib.lib_metas <- StringMap.add meta.meta_name meta lib.lib_metas
+  | Archive_mdl mdl ->
+      mdl.mdl_metas <- StringMap.add meta.meta_name meta mdl.mdl_metas
+  | Archive_missing -> ()
+
+let find_archives state meta =
+  match StringMap.find "archive" meta.meta_file.p_variables with
   | exception Not_found -> ()
   | v ->
       List.iter (fun (_, archives) ->
           List.iter (fun archive ->
-              if Filename.check_suffix archive ".cma" then
-                lookup_library state m
-                  (Filename.chop_suffix archive ".cma")
-              else
-              if Filename.check_suffix archive ".cmxa" then
-                lookup_library state m
-                  (Filename.chop_suffix archive ".cmxa")
-              else
-              if Filename.check_suffix archive ".cmxs" then
-                lookup_library state m
-                  (Filename.chop_suffix archive ".cmxs")
-              else
-                Printf.eprintf "Warning: meta %S has unknown archive kind %S\n%!"
-                  m.meta_name archive
+              let basename, ext = EzString.rcut_at archive '.' in
+              let ext = String.lowercase ext in
+              let need_lookup =
+                match ext with
+                | "cmxa" -> Some true
+                | "cmx" -> Some false
+
+                (* discard *)
+                | "cmxs"
+                | "cmo"
+                | "cma" -> None
+                | _ ->
+                    Printf.eprintf
+                      "Warning: meta %S has unknown archive kind %S\n%!"
+                      meta.meta_name archive;
+                    None
+              in
+              match need_lookup with
+              | None -> ()
+              | Some is_library ->
+                  lookup_archive state meta ~is_library ~archive ~basename
             ) ( EzString.split_simplify (trim_requires archives) ' ' )
         ) ( v.var_assigns @ v.var_additions )

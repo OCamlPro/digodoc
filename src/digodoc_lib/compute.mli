@@ -9,4 +9,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val compute : opam_switch_prefix:string -> Types.state
+val compute : opam_switch_prefix:string ->
+  ?objinfo:bool -> unit ->
+  Types.state

@@ -1,0 +1,4 @@
+kind = "program"
+name = "digodoc"
+[dependencies]
+digodoc_lib = "version"

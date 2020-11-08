@@ -22,9 +22,11 @@
 
 *)
 
-
+open EzCompat
 open EzFile.OP
 open Types
+
+let cache_file = "_digodoc/digodoc.state"
 
 let main () =
 
@@ -32,29 +34,67 @@ let main () =
     with Not_found -> failwith "not in an opam switch"
   in
 
-  let state = Compute.compute ~opam_switch_prefix in
+  let get_state ~state ~objinfo =
+    match state with
+    | None ->
+        let state = Compute.compute ~opam_switch_prefix ~objinfo () in
+        if objinfo then begin
+          EzFile.make_dir ~p:true "_digodoc";
+          let oc = open_out_bin cache_file in
+          output_value oc ( state : state );
+          close_out oc;
+          end;
+        state
+    | Some state -> state
+  in
 
-  for i = 1 to Array.length Sys.argv - 1 do
-    let m = Sys.argv.(i) in
-    match Hashtbl.find_all state.ocaml_modules m with
-    | exception Not_found -> failwith "module not found"
-    | [ m ] ->
-        if List.mem MLI m.mod_kinds then
-          Unix.execvp "less" [| "less";
-                                opam_switch_prefix //
-                                ( m.mod_file ^ ".mli") |]
-        else
-        if List.mem ML m.mod_kinds then
-          Unix.execvp "less" [| "less";
-                                opam_switch_prefix //
-                                ( m.mod_file ^ ".ml") |]
-    | list ->
-        List.iter (fun m ->
-            Printf.printf "* %s::%s\n%!"
-              m.mod_opam.opam_name m.mod_name
-          ) list;
+  let rec iter ~state ~objinfo args =
+    match args with
+    | [] ->
+        let state = get_state ~state ~objinfo in
+        Printer.print state
+    | "--no-objinfo" :: args ->
+        iter ~state ~objinfo:false args
+    | "--cached" :: args ->
+        let state =
+          let ic = open_in_bin cache_file  in
+          let ( state : state ) = input_value ic in
+          close_in ic;
+          Some state
+        in
+        iter ~state ~objinfo args
+    | ( "--help" | "-h" | "-help" ) :: _ ->
+        Printf.eprintf "digodoc [--no-objinfo] [MODULE]\n%!";
         exit 0
+    | _ :: _ :: _ ->
+        Printf.eprintf "Error: digodoc takes 0 or 1 argument\n%!";
+        exit 2
 
-  done ;
+    | [ "--html" ] ->
+        let state = get_state ~state ~objinfo in
+        Odoc.generate ~state
+    | [ mdl ] ->
+        let state = get_state ~state ~objinfo:false in
+        match Hashtbl.find_all state.ocaml_mdls_by_name mdl with
+        | exception Not_found -> failwith "module not found"
+        | [ m ] ->
+            if StringSet.mem "mli" m.mdl_exts then
+              Unix.execvp "less" [| "less";
+                                    opam_switch_prefix //
+                                    ( Module.file m ".mli") |]
+            else
+            if StringSet.mem "ml" m.mdl_exts then
+              Unix.execvp "less" [| "less";
+                                    opam_switch_prefix //
+                                    ( Module.file m "ml") |]
+        | list ->
+            Printf.printf "Found %d occurences:\n%!" ( List.length list);
+            List.iter (fun m ->
+                Printf.printf "* %s::%s\n%!"
+                  m.mdl_opam.opam_name m.mdl_name
+              ) list;
+            exit 0
+  in
 
-  Printer.print state
+  let args = Sys.argv |> Array.to_list |> List.tl in
+  iter ~state:None ~objinfo:true args
