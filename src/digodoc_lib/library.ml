@@ -42,6 +42,8 @@ let find_or_create ~lib_dir state lib_opam ~lib_name ~lib_ext ~objinfo =
         Hashtbl.add state.ocaml_libs_by_name lib_name lib;
         lib_opam.opam_libs <-
           StringMap.add lib_name lib lib_opam.opam_libs ;
+        state.ocaml_libs <-
+          ( lib.lib_name ^ lib_opam.opam_name , lib ) :: state.ocaml_libs;
         lib_dir.dir_libs <- StringMap.add lib_name lib lib_dir.dir_libs ;
 
         if objinfo then

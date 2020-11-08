@@ -20,8 +20,7 @@ let print state =
   StringMap.iter (fun package opam_package ->
       Printf.printf "opam package: %s\n" package;
       Printf.printf "    opam_version: %s\n"
-        (match opam_package.opam_version with
-         | None -> "" | Some version -> version);
+        opam_package.opam_version ;
       Printf.printf "    opam_synopsis: %s\n"
         (match opam_package.opam_synopsis with
          | None -> "" | Some version -> version);
@@ -64,8 +63,24 @@ let print state =
           StringMap.iter (fun _ lib ->
               Printf.printf "             mdl_lib: %s\n" lib.lib_name
             ) mdl.mdl_libs;
+          begin match mdl.mdl_intf with
+            | None -> ()
+            | Some intf ->
+                StringMap.iter (fun cmi crc ->
+                    Printf.printf "             mdl_cmi_import_cmi: %s %s\n" cmi crc
+                  ) intf.unit_import_cmis;
+          end;
+          begin match mdl.mdl_impl with
+            | None -> ()
+            | Some impl ->
+                StringMap.iter (fun cmi crc ->
+                    Printf.printf "             mdl_cmx_import_cmi: %s %s\n" cmi crc
+                  ) impl.unit_import_cmis;
+                StringMap.iter (fun cmi crc ->
+                    Printf.printf "             mdl_cmx_import_cmx: %s %s\n" cmi crc
+                  ) impl.unit_import_cmxs;
+          end;
         ) opam_package.opam_mdls;
-
       StringMap.iter (fun _name dep ->
           Printf.printf "    opam_dep: %s\n%!" dep.opam_name
         ) opam_package.opam_deps;

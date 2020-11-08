@@ -46,6 +46,7 @@ let find_or_create ~mdl_ext ~mdl_dir ~mdl_basename state ~mdl_opam ~objinfo =
         Hashtbl.add state.ocaml_mdls_by_name
           ( long_name ~mdl_name ~mdl_opam ) mdl;
         Hashtbl.add state.ocaml_mdls_by_name mdl_name mdl ;
+        state.ocaml_mdls <- ( mdl_name, mdl ) :: state.ocaml_mdls;
         mdl_dir.dir_mdls <- StringMap.add mdl.mdl_name mdl mdl_dir.dir_mdls;
         mdl_opam.opam_mdls <-
           StringMap.add mdl_name mdl mdl_opam.opam_mdls ;

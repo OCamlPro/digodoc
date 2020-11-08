@@ -20,7 +20,7 @@ let create state opam_name opam_files =
     Printf.kprintf failwith "Duplicated opam package %s" opam_name;
   let p = {
     opam_name ;
-    opam_version = None ;
+    opam_version = "0.0" ;
     opam_files ;
     opam_metas = [] ;
     opam_libs = StringMap.empty ;
@@ -32,6 +32,7 @@ let create state opam_name opam_files =
     opam_deps = StringMap.empty ;
     opam_revdeps = StringMap.empty ;
     opam_mdls = StringMap.empty ;
+    opam_docs = [] ;
   } in
   state.opam_packages <- StringMap.add opam_name p state.opam_packages ;
   p
@@ -133,7 +134,7 @@ let find_versions state =
                           without changes\n%!"
             package
       | opam_package ->
-          opam_package.opam_version <- Some version ;
+          opam_package.opam_version <- version ;
           match OpamParser.file filename with
           | exception _exn ->
               Printf.eprintf "Warning: cannot parse %s\n%!" filename

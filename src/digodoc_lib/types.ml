@@ -26,7 +26,7 @@ type comp_unit = {
 
 type opam_package = {
   opam_name : string ;
-  mutable opam_version : string option ;
+  mutable opam_version : string ;
   (* read .opam-switch/packages for that *)
   mutable opam_files : ( string * file_kind ) list ;
   (* meta files declared by this package *)
@@ -44,7 +44,15 @@ type opam_package = {
 
   mutable opam_deps : opam_package StringMap.t ;
   mutable opam_revdeps : opam_package StringMap.t ;
+
+  mutable opam_docs : doc_file list ;
 }
+
+and doc_file =
+    README_md of string
+  | CHANGES_md of string
+  | LICENSE_md of string
+  | ODOC_PAGE of string
 
 and meta_package = {
   meta_name : string ;
@@ -112,10 +120,12 @@ and state = {
   mutable directories : directory StringMap.t ;
   (* both NAME -> ocaml_lib and OPAM::NAME -> ocaml_lib.
      Hashtbl because not injective *)
+  mutable ocaml_libs : ( string * ocaml_lib ) list ;
   ocaml_libs_by_name : ( string, ocaml_lib ) Hashtbl.t ;
 
   (* both NAME -> ocaml_lib and OPAM::NAME -> ocaml_mdl.
      Hashtbl because not injective *)
+  mutable ocaml_mdls : ( string * ocaml_mdl ) list ;
   ocaml_mdls_by_name : ( string, ocaml_mdl ) Hashtbl.t ;
 
   ocaml_mdls_by_cmi_crc : ( string, ocaml_mdl ) Hashtbl.t;

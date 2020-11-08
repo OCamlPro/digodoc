@@ -24,6 +24,20 @@
   * Since META files from the OCaml distribution are wrongly installed
     by ocamlfind, we probably need to do something about it, no ?
    For example, the ones of compiler-libs.*
+
+  TODO:
+  * read doc/ files :
+     README.md
+     LICENSE.md
+     CHANGES.md
+     odoc-pages/index.mld
+
+  * generate index pages for:
+     META.$meta_package.$opam_package.$version/
+     OPAM.$opam_package.$version/
+  * Modules documentations are in:
+     LIBRARY.$library.$opam_package.$version/
+     MODULE.$mdl.$opam_package.$version/
 *)
 
 
@@ -70,6 +84,24 @@ let check_file state ~objinfo opam_package file =
             ~mdl_opam:opam_package ~mdl_dir:dir
         in
         ()
+
+    | "mld" ->
+        opam_package.opam_docs <- ODOC_PAGE file ::
+                                  opam_package.opam_docs
+    | "md" ->
+        begin
+          match basename with
+          | "README" ->
+              opam_package.opam_docs <-
+                README_md file :: opam_package.opam_docs
+          | "CHANGES" ->
+              opam_package.opam_docs <-
+                CHANGES_md file :: opam_package.opam_docs
+          | "LICENSE" ->
+              opam_package.opam_docs <-
+                LICENSE_md file :: opam_package.opam_docs
+          | _ -> ()
+        end
     | _ -> ()
 
 let find_modules state =
@@ -103,6 +135,8 @@ let compute ~opam_switch_prefix ?(objinfo=false) () =
     opam_packages = StringMap.empty ;
     meta_packages = StringMap.empty ;
     ocaml_libs_by_name = Hashtbl.create 13 ;
+    ocaml_libs = [];
+    ocaml_mdls = [] ;
     ocaml_mdls_by_name = Hashtbl.create 13 ;
     ocaml_mdls_by_cmi_crc = Hashtbl.create 13 ;
     ocaml_mdls_by_cmx_crc = Hashtbl.create 13 ;
@@ -124,6 +158,9 @@ let compute ~opam_switch_prefix ?(objinfo=false) () =
       if opam_name = "ocaml-base-compiler" then
         check_file state ~objinfo opam_package "metas/META.stdlib";
     ) packages ;
+
+  state.ocaml_libs <- List.sort compare state.ocaml_libs ;
+  state.ocaml_mdls <- List.sort compare state.ocaml_mdls ;
 
   (* compute dependencies between opam_packages  *)
   Opam.find_versions state ;
