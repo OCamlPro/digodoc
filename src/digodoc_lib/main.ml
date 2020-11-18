@@ -30,24 +30,43 @@ let cache_file = "_digodoc/digodoc.state"
 
 let main () =
 
-  let opam_switch_prefix = try Sys.getenv "OPAM_SWITCH_PREFIX"
-    with Not_found -> failwith "not in an opam switch"
+  let opam_switch_prefix = lazy
+    (
+      try Sys.getenv "OPAM_SWITCH_PREFIX"
+      with Not_found -> failwith "not in an opam switch"
+    )
   in
 
   let get_state ~state ~objinfo =
     match state with
     | None ->
+        let opam_switch_prefix = Lazy.force opam_switch_prefix in
         let state = Compute.compute ~opam_switch_prefix ~objinfo () in
         if objinfo then begin
           EzFile.make_dir ~p:true "_digodoc";
           let oc = open_out_bin cache_file in
           output_value oc ( state : state );
           close_out oc;
-          end;
+        end;
         state
     | Some state -> state
   in
+  let help exit_code =
+    Printf.eprintf
+      {|
+digodoc [--html] [--www] [--cached] [--no-objinfo] [--help] [MODULE]
 
+Options:
+--html: build html documentation
+--www: open html documentation in a browser
+--cached: use the cached state instead of recomputing it
+--no-objinfo: do not call ocamlobjinfo to attach modules to libraries
+
+If a MODULE is provided, display the source module corresponding to this module
+
+%!|};
+    exit exit_code
+  in
   let rec iter ~state ~objinfo args =
     match args with
     | [] ->
@@ -63,32 +82,39 @@ let main () =
           Some state
         in
         iter ~state ~objinfo args
-    | ( "--help" | "-h" | "-help" ) :: _ ->
-        Printf.eprintf "digodoc [--no-objinfo] [MODULE]\n%!";
-        exit 0
+    | ( "--help" | "-h" | "-help" ) :: _ -> help 0
     | _ :: _ :: _ ->
-        Printf.eprintf "Error: digodoc takes 0 or 1 argument\n%!";
-        exit 2
-
+        help 2
     | [ "--html" ] ->
         let state = get_state ~state ~objinfo in
         Odoc.generate ~state
+    | [ "--www" ] ->
+        let index = Odoc.digodoc_html_dir // "index.html" in
+        if Sys.file_exists index then
+          Process.call [| "xdg-open" ; index |]
+        else begin
+          Printf.eprintf
+            "Error: Use `digodoc --html` to generate the documentation first.\n";
+          exit 2
+        end
     | [ mdl ] ->
         let state = get_state ~state ~objinfo:false in
         match Hashtbl.find_all state.ocaml_mdls_by_name mdl with
         | exception Not_found -> failwith "module not found"
         | [ m ] ->
+            let opam_switch_prefix = Lazy.force opam_switch_prefix in
             if StringSet.mem "mli" m.mdl_exts then
               Unix.execvp "less" [| "less";
                                     opam_switch_prefix //
-                                    ( Module.file m ".mli") |]
+                                    ( Module.file m "mli") |]
             else
             if StringSet.mem "ml" m.mdl_exts then
               Unix.execvp "less" [| "less";
                                     opam_switch_prefix //
                                     ( Module.file m "ml") |]
         | list ->
-            Printf.printf "Found %d occurences:\n%!" ( List.length list);
+            Printf.printf "Found %d occurences of %S:\n%!"
+              ( List.length list) mdl;
             List.iter (fun m ->
                 Printf.printf "* %s::%s\n%!"
                   m.mdl_opam.opam_name m.mdl_name

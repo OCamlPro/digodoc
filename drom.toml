@@ -34,11 +34,6 @@ of the digodoc OCaml project
 [drom]
 skip = "src/digodoc/main.ml src/digodoc_lib/main.ml"
 
-[dependencies]
-ez_file = "0.1.0"
-opam-file-format = "2.0.0"
-[dependencies.ocaml]
-libname = "compiler-libs.common"
 
 [tools.ocamlformat]
 for-test = true
