@@ -1,6 +1,0 @@
-[submodule "vendors/ez_file"]
-	path = vendors/ez_file
-	url = git@github.com:OCamlPro/ez_file
-[submodule "vendors/ocplib_stuff"]
-	path = vendors/ocplib_stuff
-	url = git@github.com:OCamlPro/ocplib_stuff

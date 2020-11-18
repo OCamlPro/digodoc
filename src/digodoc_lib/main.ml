@@ -106,7 +106,7 @@ If a MODULE is provided, display the source module corresponding to this module
             if StringSet.mem "mli" m.mdl_exts then
               Unix.execvp "less" [| "less";
                                     opam_switch_prefix //
-                                    ( Module.file m ".mli") |]
+                                    ( Module.file m "mli") |]
             else
             if StringSet.mem "ml" m.mdl_exts then
               Unix.execvp "less" [| "less";

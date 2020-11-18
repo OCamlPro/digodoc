@@ -11,7 +11,7 @@
 
 open EzFile.OP
 open EzCompat
-open OpamParserTypes
+open OpamParserTypes.FullPos
 open Types
 
 
@@ -52,7 +52,7 @@ let kind = function
   | Env_binding _ -> "env_binding"
 
 let parse_changes filename =
-  let opamfile = OpamParser.file filename in
+  let opamfile = OpamParser.FullPos.file filename in
   let files = ref [] in
   let add_file file info =
     let c = info.[0] in
@@ -68,22 +68,37 @@ let parse_changes filename =
     files := (file, kind) :: !files
   in
   List.iter (function
-      | Variable (_, "added", List (_, list) ) ->
+      | { pelem =
+            Variable ( { pelem = "added" ; _ },
+                       { pelem = List { pelem = list ; _ } ;  _ } );
+          _ } ->
           List.iter (function
-              | Option (_, String (_, file),
-                        [ String (_, info) ]) ->
+              | { pelem = Option (
+                  { pelem = String file ; _ },
+                  { pelem = [
+                        { pelem = String info ; _ }
+                      ]; _ });
+                  _ } ->
                   add_file file info
               | _ -> assert false
             ) list
-      | Variable (_, "added",
-                  Option (_, String (_, file),
-                          [ String (_, info) ])
-                 ) ->
+      | { pelem =
+            Variable ( { pelem = "added" ; _ },
+                       { pelem = Option
+                             ( { pelem = String file ; _ },
+                               { pelem = [
+                                     { pelem = String info ; _ } ] ; _ } );
+                         _
+                       }
+                     );
+          _ } ->
           add_file file info
 
-      | Variable (_, name, v ) ->
+      | { pelem =
+            Variable ( { pelem = name ; _ }, v ); _
+        } ->
           Printf.eprintf "Warning: unexpected %S of kind %s\n%!"
-            name (kind v)
+            name (kind v.pelem)
       | _ -> assert false) opamfile.file_contents;
   !files
 
@@ -100,27 +115,30 @@ let find_changes state =
     ) files;
   !packages
 
+let empty_pos = { filename = ""; start = 0,0; stop = 0,0 }
+let elem pelem = { pelem ; pos = empty_pos }
+
 let iter_value_list v f =
   let rec iter_value v =
-    match v with
-    | String (_, name) -> f name [ String ( ("",0,0), "") ]
-    | Option (_, String (_, name), option) -> f name option
-    | Relop (_, _, v1, v2) ->
+    match v.pelem with
+    | String name -> f name []
+    | Option (
+        { pelem = String name ; _ }, _option) -> f name []
+    | Relop (_, v1, v2) ->
         iter_value v1 ; iter_value v2
-    | Logop (_, _, v1, v2) -> iter_value v1 ; iter_value v2
-    | Prefix_relop (_, _, v) -> iter_value v
-    | Pfxop (_, _, v) -> iter_value v
-    | Group (_, list) -> List.iter iter_value list
-    | v
-      ->
+    | Logop ( _, v1, v2) -> iter_value v1 ; iter_value v2
+    | Prefix_relop (_, v) -> iter_value v
+    | Pfxop (_, v) -> iter_value v
+    | Group { pelem = list ; _ } -> List.iter iter_value list
+    | _ ->
       Printf.eprintf "warning: unexpected depend value %s\n"
-        ( OpamPrinter.value v);
+        ( OpamPrinter.FullPos.value v);
 
   in
-  match v with
-  | List (_, values) ->
+  match v.pelem with
+  | List { pelem = values ; _ } ->
       List.iter iter_value values
-  | v -> iter_value v
+  | _ -> iter_value v
 
 let find_versions state =
   let versions_dir = state.opam_switch_prefix // ".opam-switch" // "packages" in
@@ -135,29 +153,31 @@ let find_versions state =
             package
       | opam_package ->
           opam_package.opam_version <- version ;
-          match OpamParser.file filename with
+          match OpamParser.FullPos.file filename with
           | exception _exn ->
               Printf.eprintf "Warning: cannot parse %s\n%!" filename
           | opam ->
-              List.iter (function
-                  | Variable (_, field, value) -> begin
-                      match field, value with
+              List.iter (fun v ->
+                  match v.pelem with
+                  | Variable (field, value) -> begin
+                      match field.pelem, value.pelem with
 
-                      | "synopsis", String (_, s) ->
+                      | "synopsis", String s ->
                           opam_package.opam_synopsis <- Some s
-                      | "description", String (_, s) ->
+                      | "description", String s ->
                           opam_package.opam_description <- Some s
-                      | "homepage", String (_, s) ->
+                      | "homepage", String s ->
                           opam_package.opam_homepage <- Some s
-                      | "license", String (_, s) ->
+                      | "license", String s ->
                           opam_package.opam_license <- Some s
-                      | "authors", String (_, s) ->
+                      | "authors", String s ->
                           opam_package.opam_authors <- Some [ s ]
-                      | "authors", List (_, list) ->
+                      | "authors", List list ->
                           opam_package.opam_authors <-
-                            Some (List.map (function
-                                | String (_,s) -> s
-                                | _ -> "???") list)
+                            Some (List.map (fun v ->
+                                match v.pelem with
+                                | String s -> s
+                                | _ -> "???") list.pelem)
                       | ( "name"
                         | "maintainer"
                         | "authors"
@@ -187,8 +207,8 @@ let find_versions state =
                         | "run-test"
                         | "extra-files") , _
                         -> ()
-                      | ( "depends" | "depopts" ), v ->
-                          iter_value_list v
+                      | ( "depends" | "depopts" ), _ ->
+                          iter_value_list value
                             (fun dep _constraints ->
                                match StringMap.find dep state.opam_packages with
                                | exception Not_found ->
@@ -203,7 +223,7 @@ let find_versions state =
                             )
                       | _ ->
                           Printf.eprintf "%s: discarding unknown field %S\n%!"
-                            filename field;
+                            filename field.pelem;
                     end
                   | _ -> ()
                 ) opam.file_contents
