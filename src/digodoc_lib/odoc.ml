@@ -60,7 +60,7 @@ let skip_modules = match Sys.getenv "SKIP_MODULES" with
   | exception Not_found -> false
   | _ -> true
 
-let call_odoc state mdl ~pkgs ext =
+let call_odoc ~continue_on_error state mdl ~pkgs ext =
   let pkg = pkg_of_mdl mdl in
   let odoc_target = digodoc_odoc_dir // pkg // mdl.mdl_basename ^ ".odoc" in
   let includes =
@@ -79,7 +79,7 @@ let call_odoc state mdl ~pkgs ext =
       @ includes
     in
 
-    Process.call ( Array.of_list cmd );
+    Process.call ~continue_on_error ( Array.of_list cmd );
   end;
 
   let cmd = [
@@ -90,7 +90,7 @@ let call_odoc state mdl ~pkgs ext =
     @ includes
   in
 
-  Process.call ( Array.of_list cmd );
+  Process.call ~continue_on_error ( Array.of_list cmd );
   ()
 
 let lookup_cmi state ~name ~crc =
@@ -570,7 +570,7 @@ let generate_meta_index state bb =
 |};
   ()
 
-let generate ~state =
+let generate ~state ~continue_on_error =
 
   (* Iter on modules first *)
 
@@ -587,13 +587,13 @@ let generate ~state =
         let pkgs = Hashtbl.find deps_of_pkg pkg in
         let pkgs = StringSet.to_list !pkgs in
         if StringSet.mem "cmti" mdl.mdl_exts then
-          call_odoc state mdl ~pkgs ".cmti"
+          call_odoc ~continue_on_error state mdl ~pkgs ".cmti"
         else
         if StringSet.mem "cmt" mdl.mdl_exts then
-          call_odoc state mdl ~pkgs ".cmt"
+          call_odoc ~continue_on_error state mdl ~pkgs ".cmt"
         else
         if StringSet.mem "cmi" mdl.mdl_exts then
-          call_odoc state mdl ~pkgs ".cmi"
+          call_odoc ~continue_on_error state mdl ~pkgs ".cmi"
       )
   end;
 
