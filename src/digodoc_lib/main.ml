@@ -28,6 +28,12 @@ open Types
 
 let cache_file = "_digodoc/digodoc.state"
 
+type action =
+  | Scan
+  | Search of string
+  | GenerateHtml
+  | OpenDoc
+
 let main () =
 
   let opam_switch_prefix = lazy
@@ -68,13 +74,10 @@ If a MODULE is provided, display the source module corresponding to this module
 %!|};
     exit exit_code
   in
-  let rec iter ~state ~objinfo ~continue_on_error args =
+  let rec iter ~state ~objinfo ~continue_on_error ~action args =
     match args with
-    | [] ->
-        let state = get_state ~state ~objinfo in
-        Printer.print state
     | "--no-objinfo" :: args ->
-        iter ~state ~objinfo:false ~continue_on_error args
+        iter ~state ~objinfo:false ~continue_on_error ~action args
     | "--cached" :: args ->
         let state =
           let ic = open_in_bin cache_file  in
@@ -82,48 +85,60 @@ If a MODULE is provided, display the source module corresponding to this module
           close_in ic;
           Some state
         in
-        iter ~state ~objinfo ~continue_on_error args
-    | ( "--help" | "-h" | "-help" ) :: _ -> help 0
-    | _ :: _ :: _ ->
-        help 2
-    | [ "--html" ] ->
-        let state = get_state ~state ~objinfo in
-        Odoc.generate ~state ~continue_on_error
-    | [ "--www" ] ->
-        let index = Odoc.digodoc_html_dir // "index.html" in
-        if Sys.file_exists index then
-          Process.call [| "xdg-open" ; index |]
-        else begin
-          Printf.eprintf
-            "Error: Use `digodoc --html` to generate the documentation first.\n";
-          exit 2
-        end
+        iter ~state ~objinfo ~continue_on_error ~action args
+    | "--html" :: args ->
+        iter ~state ~objinfo ~continue_on_error ~action:GenerateHtml args
+    | "--www" :: args ->
+        iter ~state ~objinfo ~continue_on_error ~action:OpenDoc args
     | ( "-k" | "--continue-on-error" ) :: args ->
-        iter ~state ~objinfo ~continue_on_error:true args
+        iter ~state ~objinfo ~continue_on_error:true ~action args
+    | ( "--help" | "-h" | "-help" ) :: _ -> help 0
     | [ mdl ] ->
-        let state = get_state ~state ~objinfo:false in
-        match Hashtbl.find_all state.ocaml_mdls_by_name mdl with
-        | exception Not_found -> failwith "module not found"
-        | [ m ] ->
-            let opam_switch_prefix = Lazy.force opam_switch_prefix in
-            if StringSet.mem "mli" m.mdl_exts then
-              Unix.execvp "less" [| "less";
-                                    opam_switch_prefix //
-                                    ( Module.file m "mli") |]
-            else
-            if StringSet.mem "ml" m.mdl_exts then
-              Unix.execvp "less" [| "less";
-                                    opam_switch_prefix //
-                                    ( Module.file m "ml") |]
-        | list ->
-            Printf.printf "Found %d occurences of %S:\n%!"
-              ( List.length list) mdl;
-            List.iter (fun m ->
-                Printf.printf "* %s::%s\n%!"
-                  m.mdl_opam.opam_name m.mdl_name
-              ) list;
-            exit 0
+        iter ~state ~objinfo ~continue_on_error ~action:(Search mdl) []
+    | _ :: _ -> help 2
+    | [] ->
+        match action with
+        | Scan ->
+            let state = get_state ~state ~objinfo in
+            Printer.print state
+        | GenerateHtml ->
+            let state = get_state ~state ~objinfo in
+            Odoc.generate ~state ~continue_on_error
+        | OpenDoc ->
+            let index = Odoc.digodoc_html_dir // "index.html" in
+            if Sys.file_exists index then
+              Process.call [| "xdg-open" ; index |]
+            else begin
+              Printf.eprintf
+                "Error: Use `digodoc --html` to generate the documentation first.\n";
+              exit 2
+            end
+        | Search mdl ->
+            begin
+              let state = get_state ~state ~objinfo:false in
+              match Hashtbl.find_all state.ocaml_mdls_by_name mdl with
+              | exception Not_found -> failwith "module not found"
+              | [ m ] ->
+                  let opam_switch_prefix = Lazy.force opam_switch_prefix in
+                  if StringSet.mem "mli" m.mdl_exts then
+                    Unix.execvp "less" [| "less";
+                                          opam_switch_prefix //
+                                          ( Module.file m "mli") |]
+                  else
+                  if StringSet.mem "ml" m.mdl_exts then
+                    Unix.execvp "less" [| "less";
+                                          opam_switch_prefix //
+                                          ( Module.file m "ml") |]
+              | list ->
+                  Printf.printf "Found %d occurences of %S:\n%!"
+                    ( List.length list) mdl;
+                  List.iter (fun m ->
+                      Printf.printf "* %s::%s\n%!"
+                        m.mdl_opam.opam_name m.mdl_name
+                    ) list;
+                  exit 0
+            end
   in
 
   let args = Sys.argv |> Array.to_list |> List.tl in
-  iter ~state:None ~objinfo:true ~continue_on_error:false args
+  iter ~state:None ~objinfo:true ~continue_on_error:false ~action:Scan args
