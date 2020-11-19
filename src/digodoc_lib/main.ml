@@ -54,11 +54,12 @@ let main () =
   let help exit_code =
     Printf.eprintf
       {|
-digodoc [--html] [--www] [--cached] [--no-objinfo] [--help] [MODULE]
+digodoc [--html] [--www] [-k] [--cached] [--no-objinfo] [--help] [MODULE]
 
 Options:
 --html: build html documentation
 --www: open html documentation in a browser
+-k: continue on error (mainly odoc)
 --cached: use the cached state instead of recomputing it
 --no-objinfo: do not call ocamlobjinfo to attach modules to libraries
 
@@ -67,13 +68,13 @@ If a MODULE is provided, display the source module corresponding to this module
 %!|};
     exit exit_code
   in
-  let rec iter ~state ~objinfo args =
+  let rec iter ~state ~objinfo ~continue_on_error args =
     match args with
     | [] ->
         let state = get_state ~state ~objinfo in
         Printer.print state
     | "--no-objinfo" :: args ->
-        iter ~state ~objinfo:false args
+        iter ~state ~objinfo:false ~continue_on_error args
     | "--cached" :: args ->
         let state =
           let ic = open_in_bin cache_file  in
@@ -81,13 +82,13 @@ If a MODULE is provided, display the source module corresponding to this module
           close_in ic;
           Some state
         in
-        iter ~state ~objinfo args
+        iter ~state ~objinfo ~continue_on_error args
     | ( "--help" | "-h" | "-help" ) :: _ -> help 0
     | _ :: _ :: _ ->
         help 2
     | [ "--html" ] ->
         let state = get_state ~state ~objinfo in
-        Odoc.generate ~state
+        Odoc.generate ~state ~continue_on_error
     | [ "--www" ] ->
         let index = Odoc.digodoc_html_dir // "index.html" in
         if Sys.file_exists index then
@@ -97,6 +98,8 @@ If a MODULE is provided, display the source module corresponding to this module
             "Error: Use `digodoc --html` to generate the documentation first.\n";
           exit 2
         end
+    | ( "-k" | "--continue-on-error" ) :: args ->
+        iter ~state ~objinfo ~continue_on_error:true args
     | [ mdl ] ->
         let state = get_state ~state ~objinfo:false in
         match Hashtbl.find_all state.ocaml_mdls_by_name mdl with
@@ -123,4 +126,4 @@ If a MODULE is provided, display the source module corresponding to this module
   in
 
   let args = Sys.argv |> Array.to_list |> List.tl in
-  iter ~state:None ~objinfo:true args
+  iter ~state:None ~objinfo:true ~continue_on_error:false args

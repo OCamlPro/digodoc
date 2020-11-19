@@ -15,7 +15,7 @@ exception Error of string
 
 let error fmt = Printf.kprintf (fun s -> raise (Error s)) fmt
 
-let call ?(stdout = Unix.stdout) args =
+let call ?(continue_on_error=false) ?(stdout = Unix.stdout) args =
   Printf.eprintf "Calling %s\n%!" (String.concat " " (Array.to_list args));
   let pid = Unix.create_process args.(0) args Unix.stdin stdout Unix.stderr in
   let rec iter () =
@@ -25,12 +25,16 @@ let call ?(stdout = Unix.stdout) args =
         match status with
         | WEXITED 0 -> ()
         | _ ->
-            error "Command '%s' exited with error code %s"
-              (String.concat " " (Array.to_list args))
-              ( match status with
-                | WEXITED n -> string_of_int n
-                | WSIGNALED n -> Printf.sprintf "SIGNAL %d" n
-                | WSTOPPED n -> Printf.sprintf "STOPPED %d" n ) )
+            let s =
+              Printf.sprintf "Command '%s' exited with error code %s"
+                (String.concat " " (Array.to_list args))
+                ( match status with
+                  | WEXITED n -> string_of_int n
+                  | WSIGNALED n -> Printf.sprintf "SIGNAL %d" n
+                  | WSTOPPED n -> Printf.sprintf "STOPPED %d" n )
+            in
+            if continue_on_error then () else error "%s" s
+      )
   in
   iter ()
 
