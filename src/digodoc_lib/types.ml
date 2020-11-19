@@ -15,6 +15,7 @@ type file_kind =
   | Directory
   | File
   | Link
+  | Special
 
 (* As returned by Objinfo.read : string -> unit list *)
 type comp_unit = {

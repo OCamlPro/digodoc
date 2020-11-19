@@ -61,6 +61,7 @@ let parse_changes filename =
       | 'D' -> Directory
       | 'F' -> File
       | 'L' -> Link
+      | 'S' -> Special
       | _ ->
           Printf.eprintf "[ %c ]%!" c;
           assert false
