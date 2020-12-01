@@ -90,6 +90,38 @@ let call_odoc ~continue_on_error state mdl ~pkgs ext =
   Process.call ~continue_on_error ( Array.of_list cmd );
   ()
 
+let call_odoc_mld ~continue_on_error state pkg mldfile ~pkgs =
+  let name = Filename.basename mldfile |> Filename.remove_extension in
+  let odoc_target = digodoc_odoc_dir // pkg // "page-" ^ name ^ ".odoc" in
+  let includes =
+    List.concat_map (fun pkg ->
+        [ "-I" ; digodoc_odoc_dir // pkg ]
+      ) pkgs
+  in
+  if force_rebuild || not ( Sys.file_exists odoc_target ) then begin
+    let cmd = [
+      "odoc" ; "compile" ;
+      "--pkg" ; pkg ;
+      "-o" ; odoc_target ;
+      state.opam_switch_prefix // mldfile ]
+      @ includes
+    in
+
+    Process.call ~continue_on_error ( Array.of_list cmd );
+  end;
+
+  let cmd = [
+    "odoc" ; "html" ;
+    "--theme-uri"; "_odoc-theme" ;
+    "-o" ; Html.digodoc_html_dir ;
+    odoc_target ]
+    @ includes
+  in
+
+  Process.call ~continue_on_error ( Array.of_list cmd );
+  ()
+
+
 let lookup_cmi state ~name ~crc =
   try Hashtbl.find state.ocaml_mdls_by_cmi_crc crc with
   | Not_found ->
