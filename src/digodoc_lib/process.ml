@@ -15,28 +15,34 @@ exception Error of string
 
 let error fmt = Printf.kprintf (fun s -> raise (Error s)) fmt
 
+let skip_calls = match Sys.getenv "SKIP_CALLS" with
+  | exception Not_found -> []
+  | s -> EzString.split s ','
+
 let call ?(continue_on_error=false) ?(stdout = Unix.stdout) args =
-  Printf.eprintf "Calling %s\n%!" (String.concat " " (Array.to_list args));
-  let pid = Unix.create_process args.(0) args Unix.stdin stdout Unix.stderr in
-  let rec iter () =
-    match Unix.waitpid [] pid with
-    | exception Unix.Unix_error (EINTR, _, _) -> iter ()
-    | _pid, status -> (
-        match status with
-        | WEXITED 0 -> ()
-        | _ ->
-            let s =
-              Printf.sprintf "Command '%s' exited with error code %s"
-                (String.concat " " (Array.to_list args))
-                ( match status with
-                  | WEXITED n -> string_of_int n
-                  | WSIGNALED n -> Printf.sprintf "SIGNAL %d" n
-                  | WSTOPPED n -> Printf.sprintf "STOPPED %d" n )
-            in
-            if continue_on_error then () else error "%s" s
-      )
-  in
-  iter ()
+  if List.mem args.(0) skip_calls then () else begin
+    Printf.eprintf "Calling %s\n%!" (String.concat " " (Array.to_list args));
+    let pid = Unix.create_process args.(0) args Unix.stdin stdout Unix.stderr in
+    let rec iter () =
+      match Unix.waitpid [] pid with
+      | exception Unix.Unix_error (EINTR, _, _) -> iter ()
+      | _pid, status -> (
+          match status with
+          | WEXITED 0 -> ()
+          | _ ->
+              let s =
+                Printf.sprintf "Command '%s' exited with error code %s"
+                  (String.concat " " (Array.to_list args))
+                  ( match status with
+                    | WEXITED n -> string_of_int n
+                    | WSIGNALED n -> Printf.sprintf "SIGNAL %d" n
+                    | WSTOPPED n -> Printf.sprintf "STOPPED %d" n )
+              in
+              if continue_on_error then () else error "%s" s
+        )
+    in
+    iter ()
+  end
 
 let call_stdout args =
   let stdout =  "/tmp/objinfo.stdout" in
