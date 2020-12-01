@@ -133,6 +133,9 @@ a.anchor
   text-align: right;
  }
 
+a.digodoc-opam { color: green; }
+a.digodoc-lib { color: purple; }
+
 *:target /* Linked highlight */
 { background-color: var(--color-bg-highlight);
   box-shadow: 0 0 0 3px var(--color-bg-highlight) }

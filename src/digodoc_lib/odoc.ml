@@ -261,7 +261,7 @@ let generate_library_index state bb =
 
       let line =
       Printf.sprintf
-        {|<li><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html">%s.%s</a></li>|}
+        {|<li><a href="%s/index.html"" class="digodoc-lib"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
         pkg lib.lib_name
         opam_pkg
         lib.lib_opam.opam_name
@@ -279,7 +279,7 @@ let generate_library_index state bb =
 
       Printf.bprintf b "{1:info Library info}\n";
       Printf.bprintf b {|{%%html:<table class="package info">|};
-      Printf.bprintf b {|<tr><td>Opam package:</td><td><a href="../%s/index.html">%s.%s</a></td></tr>|}
+      Printf.bprintf b {|<tr><td>Opam package:</td><td><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></td></tr>|}
         opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
       Printf.bprintf b {|<tr><td>Directory:</td><td>%s</td></tr>|}
         lib.lib_dir.dir_name;
@@ -348,7 +348,7 @@ let generate_opam_index state bb =
 
       let line =
         Printf.sprintf
-        {|<li><a href="%s/index.html"><code>%s.%s</code></a> %s</li>|}
+        {|<li><a href="%s/index.html" class="digodoc-opam"><code>%s.%s</code></a> %s</li>|}
         pkg opam.opam_name
         opam.opam_version
         (match opam.opam_synopsis with
@@ -487,7 +487,7 @@ let generate_module_index state bb =
 
       let line =
       Printf.sprintf
-        {|<li><a href="%s/%s/index.html"><code>%s</code></a>%s in opam <a href="%s/index.html">%s.%s</a>%s</li>|}
+        {|<li><a href="%s/%s/index.html"><code>%s</code></a>%s in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a>%s</li>|}
         pkg
         mdl.mdl_name
         short_name
@@ -506,7 +506,7 @@ let generate_module_index state bb =
              ( String.concat ", "
                  ( StringMap.to_list mdl.mdl_libs |>
                    List.map (fun (_,lib) ->
-                       Printf.sprintf {|<a href="%s/index.html">%s</a>|}
+                       Printf.sprintf {|<a href="%s/index.html" class="digodoc-lib">%s</a>|}
                          (pkg_of_lib lib) lib.lib_name
                      ) ))
         )
@@ -528,7 +528,7 @@ let generate_meta_index state bb =
       let opam_pkg = pkg_of_opam opam in
       let line =
         Printf.sprintf
-          {|<li><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html">%s.%s</a></li>|}
+          {|<li><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
           pkg meta.meta_name
           opam_pkg
           opam.opam_name
@@ -541,7 +541,7 @@ let generate_meta_index state bb =
       Printf.bprintf b "{0:opam-%s Dune/OCamlfind Package %s\n"
         meta.meta_name meta.meta_name;
       Printf.bprintf b
-        {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+        {|{%%html:<nav><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></nav>%%}|}
         opam_pkg opam.opam_name opam.opam_version;
       Printf.bprintf b "}\n";
 
