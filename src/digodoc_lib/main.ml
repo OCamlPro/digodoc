@@ -105,7 +105,7 @@ If a MODULE is provided, display the source module corresponding to this module
             let state = get_state ~state ~objinfo in
             Odoc.generate ~state ~continue_on_error
         | OpenDoc ->
-            let index = Odoc.digodoc_html_dir // "index.html" in
+            let index = Html.digodoc_html_dir // "index.html" in
             if Sys.file_exists index then
               Process.call [| "xdg-open" ; index |]
             else begin

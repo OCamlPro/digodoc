@@ -27,6 +27,7 @@ open Types
   (3) build the documentation in the topological order of the `pkgs`
 *)
 
+let digodoc_odoc_dir = Globals.digodoc_dir // "odoc"
 
 let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"
@@ -47,10 +48,6 @@ let pkg_of_mdl mdl =
   | [] ->
       Printf.sprintf "MODULE.%s.%s.%s"
         mdl.mdl_basename mdl.mdl_opam.opam_name version
-
-let digodoc_dir = "_digodoc"
-let digodoc_html_dir = digodoc_dir // "html"
-let digodoc_odoc_dir = digodoc_dir // "odoc"
 
 let force_rebuild = match Sys.getenv "FORCE_REBUILD" with
   | exception Not_found -> false
@@ -85,7 +82,7 @@ let call_odoc ~continue_on_error state mdl ~pkgs ext =
   let cmd = [
     "odoc" ; "html" ;
     "--theme-uri"; "_odoc-theme" ;
-    "-o" ; digodoc_html_dir ;
+    "-o" ; Html.digodoc_html_dir ;
     odoc_target ]
     @ includes
   in
@@ -211,24 +208,66 @@ let iter_modules_with_cmi state f =
     ) state.ocaml_mdls_by_cmi_crc
 
 
-let generate_library_index state bb =
+let print_index bb index =
+  let map = ref StringMap.empty in
+  List.iter (fun (entry, line) ->
+      let i = String.make 1 ( Char.lowercase entry.[0] ) in
+      match StringMap.find i !map with
+      | exception Not_found ->
+          let r = ref [ entry, line ] in
+          map := StringMap.add i r !map
+      | r -> r := ( entry, line ) :: !r
+    ) index;
 
   Printf.bprintf bb {|
-  <h1 id="index"><a href="#index-libraries" class="anchor"></a>Index of Libraries</h1>
-  <ul class="libraries">
+    <div class="by-name">
+      <nav>
 |};
+  StringMap.iter (fun i _ ->
+      Printf.bprintf bb {|<a href="#name-%s">%s</a>
+|} i i) !map;
 
+  Printf.bprintf bb {|
+      </nav>
+|};
+  StringMap.iter (fun i r ->
+      Printf.bprintf bb {|
+      <h3 id="name-%s">
+        <a href="#name-%s" aria-hidden="true" class="anchor">
+        </a>%s
+      </h3>
+      <ol class="packages">
+|} i i i ;
+      List.iter (fun ( _entry, line ) ->
+          Printf.bprintf bb "%s\n" line;
+        ) ( List.sort compare !r ) ;
+
+      Printf.bprintf bb {|
+      </ol>
+|};
+    ) !map;
+
+  Printf.bprintf bb {|
+    </div>
+|};
+  ()
+
+let generate_library_index state bb =
+
+  let index = ref [] in
   List.iter (fun  ( _, lib ) ->
-      Printf.eprintf "For library %s\n%!" lib.lib_name ;
       let pkg = pkg_of_lib lib in
       let opam_pkg = pkg_of_opam lib.lib_opam in
-      Printf.bprintf bb
+
+      let line =
+      Printf.sprintf
         {|<li><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html">%s.%s</a></li>|}
         pkg lib.lib_name
         opam_pkg
         lib.lib_opam.opam_name
-        lib.lib_opam.opam_version;
-
+        lib.lib_opam.opam_version
+      in
+      index := ( lib.lib_name, line ) :: !index;
       let b = Buffer.create 10000 in
 
       Printf.bprintf b "{0:library-%s Library %s\n"
@@ -282,7 +321,7 @@ let generate_library_index state bb =
       let cmd = [
         "odoc" ; "html" ;
         "--theme-uri"; "_odoc-theme" ;
-        "-o" ; digodoc_html_dir ;
+        "-o" ; Html.digodoc_html_dir ;
         "-I" ; digodoc_odoc_dir // pkg ;
         odoc_target
       ]
@@ -294,29 +333,29 @@ let generate_library_index state bb =
     )
     ( List.sort compare state.ocaml_libs );
 
+  print_index bb (List.rev !index);
 
-  Printf.bprintf bb
-    {|
-   </ul>
-|};
   ()
 
 
 let generate_opam_index state bb =
-  Printf.bprintf bb {|
-  <h1 id="index"><a href="#index-opam" class="anchor"></a>Index of Opam Packages</h1>
-  <ul class="opams">
-|};
+
+
+  let index = ref [] in
 
   StringMap.iter (fun _ opam ->
       let pkg = pkg_of_opam opam in
-      Printf.bprintf bb
+
+      let line =
+        Printf.sprintf
         {|<li><a href="%s/index.html"><code>%s.%s</code></a> %s</li>|}
         pkg opam.opam_name
         opam.opam_version
         (match opam.opam_synopsis with
          | None -> ""
-         | Some s -> s); (* TODO html encode *)
+         | Some s -> s)
+      in
+      index := (opam.opam_name, line ) :: !index;
 
       let b = Buffer.create 10000 in
 
@@ -386,7 +425,7 @@ let generate_opam_index state bb =
       let cmd = [
         "odoc" ; "html" ;
         "--theme-uri"; "_odoc-theme" ;
-        "-o" ; digodoc_html_dir ;
+        "-o" ; Html.digodoc_html_dir ;
         "-I" ; digodoc_odoc_dir // pkg ;
         odoc_target
       ] @
@@ -400,10 +439,7 @@ let generate_opam_index state bb =
       ()
     ) state.opam_packages ;
 
-  Printf.bprintf bb
-    {|
-   </ul>
-|};
+  print_index bb !index;
   ()
 
 let generate_module_index state bb =
@@ -443,11 +479,14 @@ let generate_module_index state bb =
   <ul class="modules">
 |};
 
+  let index = ref [] in
   List.iter (fun ( short_name , long, mdl ) ->
       let pkg = pkg_of_mdl mdl in
       let opam = mdl.mdl_opam in
       let opam_pkg = pkg_of_opam opam in
-      Printf.bprintf bb
+
+      let line =
+      Printf.sprintf
         {|<li><a href="%s/%s/index.html"><code>%s</code></a>%s in opam <a href="%s/index.html">%s.%s</a>%s</li>|}
         pkg
         mdl.mdl_name
@@ -471,32 +510,31 @@ let generate_module_index state bb =
                          (pkg_of_lib lib) lib.lib_name
                      ) ))
         )
+      in
+      index := ( short_name, line ) :: !index
     ) list ;
 
-  Printf.bprintf bb
-    {|
-   </ul>
-|};
-
+  print_index bb !index;
   ()
 
 let generate_meta_index state bb =
 
-  Printf.bprintf bb {|
-  <h1 id="index"><a href="#index-meta" class="anchor"></a>Index of Dune/OCamlfind Packages</h1>
-  <ul class="metas">
-|};
+
+  let index = ref [] in
 
   StringMap.iter (fun _ meta ->
       let pkg = pkg_of_meta meta in
       let opam = meta.meta_opam in
       let opam_pkg = pkg_of_opam opam in
-      Printf.bprintf bb
-        {|<li><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html">%s.%s</a></li>|}
-        pkg meta.meta_name
-        opam_pkg
-        opam.opam_name
-        opam.opam_version;
+      let line =
+        Printf.sprintf
+          {|<li><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html">%s.%s</a></li>|}
+          pkg meta.meta_name
+          opam_pkg
+          opam.opam_name
+          opam.opam_version
+      in
+      index := ( meta.meta_name , line ) :: !index;
 
       let b = Buffer.create 10000 in
 
@@ -553,7 +591,7 @@ let generate_meta_index state bb =
       let cmd = [
         "odoc" ; "html" ;
         "--theme-uri"; "_odoc-theme" ;
-        "-o" ; digodoc_html_dir ;
+        "-o" ; Html.digodoc_html_dir ;
         "-I" ; digodoc_odoc_dir // pkg ;
         odoc_target
       ]
@@ -564,19 +602,16 @@ let generate_meta_index state bb =
       ()
     ) state.meta_packages ;
 
-  Printf.bprintf bb
-    {|
-   </ul>
-|};
+  print_index bb (List.rev !index);
   ()
 
 let generate ~state ~continue_on_error =
 
   (* Iter on modules first *)
 
-  EzFile.make_dir ~p:true digodoc_html_dir;
+  EzFile.make_dir ~p:true Html.digodoc_html_dir;
   Process.call [|
-    "rsync"; "-auv"; "html/.";  digodoc_html_dir // "." |];
+    "rsync"; "-auv"; "html/.";  Html.digodoc_html_dir // "." |];
 
   let deps_of_pkg = deps_of_pkg state in
 
@@ -604,38 +639,64 @@ let generate ~state ~continue_on_error =
 
   (* Iter on every library *)
 
-  let bb = Buffer.create 10000 in
-  Printf.bprintf bb {|<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
- <head>
-  <title>index</title>
-  <link rel="stylesheet" href="_odoc-theme/odoc.css"/>
-  <meta charset="utf-8"/>
-  <meta name="generator" content="digodoc 0.1"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <script src="highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-</head>
-|};
-  Printf.bprintf bb
-    {|
-<body>
- <div class="content">
-  <header><nav>Index</nav>
-|};
-
-  generate_library_index state bb;
-  generate_opam_index state bb;
-  generate_meta_index state bb;
-  generate_module_index state bb;
-
-  Printf.bprintf bb
-    {|
+  let header bb ~title =
+    Printf.bprintf bb
+      {|
+  <header>
+   <nav>
+    <div>
+     <span><a href="index.html">Opam Index</a>
+| <a href="metas.html">Meta Index</a>
+| <a href="libraries.html">Libraries Index</a>
+| <a href="modules.html">Modules Index</a>
+     </span>
+    </div>
+   </nav>
+  <h1>OCaml Documentation: %s</h1>
+  <ul>
+    <li><a href="https://caml.inria.fr/pub/docs/manual-ocaml/">OCaml Manual</a></li>
+  </ul>
   </header>
- </div>
-</body>
-</html>
-|};
-  let contents = Buffer.contents bb in
-  EzFile.write_file (digodoc_html_dir // "index.html") contents;
+|} title;
+  in
+
+  let trailer _bb =
+    ()
+  in
+  Html.generate_page
+    ~filename:"index.html"
+    ~title:"Main Index"
+    (fun bb ~title ->
+       header bb ~title;
+       generate_opam_index state bb;
+       trailer bb;
+    );
+
+  Html.generate_page
+    ~filename:"libraries.html"
+    ~title:"Libraries Index"
+    (fun bb ~title  ->
+       header bb ~title;
+       generate_library_index state bb;
+       trailer bb;
+    );
+
+  Html.generate_page
+    ~filename:"metas.html"
+    ~title:"Meta Index"
+    (fun bb ~title ->
+       header bb ~title;
+       generate_meta_index state bb;
+       trailer bb;
+    );
+
+  Html.generate_page
+    ~filename:"modules.html"
+    ~title:"Modules Index"
+    (fun bb ~title ->
+       header bb ~title;
+       generate_module_index state bb;
+       trailer bb;
+    );
+
   ()
