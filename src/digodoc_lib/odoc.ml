@@ -252,6 +252,147 @@ let print_index bb index =
 |};
   ()
 
+type modul = {
+  modul : ocaml_mdl ;
+  mutable modul_subs : ocaml_mdl StringMap.t ;
+}
+
+let module_cut m =
+  let rec iter m i len =
+    if i+1 = len then
+      m, ""
+    else
+    if m.[i] = '_' && m.[i+1] = '_' then
+      String.sub m 0 i, String.sub m (i+2) (len - i - 2)
+    else
+      iter m (i+1) len
+  in
+  iter m 0 (String.length m)
+
+let modules_to_html b map =
+  match StringMap.bindings map with
+  | [] -> ()
+  | (_, _mdl0) :: _ ->
+
+      let new_map = ref StringMap.empty in
+      StringMap.iter (fun _ mdl ->
+          match mdl.mdl_intf with
+          | None -> ()
+          | Some _ ->
+              let m, sub = module_cut mdl.mdl_name in
+              match StringMap.find m !new_map with
+              | exception Not_found ->
+                  new_map := StringMap.add mdl.mdl_name {
+                      modul = mdl ;
+                      modul_subs = StringMap.empty ;
+                    } !new_map
+              | modul ->
+                  if sub <> "" then
+                    modul.modul_subs <- StringMap.add sub mdl modul.modul_subs
+        ) map ;
+
+      Printf.bprintf b {|{%%html:<ul class="modules">|};
+      StringMap.iter (fun _ modul ->
+          let mdl = modul.modul in
+          let pkg = pkg_of_mdl mdl in
+          Printf.bprintf b
+            {|<li><a href="../%s/%s/index.html">%s</a> %s</li>|}
+            pkg mdl.mdl_name mdl.mdl_name
+            (if StringMap.is_empty modul.modul_subs then
+               ""
+             else
+               Printf.sprintf "{ %s }"
+                 ( String.concat ", "
+                     ( List.map (fun (name, mdl) ->
+                           let pkg = pkg_of_mdl mdl in
+                           Printf.sprintf
+                             {|<a href="../%s/%s/index.html">%s</a>|}
+                             pkg mdl.mdl_name name
+                         )
+                           ( StringMap.bindings modul.modul_subs )))
+            )
+        ) !new_map;
+      Printf.bprintf b {|</ul>%%}|};
+      ()
+
+
+
+let print_package_info b lines =
+  Printf.bprintf b {|{%%html:<table class="package info">|};
+  List.iter (fun line ->
+      Printf.bprintf b {|<tr>|};
+      List.iter (fun col ->
+          Printf.bprintf b {|<td>%s</td>|} col
+        ) line;
+      Printf.bprintf b {|</tr>|};
+    ) lines;
+  Printf.bprintf b {|</table>%%}|};
+  ()
+
+let opams_to_html title map =
+  match StringMap.bindings map with
+  | [] -> [ title ^ "(0)" ; ""]
+  | list -> [
+      Printf.sprintf "%s (%d)" title ( List.length list );
+      Printf.sprintf "<ul>%s</ul>"
+        ( String.concat ""
+            ( List.map (fun (_,opam) ->
+                  let pkg = pkg_of_opam opam in
+                  let nv = opam.opam_name ^ "." ^ opam.opam_version in
+                  Printf.sprintf
+                    {|<li><a href="../%s/index.html">%s</a></li>|}
+                    pkg nv
+                ) list))
+    ]
+
+let metas_to_html title map =
+  match StringMap.bindings map with
+  | [] -> [ title ^ "(0)" ; ""]
+  | list -> [
+      Printf.sprintf "%s (%d)" title ( List.length list );
+      Printf.sprintf "<ul>%s</ul>"
+        ( String.concat ""
+            ( List.map (fun (_,meta) ->
+                  let pkg = pkg_of_meta meta in
+                  Printf.sprintf
+                    {|<li><a href="../%s/index.html">%s</a></li>|}
+                    pkg meta.meta_name
+                ) list))
+    ]
+
+let metas_list_to_html title list =
+  match list with
+  | [] -> [ title ^ "(0)" ; ""]
+  | list -> [
+      Printf.sprintf "%s (%d)" title ( List.length list );
+      Printf.sprintf "<ul>%s</ul>"
+        ( String.concat ""
+            ( List.map (fun meta ->
+                  let pkg = pkg_of_meta meta in
+                  Printf.sprintf
+                    {|<li><a href="../%s/index.html">%s</a></li>|}
+                    pkg meta.meta_name
+                ) list))
+    ]
+
+let libraries_to_html title map =
+  match StringMap.bindings map with
+  | [] -> [ title ^ "(0)" ; ""]
+  | list -> [
+      Printf.sprintf "%s (%d)" title ( List.length list );
+      Printf.sprintf "<ul>%s</ul>"
+        ( String.concat ""
+            ( List.map (fun (name,lib) ->
+                  let pkg = pkg_of_lib lib in
+                  Printf.sprintf
+                    {|<li><a href="../%s/index.html">%s</a></li>|}
+                    pkg name
+                ) list))
+    ]
+
+
+
+
 let generate_library_index state bb =
 
   let index = ref [] in
@@ -295,11 +436,8 @@ let generate_library_index state bb =
       Printf.bprintf b "</table>%%}\n";
 
       Printf.bprintf b "{1:modules Library modules}\n";
-      Printf.bprintf b "{!modules:\n";
-      StringMap.iter (fun _ mdl ->
-          Printf.bprintf b "  %s\n" mdl.mdl_name;
-        ) lib.lib_mdls;
-      Printf.bprintf b "}\n";
+
+      modules_to_html b lib.lib_mdls;
 
       let content = Buffer.contents b in
       let mld_file = digodoc_odoc_dir // pkg // "page-index.mld" in
@@ -337,97 +475,68 @@ let generate_library_index state bb =
 
   ()
 
-let print_package_info b lines =
-  Printf.bprintf b {|
-<table class="package info">
-|};
-  List.iter (fun line ->
-      Printf.bprintf b {|<tr>|};
-      List.iter (fun col ->
-          Printf.bprintf b {|<td>%s</td>|} col
-        ) line;
-      Printf.bprintf b {|</tr>|};
-    ) lines;
-  Printf.bprintf b {|
-</table>
-|};
-  ()
 
-let opams_to_html title map =
-  match StringMap.bindings map with
-  | [] -> [ title ^ "(0)" ; ""]
-  | list -> [
-      Printf.sprintf "%s (%d)" title ( List.length list );
-      Printf.sprintf "<ul>%s</ul>"
-        ( String.concat ""
-            ( List.map (fun (_,opam) ->
-                  let pkg = pkg_of_opam opam in
-                  let nv = opam.opam_name ^ "." ^ opam.opam_version in
-                  Printf.sprintf
-                    {|<li><a href="../%s/index.html">%s</a></li>|}
-                    pkg nv
-                ) list))
-    ]
+let infos_of_opam state pkg opam =
+  let html_dir = Html.digodoc_html_dir // pkg in
 
-let metas_list_to_html title list =
-  match list with
-  | [] -> [ title ^ "(0)" ; ""]
-  | list -> [
-      Printf.sprintf "%s (%d)" title ( List.length list );
-      Printf.sprintf "<ul>%s</ul>"
-        ( String.concat ""
-            ( List.map (fun meta ->
-                  let pkg = pkg_of_meta meta in
-                  Printf.sprintf
-                    {|<li><a href="../%s/index.html">%s</a></li>|}
-                    pkg meta.meta_name
-                ) list))
-    ]
+  let copy_file file =
+    let basename = Filename.basename file in
+    let dstfile = html_dir // basename in
+    let content =
+      EzFile.read_file ( state.opam_switch_prefix // file ) in
+    EzFile.make_dir ~p:true html_dir ;
+    EzFile.write_file dstfile content;
+    Printf.sprintf {|<a href="%s">%s</a>|} basename basename
+  in
 
-let libraries_to_html title map =
-  match StringMap.bindings map with
-  | [] -> [ title ^ "(0)" ; ""]
-  | list -> [
-      Printf.sprintf "%s (%d)" title ( List.length list );
-      Printf.sprintf "<ul>%s</ul>"
-        ( String.concat ""
-            ( List.map (fun (name,lib) ->
-                  let pkg = pkg_of_lib lib in
-                  Printf.sprintf
-                    {|<li><a href="../%s/index.html">%s</a></li>|}
-                    pkg name
-                ) list))
-    ]
-
-(*
-let modules_to_html b map =
-  Printf.bprintf b "{!modules:\n";
-  StringMap.iter (fun _ mdl ->
-      Printf.bprintf b "  %s\n" mdl.mdl_name;
-    ) map;
-  Printf.bprintf b "}\n";
-  ()
-*)
-
-let modules_to_html b map =
-  match StringMap.bindings map with
-  | [] -> ()
-  | _list ->
-      Printf.bprintf b {|{%%html:<ul class="modules">|};
-
-      StringMap.iter (fun _ mdl ->
-          let pkg = pkg_of_mdl mdl in
-          Printf.bprintf b
-            {|<li><a href="../%s/%s/index.html">%s</a></li>|}
-            pkg mdl.mdl_name mdl.mdl_name
-        ) map;
-
-      Printf.bprintf b {|</ul>%%}|};
-      ()
-
-      (*
-<ul class="modules"><li><a href="../LIBRARY.conduit.conduit.3.0.0/Conduit/index.html"><code>Conduit</code></a></li><li><a href="../LIBRARY.conduit.conduit.3.0.0/Conduit__/index.html"><code>Conduit__</code></a></li><li><a href="../LIBRARY.conduit.conduit.3.0.0/Conduit__E0/index.html"><code>Conduit__E0</code></a></li><li><a href="../LIBRARY.conduit.conduit.3.0.0/Conduit__E1/index.html"><code>Conduit__E1</code></a></li><li><a href="../LIBRARY.conduit.conduit.3.0.0/Conduit__Endpoint/index.html"><code>Conduit__Endpoint</code></a></li><li><a href="../LIBRARY.conduit.conduit.3.0.0/Conduit__Sigs/index.html"><code>Conduit__Sigs</code></a></li><li>
-*)
+  let opam_pkg = pkg_of_opam opam in
+  [
+    [ "opam-name" ;
+      Printf.sprintf {|<a href="../%s/index.html">%s</a>|}
+        opam_pkg opam.opam_name ];
+    [ "opam-version" ; opam.opam_version ] ;
+  ] @
+  ( match opam.opam_synopsis with
+    | None -> []
+    | Some synopsis ->
+        [  [ "synopsis" ; synopsis ] ]
+  ) @
+  ( match opam.opam_description with
+    | None -> []
+    | Some s ->
+        [  [ "description" ; s ] ]
+  ) @
+  ( match opam.opam_authors with
+    | None -> []
+    | Some authors ->
+        [  [ "authors" ;
+             Printf.sprintf "<ul>%s</ul>"
+               (String.concat ""
+                  (List.map (fun s ->
+                       Printf.sprintf "<li>%s</li>"
+                         ( EzHtml.string s )) authors))
+           ] ]
+  ) @
+  ( match opam.opam_homepage with
+    | None -> []
+    | Some homepage ->
+        [  [ "homepage" ;
+             Printf.sprintf {|<a href="%s">%s</a>|}
+               homepage homepage ] ]
+  ) @
+  ( match opam.opam_license with
+    | None -> []
+    | Some license ->
+        [  [ "license" ; license ] ]
+  ) @
+  (
+    List.map (function
+        | README_md file -> [ "readme-file" ; copy_file file ]
+        | CHANGES_md file -> [ "changes-file" ; copy_file file ]
+        | LICENSE_md file -> [ "license-file" ; copy_file file ]
+        | ODOC_PAGE file -> [ "odoc-file" ; file ]
+      ) opam.opam_docs
+  )
 
 
 let generate_opam_index state bb =
@@ -439,12 +548,12 @@ let generate_opam_index state bb =
 
       let line =
         Printf.sprintf
-        {|<li><a href="%s/index.html"><code>%s.%s</code></a> %s</li>|}
-        pkg opam.opam_name
-        opam.opam_version
-        (match opam.opam_synopsis with
-         | None -> ""
-         | Some s -> s)
+          {|<li><a href="%s/index.html"><code>%s.%s</code></a> %s</li>|}
+          pkg opam.opam_name
+          opam.opam_version
+          (match opam.opam_synopsis with
+           | None -> ""
+           | Some s -> s)
       in
       index := (opam.opam_name, line ) :: !index;
 
@@ -462,84 +571,24 @@ let generate_opam_index state bb =
 
       Printf.bprintf b "{1:info Package info}\n";
 
-      Printf.bprintf b {|{%%html:|};
-
-      let html_dir = Html.digodoc_html_dir // pkg in
       let dir = digodoc_odoc_dir // pkg in
-      EzFile.make_dir ~p:true dir ;
 
-      let copy_file file =
-        let basename = Filename.basename file in
-        let dstfile = html_dir // basename in
-        let content =
-          EzFile.read_file ( state.opam_switch_prefix // file ) in
-        EzFile.make_dir ~p:true html_dir ;
-        EzFile.write_file dstfile content;
-        Printf.sprintf {|<a href="%s">%s</a>|} basename basename
-      in
-
+      let infos = infos_of_opam state pkg opam in
       let infos =
-        [
-          [ "name" ; opam.opam_name ];
-          [ "version" ; opam.opam_version ] ;
-        ] @
-        ( match opam.opam_synopsis with
-          | None -> []
-          | Some synopsis ->
-            [  [ "synopsis" ; synopsis ] ]
-        ) @
-        ( match opam.opam_description with
-          | None -> []
-          | Some s ->
-            [  [ "description" ; s ] ]
-        ) @
-        ( match opam.opam_authors with
-          | None -> []
-          | Some authors ->
-              [  [ "authors" ;
-                   Printf.sprintf "<ul>%s</ul>"
-                     (String.concat ""
-                        (List.map (fun s ->
-                             Printf.sprintf "<li>%s</li>" s) authors))
-                 ] ]
-        ) @
-        ( match opam.opam_homepage with
-          | None -> []
-          | Some homepage ->
-              [  [ "homepage" ;
-                   Printf.sprintf {|<a href="%s">%s</a>|}
-                     homepage homepage ] ]
-        ) @
-        ( match opam.opam_license with
-          | None -> []
-          | Some license ->
-            [  [ "license" ; license ] ]
-        ) @
-        [
+        infos @ [
           opams_to_html "deps" opam.opam_deps ;
           opams_to_html "revdeps" opam.opam_revdeps ;
-        ] @
-        (
-          List.map (function
-              | README_md file -> [ "readme-file" ; copy_file file ]
-              | CHANGES_md file -> [ "changes-file" ; copy_file file ]
-              | LICENSE_md file -> [ "license-file" ; copy_file file ]
-              | ODOC_PAGE file -> [ "odoc-file" ; file ]
-            ) opam.opam_docs
-        ) @
-        [
           metas_list_to_html "metas" opam.opam_metas ;
           libraries_to_html "libraries" opam.opam_libs ;
         ]
       in
       print_package_info b infos;
-      Printf.bprintf b "%%}\n";
 
-      Printf.bprintf b "{1:modules Package modules}\n";
+      Printf.bprintf b "\n{1:modules Package modules}\n";
 
       modules_to_html b opam.opam_mdls;
 
-      Printf.bprintf b "{1:files Package files}\n";
+      Printf.bprintf b "\n{1:files Package files}\n";
       Printf.bprintf b {|{%%html:<pre>|};
       List.iter (fun (file, _) ->
           Printf.bprintf b "%s\n" file
@@ -686,7 +735,27 @@ let generate_meta_index state bb =
       Printf.bprintf b "}\n";
 
       Printf.bprintf b "{1:info Package info}\n";
+
+      let infos = infos_of_opam state pkg meta.meta_opam in
+            let infos =
+        infos @ [
+          metas_to_html "deps" meta.meta_deps ;
+          metas_to_html "revdeps" meta.meta_revdeps ;
+        ]
+      in
       (*
+      let infos =
+        infos @ [
+          opams_to_html "deps" opam.opam_deps ;
+          opams_to_html "revdeps" opam.opam_revdeps ;
+          metas_list_to_html "metas" opam.opam_metas ;
+          libraries_to_html "libraries" opam.opam_libs ;
+        ]
+      in
+*)
+      print_package_info b infos;
+
+(*
       Printf.bprintf b "{1:info Library info}\n";
       Printf.bprintf b {|{%%html:<table class="package info">|};
       Printf.bprintf b {|<tr><td>Opam package:</td><td><a href="../%s/index.html">%s.%s</a></td></tr>|}
@@ -703,14 +772,16 @@ let generate_meta_index state bb =
               )
            ));
       Printf.bprintf b {|</table>%%}|};
-
-      Printf.bprintf b "{1:modules Library modules}\n";
-      Printf.bprintf b "{!modules:\n";
-      StringMap.iter (fun _ mdl ->
-          Printf.bprintf b "  %s\n" mdl.mdl_name;
-        ) lib.lib_mdls;
-      Printf.bprintf b "}\n";
 *)
+
+      Printf.bprintf b "\n{1:modules Package modules}\n";
+
+      let map = ref meta.meta_mdls in
+      StringMap.iter (fun _ lib ->
+          map := StringMap.union (fun _ a _ -> Some a) lib.lib_mdls !map
+        ) meta.meta_libs;
+      modules_to_html b !map;
+
       let content = Buffer.contents b in
       let mld_file = digodoc_odoc_dir // pkg // "page-index.mld" in
 

@@ -108,7 +108,6 @@ let find_modules state =
   StringMap.iter (fun _ opam ->
       StringMap.iter (fun _ lib ->
           List.iter (fun unit ->
-
               match StringMap.find unit.unit_name opam.opam_mdls with
               | exception Not_found ->
                   Printf.eprintf "%s::%s.%s has no external module\n%!"
@@ -117,7 +116,8 @@ let find_modules state =
                   lib.lib_mdls <- StringMap.add mdl.mdl_name mdl lib.lib_mdls;
                   mdl.mdl_libs <- StringMap.add lib.lib_name lib mdl.mdl_libs;
                   match mdl.mdl_impl with
-                  | Some _ -> () (* TODO: check it is the same one *)
+                  | Some _ ->
+                      () (* TODO: check it is the same one *)
                   | None ->
                       mdl.mdl_impl <- Some unit;
                       match unit.unit_implementation with

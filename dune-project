@@ -13,9 +13,6 @@
  (depends
    (ocaml (>= 4.10.0))
    (digodoc_lib (= version))
-   (opam-file-format (and (>= 2.0.0) (< 3.0.0)))
-   ocaml
-   (ez_file (and (>= 0.1.0) (< 1.0.0)))
    ppx_inline_test
    ppx_expect
    odoc
@@ -28,9 +25,8 @@
  (description "This is the description\nof the digodoc OCaml project\n")
  (depends
    (ocaml (>= 4.10.0))
+   (opam-file-format (and (>= 2.1.1) (< 3.0.0)))
    (meta_file (= version))
-   (opam-file-format (and (>= 2.0.0) (< 3.0.0)))
-   ocaml
    (ez_file (and (>= 0.1.0) (< 1.0.0)))
    ppx_inline_test
    ppx_expect
@@ -44,9 +40,7 @@
  (description "This is the description\nof the digodoc OCaml project\n")
  (depends
    (ocaml (>= 4.10.0))
-   (opam-file-format (and (>= 2.0.0) (< 3.0.0)))
-   ocaml
-   (ez_file (and (>= 0.1.0) (< 1.0.0)))
+   (ocplib_stuff ( >= 0.1 ))
    ppx_inline_test
    ppx_expect
    odoc

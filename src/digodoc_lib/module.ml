@@ -59,8 +59,13 @@ let find_or_create ~mdl_ext ~mdl_dir ~mdl_basename state ~mdl_opam ~objinfo =
      files for this mdlule *)
   if objinfo && mdl_ext = "cmx" then begin
     match Objinfo.read state (file mdl ~ext:".cmx") with
-    | [ unit ] -> mdl.mdl_impl <- Some unit
-    | [] | _ -> (* TODO: warning *) ()
+    | [] | _ :: _ :: _ -> (* TODO: warning *) ()
+    | [ unit ] ->
+        mdl.mdl_impl <- Some unit ;
+        match unit.unit_implementation with
+        | None -> assert false
+        | Some crc ->
+            Hashtbl.add state.ocaml_mdls_by_cmx_crc crc mdl
   end;
   if objinfo && mdl_ext = "cmi" then begin
     match Objinfo.read state (file mdl ~ext:".cmi") with
