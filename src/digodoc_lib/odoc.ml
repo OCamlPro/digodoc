@@ -421,6 +421,20 @@ let generate_opam_index state bb =
 *)
       Printf.bprintf b "</table>%%}\n";
 
+      let mldfiles = List.filter_map (function
+          | README_md _ | CHANGES_md _ | LICENSE_md _ -> None
+          | ODOC_PAGE mld -> Some mld
+        ) opam.opam_docs in
+      if mldfiles <> []
+      then begin
+        Printf.bprintf b "{1:pages Package documentation pages}\n";
+        Printf.bprintf b "{!pages:\n";
+        List.iter (fun mld ->
+            Printf.bprintf b "  %s\n" mld;
+          ) mldfiles;
+        Printf.bprintf b "}\n";
+        (* TODO, generate the doc and put in a link *)
+      end;
 
       Printf.bprintf b "{1:modules Package modules}\n";
       Printf.bprintf b "{!modules:\n";
