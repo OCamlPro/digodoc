@@ -43,10 +43,14 @@ let main () =
     )
   in
 
-  let get_state ~state ~objinfo =
+  let get_state ~state ~switch ~objinfo =
     match state with
     | None ->
-        let opam_switch_prefix = Lazy.force opam_switch_prefix in
+        let opam_switch_prefix =
+          match switch with
+          | None -> Lazy.force opam_switch_prefix
+          | Some s -> s
+        in
         let state = Compute.compute ~opam_switch_prefix ~objinfo () in
         if objinfo then begin
           EzFile.make_dir ~p:true "_digodoc";
@@ -60,7 +64,7 @@ let main () =
   let help exit_code =
     Printf.eprintf
       {|
-digodoc [--html] [--www] [-k] [--cached] [--no-objinfo] [--help] [MODULE]
+digodoc [--html] [--www] [-k] [--cached] [--no-objinfo] [--help] [--switch-prefix SWITCH] [MODULE]
 
 Options:
 --html: build html documentation
@@ -68,16 +72,17 @@ Options:
 -k: continue on error (mainly odoc)
 --cached: use the cached state instead of recomputing it
 --no-objinfo: do not call ocamlobjinfo to attach modules to libraries
+--switch-prefix SWITCH: use SWITCH instead of the current opam switch (ignored if with --cached)
 
 If a MODULE is provided, display the source module corresponding to this module
 
 %!|};
     exit exit_code
   in
-  let rec iter ~state ~objinfo ~continue_on_error ~action args =
+  let rec iter ~state ~objinfo ~continue_on_error ~switch ~action args =
     match args with
     | "--no-objinfo" :: args ->
-        iter ~state ~objinfo:false ~continue_on_error ~action args
+        iter ~state ~objinfo:false ~continue_on_error ~switch ~action args
     | "--cached" :: args ->
         let state =
           let ic = open_in_bin cache_file  in
@@ -85,24 +90,26 @@ If a MODULE is provided, display the source module corresponding to this module
           close_in ic;
           Some state
         in
-        iter ~state ~objinfo ~continue_on_error ~action args
+        iter ~state ~objinfo ~continue_on_error ~switch ~action args
     | "--html" :: args ->
-        iter ~state ~objinfo ~continue_on_error ~action:GenerateHtml args
+        iter ~state ~objinfo ~continue_on_error ~switch ~action:GenerateHtml args
     | "--www" :: args ->
-        iter ~state ~objinfo ~continue_on_error ~action:OpenDoc args
+        iter ~state ~objinfo ~continue_on_error ~switch ~action:OpenDoc args
     | ( "-k" | "--continue-on-error" ) :: args ->
-        iter ~state ~objinfo ~continue_on_error:true ~action args
+        iter ~state ~objinfo ~continue_on_error:true ~switch ~action args
+    | "--switch-prefix" :: s :: args ->
+        iter ~state ~objinfo ~continue_on_error ~switch:(Some s) ~action args
     | ( "--help" | "-h" | "-help" ) :: _ -> help 0
     | [ mdl ] ->
-        iter ~state ~objinfo ~continue_on_error ~action:(Search mdl) []
+        iter ~state ~objinfo ~continue_on_error ~switch ~action:(Search mdl) []
     | _ :: _ -> help 2
     | [] ->
         match action with
         | Scan ->
-            let state = get_state ~state ~objinfo in
+            let state = get_state ~state ~objinfo ~switch in
             Printer.print state
         | GenerateHtml ->
-            let state = get_state ~state ~objinfo in
+            let state = get_state ~state ~objinfo ~switch in
             Odoc.generate ~state ~continue_on_error
         | OpenDoc ->
             let index = Html.digodoc_html_dir // "index.html" in
@@ -115,7 +122,7 @@ If a MODULE is provided, display the source module corresponding to this module
             end
         | Search mdl ->
             begin
-              let state = get_state ~state ~objinfo:false in
+              let state = get_state ~state ~objinfo:false ~switch in
               match Hashtbl.find_all state.ocaml_mdls_by_name mdl with
               | exception Not_found -> failwith "module not found"
               | [ m ] ->
@@ -141,4 +148,4 @@ If a MODULE is provided, display the source module corresponding to this module
   in
 
   let args = Sys.argv |> Array.to_list |> List.tl in
-  iter ~state:None ~objinfo:true ~continue_on_error:false ~action:Scan args
+  iter ~state:None ~objinfo:true ~continue_on_error:false ~switch:None ~action:Scan args
