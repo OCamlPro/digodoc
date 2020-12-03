@@ -49,11 +49,18 @@ let pkg_of_mdl mdl =
       Printf.sprintf "MODULE.%s.%s.%s"
         mdl.mdl_basename mdl.mdl_opam.opam_name version
 
+let id_of_pkg pkg =
+  snd (EzString.cut_at pkg '.')
+
 let force_rebuild = match Sys.getenv "FORCE_REBUILD" with
   | exception Not_found -> false
   | _ -> true
 
 let skip_modules = match Sys.getenv "SKIP_MODULES" with
+  | exception Not_found -> false
+  | _ -> true
+
+let skip_packages = match Sys.getenv "SKIP_PACKAGES" with
   | exception Not_found -> false
   | _ -> true
 
@@ -264,6 +271,7 @@ let print_index bb index =
 |};
   StringMap.iter (fun i r ->
       Printf.bprintf bb {|
+     <div class="packages-set">
       <h3 id="name-%s">
         <a href="#name-%s" aria-hidden="true" class="anchor">
         </a>%s
@@ -276,6 +284,7 @@ let print_index bb index =
 
       Printf.bprintf bb {|
       </ol>
+     </div>
 |};
     ) !map;
 
@@ -431,89 +440,6 @@ let libraries_to_html title map =
 
 
 
-let generate_library_index state bb =
-
-  let index = ref [] in
-  List.iter (fun  ( _, lib ) ->
-      let pkg = pkg_of_lib lib in
-      let opam_pkg = pkg_of_opam lib.lib_opam in
-
-      let line =
-      Printf.sprintf
-        {|<li><a href="%s/index.html"" class="digodoc-lib"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
-        pkg lib.lib_name
-        opam_pkg
-        lib.lib_opam.opam_name
-        lib.lib_opam.opam_version
-      in
-      index := ( lib.lib_name, line ) :: !index;
-      let b = Buffer.create 10000 in
-
-      Printf.bprintf b "{0:library-%s Library %s\n"
-        lib.lib_name lib.lib_name ;
-      Printf.bprintf b
-        {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
-        opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
-      Printf.bprintf b "}\n";
-
-      Printf.bprintf b "{1:info Library info}\n";
-      Printf.bprintf b {|{%%html:<table class="package info">|};
-      Printf.bprintf b {|<tr><td>Opam package:</td><td><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></td></tr>|}
-        opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
-      Printf.bprintf b {|<tr><td>Directory:</td><td>%s</td></tr>|}
-        lib.lib_dir.dir_name;
-      Printf.bprintf b {|<tr><td>Dune/OCamlfind:</td><td>%s</td></tr>|}
-        (String.concat " "
-           (StringMap.bindings lib.lib_metas |>
-            List.map (fun (_, meta) ->
-                Printf.sprintf {|<a href="../%s/index.html">%s</a>|}
-                  (pkg_of_meta meta)
-                  meta.meta_name
-              )
-           ));
-      Printf.bprintf b "</table>%%}\n";
-
-      Printf.bprintf b "{1:modules Library modules}\n";
-      Printf.bprintf b "%s\n"
-        (modules_to_html lib.lib_mdls);
-
-      let content = Buffer.contents b in
-      let mld_file = digodoc_odoc_dir // pkg // "page-index.mld" in
-
-      let dirname = Filename.dirname mld_file in
-      EzFile.make_dir ~p:true dirname ;
-      EzFile.write_file mld_file content;
-
-      let odoc_target = digodoc_odoc_dir // pkg //  "page-index.odoc" in
-      let cmd = [
-        "odoc" ; "compile" ;
-        "--pkg" ; pkg ;
-        "-o" ; odoc_target ;
-        mld_file
-      ]
-      in
-      Process.call ( Array.of_list cmd );
-
-      let cmd = [
-        "odoc" ; "html" ;
-        "--theme-uri"; "_odoc-theme" ;
-        "-o" ; Html.digodoc_html_dir ;
-        "-I" ; digodoc_odoc_dir // pkg ;
-        odoc_target
-      ]
-      in
-
-      Process.call ( Array.of_list cmd );
-
-      ()
-    )
-    ( List.sort compare state.ocaml_libs );
-
-  print_index bb (List.rev !index);
-
-  ()
-
-
 let infos_of_opam state pkg opam =
   let html_dir = Html.digodoc_html_dir // pkg in
 
@@ -577,6 +503,92 @@ let infos_of_opam state pkg opam =
   )
 
 
+
+let generate_library_index state bb =
+
+  let index = ref [] in
+  List.iter (fun  ( _, lib ) ->
+      let pkg = pkg_of_lib lib in
+      let opam_pkg = pkg_of_opam lib.lib_opam in
+
+      let line =
+        Printf.sprintf
+          {|<li class="package" id="%s"><a href="%s/index.html"" class="digodoc-lib"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
+          (id_of_pkg pkg)
+          pkg lib.lib_name
+          opam_pkg
+          lib.lib_opam.opam_name
+          lib.lib_opam.opam_version
+      in
+      index := ( lib.lib_name, line ) :: !index;
+
+      if not skip_packages then
+        let b = Buffer.create 10000 in
+
+        Printf.bprintf b "{0:library-%s Library %s\n"
+          lib.lib_name lib.lib_name ;
+        Printf.bprintf b
+          {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+          opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
+        Printf.bprintf b "}\n";
+
+        Printf.bprintf b "{1:info Library info}\n";
+        Printf.bprintf b {|{%%html:<table class="package info">|};
+        Printf.bprintf b {|<tr><td>Opam package:</td><td><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></td></tr>|}
+          opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
+        Printf.bprintf b {|<tr><td>Directory:</td><td>%s</td></tr>|}
+          lib.lib_dir.dir_name;
+        Printf.bprintf b {|<tr><td>Dune/OCamlfind:</td><td>%s</td></tr>|}
+          (String.concat " "
+             (StringMap.bindings lib.lib_metas |>
+              List.map (fun (_, meta) ->
+                  Printf.sprintf {|<a href="../%s/index.html">%s</a>|}
+                    (pkg_of_meta meta)
+                    meta.meta_name
+                )
+             ));
+        Printf.bprintf b "</table>%%}\n";
+
+        Printf.bprintf b "{1:modules Library modules}\n";
+        Printf.bprintf b "%s\n"
+          (modules_to_html lib.lib_mdls);
+
+        let content = Buffer.contents b in
+        let mld_file = digodoc_odoc_dir // pkg // "page-index.mld" in
+
+        let dirname = Filename.dirname mld_file in
+        EzFile.make_dir ~p:true dirname ;
+        EzFile.write_file mld_file content;
+
+        let odoc_target = digodoc_odoc_dir // pkg //  "page-index.odoc" in
+        let cmd = [
+          "odoc" ; "compile" ;
+          "--pkg" ; pkg ;
+          "-o" ; odoc_target ;
+          mld_file
+        ]
+        in
+        Process.call ( Array.of_list cmd );
+
+        let cmd = [
+          "odoc" ; "html" ;
+          "--theme-uri"; "_odoc-theme" ;
+          "-o" ; Html.digodoc_html_dir ;
+          "-I" ; digodoc_odoc_dir // pkg ;
+          odoc_target
+        ]
+        in
+
+        Process.call ( Array.of_list cmd );
+
+        ()
+    )
+    ( List.sort compare state.ocaml_libs );
+
+  print_index bb (List.rev !index);
+
+  ()
+
 let generate_opam_index state bb =
 
   let index = ref [] in
@@ -586,7 +598,8 @@ let generate_opam_index state bb =
 
       let line =
         Printf.sprintf
-          {|<li><a href="%s/index.html" class="digodoc-opam"><code>%s.%s</code></a> %s</li>|}
+          {|<li class="package" id="%s"><a href="%s/index.html" class="digodoc-opam"><code>%s.%s</code></a> %s</li>|}
+          (id_of_pkg pkg)
           pkg opam.opam_name
           opam.opam_version
           (match opam.opam_synopsis with
@@ -595,91 +608,92 @@ let generate_opam_index state bb =
       in
       index := (opam.opam_name, line ) :: !index;
 
-      let b = Buffer.create 10000 in
+      if not skip_packages then
+        let b = Buffer.create 10000 in
 
-      Printf.bprintf b "{0:opam-%s.%s Opam Package %s.%s\n"
-        opam.opam_name opam.opam_version
-        opam.opam_name opam.opam_version;
+        Printf.bprintf b "{0:opam-%s.%s Opam Package %s.%s\n"
+          opam.opam_name opam.opam_version
+          opam.opam_name opam.opam_version;
       (*
       Printf.bprintf b
         {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
         opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
 *)
-      Printf.bprintf b "}\n";
-
-      let mldfiles = List.filter_map (function
-          | README_md _ | CHANGES_md _ | LICENSE_md _ -> None
-          | ODOC_PAGE mld -> Some mld
-        ) opam.opam_docs in
-      if mldfiles <> []
-      then begin
-        Printf.bprintf b "{1:pages Package documentation pages}\n";
-        Printf.bprintf b "{!pages:\n";
-        List.iter (fun mld ->
-            Printf.bprintf b "  %s\n" mld;
-          ) mldfiles;
         Printf.bprintf b "}\n";
-        (* TODO, generate the doc and put in a link *)
-      end;
 
-      Printf.bprintf b "{1:info Package info}\n";
+        let mldfiles = List.filter_map (function
+            | README_md _ | CHANGES_md _ | LICENSE_md _ -> None
+            | ODOC_PAGE mld -> Some mld
+          ) opam.opam_docs in
+        if mldfiles <> []
+        then begin
+          Printf.bprintf b "{1:pages Package documentation pages}\n";
+          Printf.bprintf b "{!pages:\n";
+          List.iter (fun mld ->
+              Printf.bprintf b "  %s\n" mld;
+            ) mldfiles;
+          Printf.bprintf b "}\n";
+          (* TODO, generate the doc and put in a link *)
+        end;
 
-      let dir = digodoc_odoc_dir // pkg in
-      EzFile.make_dir ~p:true dir;
+        Printf.bprintf b "{1:info Package info}\n";
 
-      let infos = infos_of_opam state pkg opam in
-      let infos =
-        infos @ [
-          opams_to_html "deps" opam.opam_deps ;
-          opams_to_html "revdeps" opam.opam_revdeps ;
-          metas_list_to_html "metas" opam.opam_metas ;
-          libraries_to_html "libraries" opam.opam_libs ;
+        let dir = digodoc_odoc_dir // pkg in
+        EzFile.make_dir ~p:true dir;
+
+        let infos = infos_of_opam state pkg opam in
+        let infos =
+          infos @ [
+            opams_to_html "deps" opam.opam_deps ;
+            opams_to_html "revdeps" opam.opam_revdeps ;
+            metas_list_to_html "metas" opam.opam_metas ;
+            libraries_to_html "libraries" opam.opam_libs ;
+          ]
+        in
+        print_package_info b infos;
+
+        Printf.bprintf b "\n{1:modules Package modules}\n";
+
+        Printf.bprintf b "%s\n"
+          (modules_to_html opam.opam_mdls);
+
+        Printf.bprintf b "\n{1:files Package files}\n";
+        Printf.bprintf b {|{%%html:<pre>|};
+        List.iter (fun (file, _) ->
+            Printf.bprintf b "%s\n" file
+          ) opam.opam_files;
+        Printf.bprintf b {|</pre>%%}|};
+
+        let content = Buffer.contents b in
+        let mld_file = dir // "page-index.mld" in
+
+        EzFile.write_file mld_file content;
+
+        let odoc_target = digodoc_odoc_dir // pkg //  "page-index.odoc" in
+        let cmd = [
+          "odoc" ; "compile" ;
+          "--pkg" ; pkg ;
+          "-o" ; odoc_target ;
+          mld_file
         ]
-      in
-      print_package_info b infos;
+        in
+        Process.call ( Array.of_list cmd );
 
-      Printf.bprintf b "\n{1:modules Package modules}\n";
+        let cmd = [
+          "odoc" ; "html" ;
+          "--theme-uri"; "_odoc-theme" ;
+          "-o" ; Html.digodoc_html_dir ;
+          "-I" ; digodoc_odoc_dir // pkg ;
+          odoc_target
+        ] @
+          List.flatten (List.map (fun (_,lib) ->
+              [ "-I" ; digodoc_odoc_dir // pkg_of_lib lib ]
+            ) (StringMap.to_list opam.opam_libs))
+        in
 
-      Printf.bprintf b "%s\n"
-        (modules_to_html opam.opam_mdls);
+        Process.call ( Array.of_list cmd );
 
-      Printf.bprintf b "\n{1:files Package files}\n";
-      Printf.bprintf b {|{%%html:<pre>|};
-      List.iter (fun (file, _) ->
-          Printf.bprintf b "%s\n" file
-        ) opam.opam_files;
-      Printf.bprintf b {|</pre>%%}|};
-
-      let content = Buffer.contents b in
-      let mld_file = dir // "page-index.mld" in
-
-      EzFile.write_file mld_file content;
-
-      let odoc_target = digodoc_odoc_dir // pkg //  "page-index.odoc" in
-      let cmd = [
-        "odoc" ; "compile" ;
-        "--pkg" ; pkg ;
-        "-o" ; odoc_target ;
-        mld_file
-      ]
-      in
-      Process.call ( Array.of_list cmd );
-
-      let cmd = [
-        "odoc" ; "html" ;
-        "--theme-uri"; "_odoc-theme" ;
-        "-o" ; Html.digodoc_html_dir ;
-        "-I" ; digodoc_odoc_dir // pkg ;
-        odoc_target
-      ] @
-        List.flatten (List.map (fun (_,lib) ->
-            [ "-I" ; digodoc_odoc_dir // pkg_of_lib lib ]
-          ) (StringMap.to_list opam.opam_libs))
-      in
-
-      Process.call ( Array.of_list cmd );
-
-      ()
+        ()
     ) state.opam_packages ;
 
   print_index bb !index;
@@ -730,7 +744,8 @@ let generate_module_index state bb =
 
       let line =
       Printf.sprintf
-        {|<li><a href="%s/%s/index.html"><code>%s</code></a>%s in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a>%s</li>|}
+        {|<li class="package" id="%s:%s"><a href="%s/%s/index.html"><code>%s</code></a>%s in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a>%s</li>|}
+        (id_of_pkg pkg) mdl.mdl_name
         pkg
         mdl.mdl_name
         short_name
@@ -771,8 +786,8 @@ let generate_meta_index state bb =
       let opam_pkg = pkg_of_opam opam in
       let line =
         Printf.sprintf
-          {|<li><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
-          pkg meta.meta_name
+          {|<li class="package" id="%s"><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
+          (id_of_pkg pkg) pkg meta.meta_name
           opam_pkg
           opam.opam_name
           opam.opam_version
@@ -780,26 +795,27 @@ let generate_meta_index state bb =
 
       index := ( meta.meta_name , line ) :: !index;
 
-      let b = Buffer.create 10000 in
+      if not skip_packages then
+        let b = Buffer.create 10000 in
 
-      Printf.bprintf b "{0:opam-%s Meta Package %s\n"
-        meta.meta_name meta.meta_name;
-      Printf.bprintf b
-        {|{%%html:<nav><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></nav>%%}|}
-        opam_pkg opam.opam_name opam.opam_version;
-      Printf.bprintf b "}\n";
-      Printf.bprintf b
-        "Meta packages are used by ocamlfind and in the libraries statement of dune.\n";
+        Printf.bprintf b "{0:opam-%s Meta Package %s\n"
+          meta.meta_name meta.meta_name;
+        Printf.bprintf b
+          {|{%%html:<nav><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></nav>%%}|}
+          opam_pkg opam.opam_name opam.opam_version;
+        Printf.bprintf b "}\n";
+        Printf.bprintf b
+          "Meta packages are used by ocamlfind and in the libraries statement of dune.\n";
 
-      Printf.bprintf b "{1:info Package info}\n";
+        Printf.bprintf b "{1:info Package info}\n";
 
-      let infos = infos_of_opam state pkg meta.meta_opam in
-            let infos =
-        infos @ [
-          metas_to_html "deps" meta.meta_deps ;
-          metas_to_html "revdeps" meta.meta_revdeps ;
-        ]
-      in
+        let infos = infos_of_opam state pkg meta.meta_opam in
+        let infos =
+          infos @ [
+            metas_to_html "deps" meta.meta_deps ;
+            metas_to_html "revdeps" meta.meta_revdeps ;
+          ]
+        in
       (*
       let infos =
         infos @ [
@@ -810,7 +826,7 @@ let generate_meta_index state bb =
         ]
       in
 *)
-      print_package_info b infos;
+        print_package_info b infos;
 
 (*
       Printf.bprintf b "{1:info Library info}\n";
@@ -831,44 +847,44 @@ let generate_meta_index state bb =
       Printf.bprintf b {|</table>%%}|};
 *)
 
-      Printf.bprintf b "\n{1:modules Package modules}\n";
+        Printf.bprintf b "\n{1:modules Package modules}\n";
 
-      let map = ref meta.meta_mdls in
-      StringMap.iter (fun _ lib ->
-          map := StringMap.union (fun _ a _ -> Some a) lib.lib_mdls !map
-        ) meta.meta_libs;
+        let map = ref meta.meta_mdls in
+        StringMap.iter (fun _ lib ->
+            map := StringMap.union (fun _ a _ -> Some a) lib.lib_mdls !map
+          ) meta.meta_libs;
 
-      Printf.bprintf b "%s\n" (modules_to_html !map);
+        Printf.bprintf b "%s\n" (modules_to_html !map);
 
-      let content = Buffer.contents b in
-      let mld_file = digodoc_odoc_dir // pkg // "page-index.mld" in
+        let content = Buffer.contents b in
+        let mld_file = digodoc_odoc_dir // pkg // "page-index.mld" in
 
-      let dirname = Filename.dirname mld_file in
-      EzFile.make_dir ~p:true dirname ;
-      EzFile.write_file mld_file content;
+        let dirname = Filename.dirname mld_file in
+        EzFile.make_dir ~p:true dirname ;
+        EzFile.write_file mld_file content;
 
-      let odoc_target = digodoc_odoc_dir // pkg //  "page-index.odoc" in
-      let cmd = [
-        "odoc" ; "compile" ;
-        "--pkg" ; pkg ;
-        "-o" ; odoc_target ;
-        mld_file
-      ]
-      in
-      Process.call ( Array.of_list cmd );
+        let odoc_target = digodoc_odoc_dir // pkg //  "page-index.odoc" in
+        let cmd = [
+          "odoc" ; "compile" ;
+          "--pkg" ; pkg ;
+          "-o" ; odoc_target ;
+          mld_file
+        ]
+        in
+        Process.call ( Array.of_list cmd );
 
-      let cmd = [
-        "odoc" ; "html" ;
-        "--theme-uri"; "_odoc-theme" ;
-        "-o" ; Html.digodoc_html_dir ;
-        "-I" ; digodoc_odoc_dir // pkg ;
-        odoc_target
-      ]
-      in
+        let cmd = [
+          "odoc" ; "html" ;
+          "--theme-uri"; "_odoc-theme" ;
+          "-o" ; Html.digodoc_html_dir ;
+          "-I" ; digodoc_odoc_dir // pkg ;
+          odoc_target
+        ]
+        in
 
-      Process.call ( Array.of_list cmd );
+        Process.call ( Array.of_list cmd );
 
-      ()
+        ()
     ) state.meta_packages ;
 
   print_index bb (List.rev !index);
@@ -918,9 +934,14 @@ let generate ~state ~continue_on_error =
    <nav>
     <div>
      <span><a href="index.html">Opam Index</a>
-| <a href="metas.html">Meta Index</a>
-| <a href="libraries.html">Libraries Index</a>
-| <a href="modules.html">Modules Index</a>
+      | <a href="metas.html">Meta Index</a>
+      | <a href="libraries.html">Libraries Index</a>
+      | <a href="modules.html">Modules Index</a>
+      <form class="form-search">
+        <span>
+          <input id="search" class="search-query" type="text" placeholder="Search packages"/>
+        </span>
+      </form>
      </span>
     </div>
    </nav>

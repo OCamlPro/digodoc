@@ -33,6 +33,7 @@ type action =
   | Search of string
   | GenerateHtml
   | OpenDoc
+  | CheckLinks
 
 let main () =
 
@@ -93,6 +94,8 @@ If a MODULE is provided, display the source module corresponding to this module
         iter ~state ~objinfo ~continue_on_error ~switch ~action args
     | "--html" :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:GenerateHtml args
+    | "--check-links" :: args ->
+        iter ~state ~objinfo ~continue_on_error ~switch ~action:CheckLinks args
     | "--www" :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:OpenDoc args
     | ( "-k" | "--continue-on-error" ) :: args ->
@@ -110,7 +113,9 @@ If a MODULE is provided, display the source module corresponding to this module
             Printer.print state
         | GenerateHtml ->
             let state = get_state ~state ~objinfo ~switch in
-            Odoc.generate ~state ~continue_on_error
+            Odoc.generate ~state ~continue_on_error;
+            EzHtml.check_links Html.digodoc_html_dir
+        | CheckLinks -> EzHtml.check_links Html.digodoc_html_dir
         | OpenDoc ->
             let index = Html.digodoc_html_dir // "index.html" in
             if Sys.file_exists index then

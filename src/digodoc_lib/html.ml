@@ -27,6 +27,7 @@ let generate_page ~filename ~title f =
  <head>
   <title>%s</title>
   <link rel="stylesheet" href="_odoc-theme/odoc.css"/>
+  <script async type="text/javascript" src="search.js" charset="utf-8"></script>
   <meta charset="utf-8"/>
   <meta name="generator" content="digodoc 0.1"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>

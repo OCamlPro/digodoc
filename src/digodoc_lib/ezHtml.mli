@@ -16,3 +16,5 @@ val string : string -> string
 val write_file : string -> content:string -> unit
 
 val check : ?msg:string -> string -> string
+
+val check_links : string -> unit (* directory *)

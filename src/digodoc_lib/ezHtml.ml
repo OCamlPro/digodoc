@@ -39,3 +39,6 @@ let check ?(msg="") content =
 
 let write_file file ~content =
   EzFile.write_file file (check content)
+
+let check_links _dir = ()
+(*  EzFile.make_select *)
