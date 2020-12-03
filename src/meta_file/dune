@@ -4,7 +4,7 @@
   (name meta_file)
   (public_name meta_file)
   (wrapped true)
-  (libraries opam-file-format compiler-libs.common ez_file )
+  (libraries ocplib_stuff )
   
   
   )

@@ -4,11 +4,16 @@
   (name digodoc_lib)
   (public_name digodoc_lib)
   (wrapped true)
-  (libraries meta_file opam-file-format compiler-libs.common ez_file )
+  (libraries xml-light opam-file-format meta_file ez_file )
   
   
   )
 
+
+(rule
+    (targets version.ml)
+    (deps (:script version.mlt) package.toml)
+    (action (with-stdout-to %{targets} (run %{ocaml} unix.cma %{script}))))
 
 (documentation
   (package digodoc_lib))

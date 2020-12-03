@@ -73,6 +73,12 @@ let print state =
           begin match mdl.mdl_impl with
             | None -> ()
             | Some impl ->
+                begin
+                  match impl.unit_implementation with
+                  | None -> ()
+                  | Some crc ->
+                      Printf.printf "           mdl_cmx_crc: %s\n" crc
+                end;
                 StringMap.iter (fun cmi crc ->
                     Printf.printf "             mdl_cmx_import_cmi: %s %s\n" cmi crc
                   ) impl.unit_import_cmis;

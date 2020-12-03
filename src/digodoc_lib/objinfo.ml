@@ -83,7 +83,18 @@ let read state filename =
           else
             iter1 unit lines
     in
-    iter0 ( Array.to_list lines )
+    let units = iter0 ( Array.to_list lines ) in
+    begin
+      if Filename.check_suffix filename ".cmx" then begin
+        match units with
+          [] | _ :: _ :: _ -> assert false
+        | [ unit ] ->
+            match unit.unit_implementation with
+            | None -> assert false
+            | Some _ -> ()
+      end
+    end;
+    units
 
   else
     []

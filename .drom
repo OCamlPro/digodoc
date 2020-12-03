@@ -2,7 +2,7 @@
 
 # hash of toml configuration files
 # used for generation of all files
-68c53de30460188455b1d8a0dfaa3e81:.
+60ed2038ae00bea439ca4a25bdf36079:.
 # end context for .
 
 # begin context for .github/workflows/doc-deploy.yml
@@ -37,7 +37,7 @@ b0003f14845933a9c4cb03025b0ade11:.github/workflows/workflow.yml
 
 # begin context for CHANGES.md
 # file CHANGES.md
-055901181a03a3fbbf99d9ba74f76be5:CHANGES.md
+a348088b2249295d6a139fff60dafa8b:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -47,7 +47,7 @@ c4217a22064a4a18f9587b930b250fbe:LICENSE.md
 
 # begin context for Makefile
 # file Makefile
-bd3754813a009f44fa0f8b31760aafb1:Makefile
+0b7caeb1729d7016dcb07a343933f8df:Makefile
 # end context for Makefile
 
 # begin context for README.md
@@ -57,12 +57,12 @@ bd3754813a009f44fa0f8b31760aafb1:Makefile
 
 # begin context for digodoc.opam
 # file digodoc.opam
-f75b4d84682e475da0a244a3d3aef8a9:digodoc.opam
+14d0859c94dd6f4710ed3ec15da61c9b:digodoc.opam
 # end context for digodoc.opam
 
 # begin context for digodoc_lib.opam
 # file digodoc_lib.opam
-32a7340255277d9f465b84d9a452b2c9:digodoc_lib.opam
+9045a67b8b6e48cd09824fa717609d01:digodoc_lib.opam
 # end context for digodoc_lib.opam
 
 # begin context for docs/.nojekyll
@@ -107,17 +107,17 @@ e027c7310d390baf5e461c84bfaedea3:drom.toml
 
 # begin context for dune
 # file dune
-02ae2bb9a93e7611894f35f89f15ab0e:dune
+df544cfaf9078d1bba2f90ed1b5adf5f:dune
 # end context for dune
 
 # begin context for dune-project
 # file dune-project
-ebcd9d6f66dc6e444d3fec29a9a3d284:dune-project
+80f9cf0c7928f95daa87dd970bde7cc9:dune-project
 # end context for dune-project
 
 # begin context for meta_file.opam
 # file meta_file.opam
-d5748daf093791371b339ae31a55f6aa:meta_file.opam
+4bf5e2d3c02178ba96c256859a3c6d75:meta_file.opam
 # end context for meta_file.opam
 
 # begin context for sphinx/_static/css/fixes.css
@@ -152,7 +152,7 @@ cf3f86e8f7d8e90e663c3cb7e438057d:sphinx/license.rst
 
 # begin context for src/digodoc/dune
 # file src/digodoc/dune
-d7670f8ae348120dc24589d6102ffb18:src/digodoc/dune
+a6b680e04a0e2649a34a99439c8dc866:src/digodoc/dune
 # end context for src/digodoc/dune
 
 # begin context for src/digodoc/index.mld
@@ -177,7 +177,7 @@ fab8224b1866cef1103bca89068b73fe:src/digodoc/version.ml
 
 # begin context for src/digodoc_lib/dune
 # file src/digodoc_lib/dune
-fe9989229af8c610cbcdf68ebb012406:src/digodoc_lib/dune
+201e9657f031d998827b3a0d1229735f:src/digodoc_lib/dune
 # end context for src/digodoc_lib/dune
 
 # begin context for src/digodoc_lib/index.mld
@@ -195,14 +195,14 @@ d41eb701e5d6d4a68d23824af541ee36:src/digodoc_lib/index.mld
 ab23a006f696f7cd1303c22d7b01a07a:src/digodoc_lib/package.toml
 # end context for src/digodoc_lib/package.toml
 
-# begin context for src/digodoc_lib/version.ml
-# file src/digodoc_lib/version.ml
-fab8224b1866cef1103bca89068b73fe:src/digodoc_lib/version.ml
-# end context for src/digodoc_lib/version.ml
+# begin context for src/digodoc_lib/version.mlt
+# file src/digodoc_lib/version.mlt
+1d206409e33500d6a84cb2173a35e626:src/digodoc_lib/version.mlt
+# end context for src/digodoc_lib/version.mlt
 
 # begin context for src/meta_file/dune
 # file src/meta_file/dune
-baf77c00cd2c1411a5404aa361caa3d8:src/meta_file/dune
+dbd5e44b7907c96263b9f7edcbd9aa54:src/meta_file/dune
 # end context for src/meta_file/dune
 
 # begin context for src/meta_file/index.mld
@@ -212,7 +212,7 @@ baf77c00cd2c1411a5404aa361caa3d8:src/meta_file/dune
 
 # begin context for src/meta_file/main.ml
 # file src/meta_file/main.ml
-e319015f5aa4495c383b39189b614086:src/meta_file/main.ml
+8845a8d380154c060f188a3a7d4ddd28:src/meta_file/main.ml
 # end context for src/meta_file/main.ml
 
 # begin context for src/meta_file/package.toml
