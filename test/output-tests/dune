@@ -17,7 +17,7 @@
 
 (executable
  (name test2)
- (libraries digodoc_lib meta_file) ; add your own library here
+ (libraries digodoc_lib meta_file ez_xml) ; add your own library here
  )
 
 (alias

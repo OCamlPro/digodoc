@@ -1,6 +1,4 @@
 kind = "library"
 name = "meta_file"
-
 [dependencies]
 ocplib_stuff = ">=0.1"
-

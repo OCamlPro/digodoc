@@ -6,5 +6,5 @@
   (pps ppx_expect))
  (inline_tests
   (modes best)) ; add js for testing with nodejs
- (libraries digodoc_lib meta_file) ; add your project libraries here
+ (libraries digodoc_lib meta_file ez_xml) ; add your project libraries here
  )

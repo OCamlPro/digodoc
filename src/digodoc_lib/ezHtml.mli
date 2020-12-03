@@ -12,6 +12,7 @@
 val buffer : Buffer.t -> string -> unit
 
 val string : string -> string
+val encode : string -> string
 
 val write_file : string -> content:string -> unit
 
