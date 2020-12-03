@@ -29,6 +29,8 @@ let rec create ?meta_parent state ~meta_name ~meta_file ~meta_opam
     meta_deps = StringMap.empty ;
     meta_revdeps = StringMap.empty ;
     meta_archives = StringMap.empty ;
+    meta_libs = StringMap.empty ;
+    meta_mdls = StringMap.empty ;
   } in
   state.meta_packages <- StringMap.add meta_name meta state.meta_packages;
   meta_opam.opam_metas <- meta :: meta_opam.opam_metas;
@@ -119,9 +121,11 @@ let lookup_archive state ~is_library meta ~archive ~basename =
   meta.meta_archives <- StringMap.add archive arch meta.meta_archives;
   match arch with
   | Archive_lib lib ->
-      lib.lib_metas <- StringMap.add meta.meta_name meta lib.lib_metas
+      lib.lib_metas <- StringMap.add meta.meta_name meta lib.lib_metas ;
+      meta.meta_libs <- StringMap.add lib.lib_name lib meta.meta_libs
   | Archive_mdl mdl ->
-      mdl.mdl_metas <- StringMap.add meta.meta_name meta mdl.mdl_metas
+      mdl.mdl_metas <- StringMap.add meta.meta_name meta mdl.mdl_metas ;
+      meta.meta_mdls <- StringMap.add mdl.mdl_longname mdl meta.meta_mdls
   | Archive_missing -> ()
 
 let find_archives state meta =

@@ -68,6 +68,8 @@ and meta_package = {
 
   (* which libraries are required by this meta : only .cmx and .cmxa *)
   mutable meta_archives : meta_archive StringMap.t ;
+  mutable meta_libs : ocaml_lib StringMap.t ;
+  mutable meta_mdls : ocaml_mdl StringMap.t ; (* individual cmx *)
 }
 
 and meta_archive =
