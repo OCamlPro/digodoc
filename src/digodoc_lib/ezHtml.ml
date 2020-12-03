@@ -26,3 +26,16 @@ let string s =
   let b = Buffer.create (String.length s + 11) in
   buffer b s;
   Buffer.contents b
+
+let check ?(msg="") content =
+  begin match Xml.parse_string content with
+    | exception Xml.Error error ->
+        Printf.eprintf "Invalid Html%s: %s\n%!" msg
+          (Xml.error error);
+        Printf.eprintf "<<<\n%s\n>>>\n" content;
+    | _ -> ()
+  end;
+  content
+
+let write_file file ~content =
+  EzFile.write_file file (check content)

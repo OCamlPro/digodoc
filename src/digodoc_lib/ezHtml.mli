@@ -12,3 +12,7 @@
 val buffer : Buffer.t -> string -> unit
 
 val string : string -> string
+
+val write_file : string -> content:string -> unit
+
+val check : ?msg:string -> string -> string

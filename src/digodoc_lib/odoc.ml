@@ -301,52 +301,58 @@ let module_cut m =
   in
   iter m 0 (String.length m)
 
-let modules_to_html b map =
+let insert_html f =
+  let b = Buffer.create 1000 in
+  f b;
+  let html = Buffer.contents b in
+  Printf.sprintf "{%%html:%s%%}\n" (EzHtml.check html)
+
+let modules_to_html map =
   match StringMap.bindings map with
-  | [] -> ()
+  | [] -> ""
   | (_, _mdl0) :: _ ->
 
-      let new_map = ref StringMap.empty in
-      StringMap.iter (fun _ mdl ->
-          match mdl.mdl_intf with
-          | None -> ()
-          | Some _ ->
-              let m, sub = module_cut mdl.mdl_name in
-              match StringMap.find m !new_map with
-              | exception Not_found ->
-                  new_map := StringMap.add mdl.mdl_name {
-                      modul = mdl ;
-                      modul_subs = StringMap.empty ;
-                    } !new_map
-              | modul ->
-                  if sub <> "" then
-                    modul.modul_subs <- StringMap.add sub mdl modul.modul_subs
-        ) map ;
+      insert_html (fun b ->
+          let new_map = ref StringMap.empty in
+          StringMap.iter (fun _ mdl ->
+              match mdl.mdl_intf with
+              | None -> ()
+              | Some _ ->
+                  let m, sub = module_cut mdl.mdl_name in
+                  match StringMap.find m !new_map with
+                  | exception Not_found ->
+                      new_map := StringMap.add mdl.mdl_name {
+                          modul = mdl ;
+                          modul_subs = StringMap.empty ;
+                        } !new_map
+                  | modul ->
+                      if sub <> "" then
+                        modul.modul_subs <- StringMap.add sub mdl modul.modul_subs
+            ) map ;
 
-      Printf.bprintf b {|{%%html:<ul class="modules">|};
-      StringMap.iter (fun _ modul ->
-          let mdl = modul.modul in
-          let pkg = pkg_of_mdl mdl in
-          Printf.bprintf b
-            {|<li><a href="../%s/%s/index.html">%s</a> %s</li>|}
-            pkg mdl.mdl_name mdl.mdl_name
-            (if StringMap.is_empty modul.modul_subs then
-               ""
-             else
-               Printf.sprintf "{ %s }"
-                 ( String.concat ", "
-                     ( List.map (fun (name, mdl) ->
-                           let pkg = pkg_of_mdl mdl in
-                           Printf.sprintf
-                             {|<a href="../%s/%s/index.html">%s</a>|}
-                             pkg mdl.mdl_name name
-                         )
-                           ( StringMap.bindings modul.modul_subs )))
-            )
-        ) !new_map;
-      Printf.bprintf b {|</ul>%%}|};
-      ()
-
+          Printf.bprintf b {|<ul class="modules">|};
+          StringMap.iter (fun _ modul ->
+              let mdl = modul.modul in
+              let pkg = pkg_of_mdl mdl in
+              Printf.bprintf b
+                {|<li><a href="../%s/%s/index.html">%s</a> %s</li>|}
+                pkg mdl.mdl_name mdl.mdl_name
+                (if StringMap.is_empty modul.modul_subs then
+                   ""
+                 else
+                   Printf.sprintf " .{ %s }"
+                     ( String.concat ", "
+                         ( List.map (fun (name, mdl) ->
+                               let pkg = pkg_of_mdl mdl in
+                               Printf.sprintf
+                                 {|<a href="../%s/%s/index.html">%s</a>|}
+                                 pkg mdl.mdl_name name
+                             )
+                               ( StringMap.bindings modul.modul_subs )))
+                )
+            ) !new_map;
+          Printf.bprintf b {|</ul>|};
+        )
 
 
 let print_package_info b lines =
@@ -468,8 +474,8 @@ let generate_library_index state bb =
       Printf.bprintf b "</table>%%}\n";
 
       Printf.bprintf b "{1:modules Library modules}\n";
-
-      modules_to_html b lib.lib_mdls;
+      Printf.bprintf b "%s\n"
+        (modules_to_html lib.lib_mdls);
 
       let content = Buffer.contents b in
       let mld_file = digodoc_odoc_dir // pkg // "page-index.mld" in
@@ -634,7 +640,8 @@ let generate_opam_index state bb =
 
       Printf.bprintf b "\n{1:modules Package modules}\n";
 
-      modules_to_html b opam.opam_mdls;
+      Printf.bprintf b "%s\n"
+        (modules_to_html opam.opam_mdls);
 
       Printf.bprintf b "\n{1:files Package files}\n";
       Printf.bprintf b {|{%%html:<pre>|};
@@ -775,12 +782,14 @@ let generate_meta_index state bb =
 
       let b = Buffer.create 10000 in
 
-      Printf.bprintf b "{0:opam-%s Dune/OCamlfind Package %s\n"
+      Printf.bprintf b "{0:opam-%s Meta Package %s\n"
         meta.meta_name meta.meta_name;
       Printf.bprintf b
         {|{%%html:<nav><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></nav>%%}|}
         opam_pkg opam.opam_name opam.opam_version;
       Printf.bprintf b "}\n";
+      Printf.bprintf b
+        "Meta packages are used by ocamlfind and in the libraries statement of dune.\n";
 
       Printf.bprintf b "{1:info Package info}\n";
 
@@ -828,7 +837,8 @@ let generate_meta_index state bb =
       StringMap.iter (fun _ lib ->
           map := StringMap.union (fun _ a _ -> Some a) lib.lib_mdls !map
         ) meta.meta_libs;
-      modules_to_html b !map;
+
+      Printf.bprintf b "%s\n" (modules_to_html !map);
 
       let content = Buffer.contents b in
       let mld_file = digodoc_odoc_dir // pkg // "page-index.mld" in
