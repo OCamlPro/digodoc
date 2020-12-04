@@ -132,13 +132,17 @@ let call_odoc_mld ~continue_on_error state pkg mldfile ~pkgs =
   ()
 
 
-let lookup_cmi state ~name ~crc =
+let lookup_cmi state ~name:_ ~crc =
   try Hashtbl.find state.ocaml_mdls_by_cmi_crc crc with
   | Not_found ->
+      (*
       match Hashtbl.find_all state.ocaml_mdls_by_name name with
       | [ mdl ] -> mdl
-      | _ -> raise Not_found
+      | _ ->
+*)
+          raise Not_found
 
+let opaque_crc = "--------------------------------"
 
 let deps_of_pkg state =
   let deps_of_pkg = Hashtbl.create 1111 in
@@ -161,13 +165,14 @@ let deps_of_pkg state =
         | None -> ()
         | Some unit ->
             StringMap.iter (fun name crc ->
-                match lookup_cmi state ~name ~crc with
-                | exception Not_found ->
-                    Printf.eprintf
-                      "mdl %s depends on unfound cmi %s with crc %s\n"
-                      mdl.mdl_longname name crc
-                | dep_mdl ->
-                    deps := StringSet.add (pkg_of_mdl dep_mdl) !deps
+                if crc <> opaque_crc then
+                  match lookup_cmi state ~name ~crc with
+                  | exception Not_found ->
+                      Printf.eprintf
+                        "mdl %s depends on unfound cmi %s with crc %s\n"
+                        mdl.mdl_longname name crc
+                  | dep_mdl ->
+                      deps := StringSet.add (pkg_of_mdl dep_mdl) !deps
               ) unit.unit_import_cmis
       end;
       begin
@@ -175,13 +180,14 @@ let deps_of_pkg state =
         | None -> ()
         | Some unit ->
             StringMap.iter (fun name crc ->
-                match lookup_cmi state ~name ~crc with
-                | exception Not_found ->
-                    Printf.eprintf
-                      "mdl %s depends on unfound cmi %s with crc %s\n"
-                      mdl.mdl_longname name crc
-                | dep_mdl ->
-                    deps := StringSet.add (pkg_of_mdl dep_mdl) !deps;
+                if crc <> opaque_crc then
+                  match lookup_cmi state ~name ~crc with
+                  | exception Not_found ->
+                      Printf.eprintf
+                        "mdl %s depends on unfound cmi %s with crc %s\n"
+                        mdl.mdl_longname name crc
+                  | dep_mdl ->
+                      deps := StringSet.add (pkg_of_mdl dep_mdl) !deps;
               ) unit.unit_import_cmis;
             StringMap.iter (fun name crc ->
                 match Hashtbl.find state.ocaml_mdls_by_cmx_crc crc with
@@ -202,21 +208,24 @@ let iter_modules_with_cmi state f =
 
   let done_table = Hashtbl.create 1111 in
 
-  let rec check mdl =
+  let rec check stack mdl =
     if not ( Hashtbl.mem done_table mdl.mdl_longname ) then begin
       Hashtbl.add done_table mdl.mdl_longname ();
+      let stack = mdl.mdl_longname :: stack in
       begin
         match mdl.mdl_intf with
         | None -> ()
         | Some unit ->
             StringMap.iter (fun name crc ->
-                match lookup_cmi state ~name ~crc with
-                | exception Not_found ->
-                    Printf.eprintf
-                      "mdl %s depends on unfound cmi %s with crc %s\n"
-                      mdl.mdl_longname name crc
-                | dep_mdl ->
-                    check dep_mdl
+                if crc <> opaque_crc then
+                  match lookup_cmi state ~name ~crc with
+                  | exception Not_found ->
+                      Printf.eprintf
+                        "mdl %s depends on unfound cmi %s with crc %s\n"
+                        mdl.mdl_longname name crc
+                  | dep_mdl ->
+                      if dep_mdl != mdl then
+                        check stack dep_mdl
               ) unit.unit_import_cmis
       end;
       begin
@@ -224,13 +233,15 @@ let iter_modules_with_cmi state f =
         | None -> ()
         | Some unit ->
             StringMap.iter (fun name crc ->
-                match lookup_cmi state ~name ~crc with
-                | exception Not_found ->
-                    Printf.eprintf
-                      "mdl %s depends on unfound cmi %s with crc %s\n"
-                      mdl.mdl_longname name crc
-                | dep_mdl ->
-                    check dep_mdl
+                if crc <> opaque_crc then
+                  match lookup_cmi state ~name ~crc with
+                  | exception Not_found ->
+                      Printf.eprintf
+                        "mdl %s depends on unfound cmi %s with crc %s\n"
+                        mdl.mdl_longname name crc
+                  | dep_mdl ->
+                      if dep_mdl != mdl then
+                        check stack dep_mdl
               ) unit.unit_import_cmis;
             StringMap.iter (fun name crc ->
                 match Hashtbl.find state.ocaml_mdls_by_cmx_crc crc with
@@ -239,14 +250,21 @@ let iter_modules_with_cmi state f =
                       "mdl %s depends on unfound cmx %s with crc %s\n"
                       mdl.mdl_longname name crc
                 | dep_mdl ->
-                    check dep_mdl
+                    if dep_mdl != mdl then
+                      check stack dep_mdl
               ) unit.unit_import_cmxs;
       end;
       f state mdl
+    end else
+    if List.mem mdl.mdl_longname stack then begin
+      Printf.eprintf "Cycle:\n";
+      List.iter (fun name ->
+          Printf.eprintf "    %s <- \n%!" name
+        ) ( mdl.mdl_longname :: stack)
     end
   in
   Hashtbl.iter (fun _ mdl ->
-      check mdl
+      check [] mdl
     ) state.ocaml_mdls_by_cmi_crc
 
 
