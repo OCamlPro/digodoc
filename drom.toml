@@ -1,5 +1,5 @@
 [project]
-drom-version = "0.1.0"
+drom-version = "0.1"
 
 [project]
 authors = ["Fabrice Le Fessant <fabrice.le_fessant@origin-labs.com>"]
@@ -32,8 +32,9 @@ of the digodoc OCaml project
 """
 
 [drom]
-skip = "src/digodoc/main.ml src/digodoc_lib/main.ml"
+skip = "src/digodoc/main.ml src/digodoc_lib/main.ml src/ez_xml/main.ml"
 
+[dependencies]
 
 [tools.ocamlformat]
 for-test = true
@@ -47,6 +48,7 @@ for-test = true
 [project]
 generators = ["ocamllex", "ocamlyacc"]
 pack-modules = true
+share-dirs = ["share"]
 skip-dirs = []
 
 
@@ -58,4 +60,7 @@ dir = "src/digodoc_lib"
 
 [[package]]
 dir = "src/meta_file"
+
+[[package]]
+dir = "src/ez_xml"
 

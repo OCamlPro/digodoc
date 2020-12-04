@@ -114,7 +114,7 @@ If a MODULE is provided, display the source module corresponding to this module
         | GenerateHtml ->
             let state = get_state ~state ~objinfo ~switch in
             Odoc.generate ~state ~continue_on_error;
-            EzHtml.check_links Html.digodoc_html_dir
+            (*            EzHtml.check_links Html.digodoc_html_dir *)
         | CheckLinks -> EzHtml.check_links Html.digodoc_html_dir
         | OpenDoc ->
             let index = Html.digodoc_html_dir // "index.html" in

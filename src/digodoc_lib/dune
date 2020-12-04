@@ -4,7 +4,7 @@
   (name digodoc_lib)
   (public_name digodoc_lib)
   (wrapped true)
-  (libraries xml-light opam-file-format meta_file ez_file )
+  (libraries opam-file-format meta_file ez_xml ez_file )
   
   
   )

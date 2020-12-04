@@ -49,6 +49,9 @@ let pkg_of_mdl mdl =
       Printf.sprintf "MODULE.%s.%s.%s"
         mdl.mdl_basename mdl.mdl_opam.opam_name version
 
+let mdl_is_alone mdl =
+  StringMap.is_empty mdl.mdl_libs
+
 let id_of_pkg pkg =
   snd (EzString.cut_at pkg '.')
 
@@ -463,12 +466,12 @@ let infos_of_opam state pkg opam =
   ( match opam.opam_synopsis with
     | None -> []
     | Some synopsis ->
-        [  [ "synopsis" ; synopsis ] ]
+        [  [ "synopsis" ; Html.encode synopsis ] ]
   ) @
   ( match opam.opam_description with
     | None -> []
     | Some s ->
-        [  [ "description" ; s ] ]
+        [  [ "description" ; Html.encode s ] ]
   ) @
   ( match opam.opam_authors with
     | None -> []
@@ -513,7 +516,7 @@ let generate_library_index state bb =
 
       let line =
         Printf.sprintf
-          {|<li class="package" id="%s"><a href="%s/index.html"" class="digodoc-lib"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
+          {|<li class="package" id="%s"><a href="%s/index.html" class="digodoc-lib"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
           (id_of_pkg pkg)
           pkg lib.lib_name
           opam_pkg
@@ -604,7 +607,7 @@ let generate_opam_index state bb =
           opam.opam_version
           (match opam.opam_synopsis with
            | None -> ""
-           | Some s -> s)
+           | Some s -> Html.encode s)
       in
       index := (opam.opam_name, line ) :: !index;
 
@@ -733,7 +736,6 @@ let generate_module_index state bb =
 
   Printf.bprintf bb {|
   <h1 id="index"><a href="#index-module" class="anchor"></a>Index of modules</h1>
-  <ul class="modules">
 |};
 
   let index = ref [] in
@@ -769,7 +771,11 @@ let generate_module_index state bb =
                      ) ))
         )
       in
-      index := ( short_name, line ) :: !index
+      index := ( short_name, line ) :: !index;
+
+      if mdl_is_alone mdl then
+        EzFile.write_file ( Html.digodoc_html_dir // pkg // "index.html" )
+          ""
     ) list ;
 
   print_index bb !index;
