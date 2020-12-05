@@ -6,4 +6,4 @@
   (pps ppx_inline_test))
  (inline_tests
   (modes best)) ; add js for testing with nodejs
- (libraries digodoc_lib meta_file ez_xml))
+ (libraries digodoc_lib meta_file ez_html))

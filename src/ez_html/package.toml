@@ -1,6 +1,6 @@
 
 # name of package
-name = "digodoc_lib"
+name = "ez_html"
 # skeleton = ...
 
 # version if different from project version
@@ -19,14 +19,14 @@ kind = "library"
 # authors = [ "Me <me@metoo.org>" ]
 
 # name of a file to generate with the current version
-gen-version = "version.ml"
+# gen-version = "version.ml"
 
 # supported file generators are "ocamllex", "ocamlyacc" and "menhir" 
 # default is [ "ocamllex", "ocamlyacc" ] 
 # generators = [ "ocamllex", "menhir" ]
 
 # whether all modules should be packed/wrapped (default is true)
-# pack-modules = false
+pack-modules = true
 
 # module name used to pack modules (if pack-modules is true)
 # pack = "Mylib"
@@ -39,10 +39,7 @@ gen-version = "version.ml"
 #   ez_file = ">=0.1 <1.3"
 #   base-unix = { libname = "unix", version = ">=base" } 
 [dependencies]
-ez_file = "0.1.0"
-ez_html = "0.1"
-meta_file = "version"
-opam-file-format = "2.1.1"
+ocplib_stuff = ">=0.1"
 
 # package tools dependencies
 [tools]

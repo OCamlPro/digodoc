@@ -1,7 +1,0 @@
-kind = "library"
-name = "ez_xml"
-pack-modules = false
-
-
-[dependencies]
-ocplib_stuff = "0.1"
