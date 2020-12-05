@@ -52,14 +52,15 @@ let parse (p:XmlParser.t) (source:XmlParser.source) =
 let parse_in ch = parse default_parser (XmlParser.SChannel ch)
 let parse_string str = parse default_parser (XmlParser.SString str)
 
-let parse_file f =
-	let p = XmlParser.make() in
-	let path = Filename.dirname f in
-	XmlParser.resolve p (fun file ->
-		let name = (match path with "." -> file | _ -> path ^ "/" ^ file) in
-		Dtd.check (Dtd.parse_file name)
-	);
-	parse p (XmlParser.SFile f)
+let parse_file ?(check=false) f =
+  let p = XmlParser.make() in
+  let path = Filename.dirname f in
+  if check then
+    XmlParser.resolve p (fun file ->
+        let name = (match path with "." -> file | _ -> path ^ "/" ^ file) in
+        Dtd.check (Dtd.parse_file name)
+      );
+  parse p (XmlParser.SFile f)
 
 let error_msg = function
 	| UnterminatedComment -> "Unterminated comment"
@@ -164,35 +165,38 @@ let buffer_attr (n,v) =
 	Buffer.add_char tmp '"'
 
 let to_string x =
-	let pcdata = ref false in
-	let rec loop = function
-		| Element (tag,alist,[]) ->
-			Buffer.add_char tmp '<';
-			Buffer.add_string tmp tag;
-			List.iter buffer_attr alist;
-			Buffer.add_string tmp "/>";
-			pcdata := false;
-		| Element (tag,alist,l) ->
-			Buffer.add_char tmp '<';
-			Buffer.add_string tmp tag;
-			List.iter buffer_attr alist;
-			Buffer.add_char tmp '>';
-			pcdata := false;
-			List.iter loop l;
-			Buffer.add_string tmp "</";
-			Buffer.add_string tmp tag;
-			Buffer.add_char tmp '>';
-			pcdata := false;
-		| PCData text ->
-			if !pcdata then Buffer.add_char tmp ' ';
-			buffer_pcdata text;
-			pcdata := true;
-	in
-	Buffer.reset tmp;
-	loop x;
-	let s = Buffer.contents tmp in
-	Buffer.reset tmp;
-	s
+  let pcdata = ref false in
+  let rec loop = function
+    | Element (tag,alist,[]) when
+        ( match tag with
+          | "a" -> false
+          | _ -> true ) ->
+	Buffer.add_char tmp '<';
+	Buffer.add_string tmp tag;
+	List.iter buffer_attr alist;
+	Buffer.add_string tmp "/>";
+	pcdata := false;
+    | Element (tag,alist,l) ->
+	Buffer.add_char tmp '<';
+	Buffer.add_string tmp tag;
+	List.iter buffer_attr alist;
+	Buffer.add_char tmp '>';
+	pcdata := false;
+	List.iter loop l;
+	Buffer.add_string tmp "</";
+	Buffer.add_string tmp tag;
+	Buffer.add_char tmp '>';
+	pcdata := false;
+    | PCData text ->
+	if !pcdata then Buffer.add_char tmp ' ';
+	buffer_pcdata text;
+	pcdata := true;
+  in
+  Buffer.reset tmp;
+  loop x;
+  let s = Buffer.contents tmp in
+  Buffer.reset tmp;
+  s
 
 let to_string_fmt x =
 	let rec loop ?(newl=false) tab = function

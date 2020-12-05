@@ -133,11 +133,13 @@ rule token = parse
 			newline lexbuf;
 			token lexbuf
 		}
+(*
 	| (space | break) +
 		{
 			last_pos := lexeme_end lexbuf;
 			token lexbuf
 		}
+*)
 	| "<!DOCTYPE"
 		{
 			last_pos := lexeme_start lexbuf;
@@ -404,6 +406,8 @@ and dtd_data = parse
 			dtd_end_decl lexbuf;
 			DTDData data
 		}
+	| '>'
+		{       DTDData [] }
 	| _ | eof
 		{ dtd_error lexbuf EInvalidDTDDecl }
 

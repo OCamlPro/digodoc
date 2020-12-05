@@ -31,9 +31,11 @@ let cache_file = "_digodoc/digodoc.state"
 type action =
   | Scan
   | Search of string
-  | GenerateHtml
   | OpenDoc
+  | GenerateHtml
+  | GenerateIndex
   | CheckLinks
+  | AddTrailer
 
 let main () =
 
@@ -74,13 +76,16 @@ Options:
 --cached: use the cached state instead of recomputing it
 --no-objinfo: do not call ocamlobjinfo to attach modules to libraries
 --switch-prefix SWITCH: use SWITCH instead of the current opam switch (ignored if with --cached)
-
+--check-links: check html pages for broken links
+--add-trailer: insert digodoc/ocamlpro trailer
+--generate-index: (WIP)
 If a MODULE is provided, display the source module corresponding to this module
 
 %!|};
     exit exit_code
   in
-  let rec iter ~state ~objinfo ~continue_on_error ~switch ~action args =
+  let rec iter ~state
+      ~objinfo ~continue_on_error ~switch ~action args =
     match args with
     | "--no-objinfo" :: args ->
         iter ~state ~objinfo:false ~continue_on_error ~switch ~action args
@@ -96,6 +101,10 @@ If a MODULE is provided, display the source module corresponding to this module
         iter ~state ~objinfo ~continue_on_error ~switch ~action:GenerateHtml args
     | "--check-links" :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:CheckLinks args
+    | "--add-trailer" :: args ->
+        iter ~state ~objinfo ~continue_on_error ~switch ~action:AddTrailer args
+    | "--gen-index" :: args ->
+        iter ~state ~objinfo ~continue_on_error ~switch ~action:GenerateIndex args
     | "--www" :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:OpenDoc args
     | ( "-k" | "--continue-on-error" ) :: args ->
@@ -103,6 +112,9 @@ If a MODULE is provided, display the source module corresponding to this module
     | "--switch-prefix" :: s :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch:(Some s) ~action args
     | ( "--help" | "-h" | "-help" ) :: _ -> help 0
+    | s :: _ when EzString.starts_with s ~prefix:"-" ->
+        Printf.eprintf "Error: unknown option %S\n%!" s;
+        help 2
     | [ mdl ] ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:(Search mdl) []
     | _ :: _ -> help 2
@@ -114,8 +126,14 @@ If a MODULE is provided, display the source module corresponding to this module
         | GenerateHtml ->
             let state = get_state ~state ~objinfo ~switch in
             Odoc.generate ~state ~continue_on_error;
-            (*            EzHtml.check_links Html.digodoc_html_dir *)
-        | CheckLinks -> EzHtml.check_links Html.digodoc_html_dir
+            Odoc.generate_index ();
+            (*            Html.iter_html ~add_trailer:true Html.digodoc_html_dir *)
+        | CheckLinks ->
+            Html.iter_html ~check_links:true Html.digodoc_html_dir
+        | AddTrailer ->
+            Html.iter_html ~add_trailer:true Html.digodoc_html_dir
+        | GenerateIndex ->
+            Odoc.generate_index ()
         | OpenDoc ->
             let index = Html.digodoc_html_dir // "index.html" in
             if Sys.file_exists index then
