@@ -52,14 +52,15 @@ let parse (p:XmlParser.t) (source:XmlParser.source) =
 let parse_in ch = parse default_parser (XmlParser.SChannel ch)
 let parse_string str = parse default_parser (XmlParser.SString str)
 
-let parse_file f =
-	let p = XmlParser.make() in
-	let path = Filename.dirname f in
-	XmlParser.resolve p (fun file ->
-		let name = (match path with "." -> file | _ -> path ^ "/" ^ file) in
-		Dtd.check (Dtd.parse_file name)
-	);
-	parse p (XmlParser.SFile f)
+let parse_file ?(check=false) f =
+  let p = XmlParser.make() in
+  let path = Filename.dirname f in
+  if check then
+    XmlParser.resolve p (fun file ->
+        let name = (match path with "." -> file | _ -> path ^ "/" ^ file) in
+        Dtd.check (Dtd.parse_file name)
+      );
+  parse p (XmlParser.SFile f)
 
 let error_msg = function
 	| UnterminatedComment -> "Unterminated comment"

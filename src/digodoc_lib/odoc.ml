@@ -46,7 +46,7 @@ let pkg_of_mdl mdl =
   match StringMap.bindings mdl.mdl_libs with
   | (_, lib) :: _rem -> pkg_of_lib lib
   | [] ->
-      Printf.sprintf "MODULE.%s.%s.%s"
+      Printf.sprintf "MODULE.%s@%s.%s"
         mdl.mdl_basename mdl.mdl_opam.opam_name version
 
 let mdl_is_alone mdl =
@@ -131,15 +131,12 @@ let call_odoc_mld ~continue_on_error state pkg mldfile ~pkgs =
   Process.call ~continue_on_error ( Array.of_list cmd );
   ()
 
-
-let lookup_cmi state ~name:_ ~crc =
+let lookup_cmi state ~name ~crc =
   try Hashtbl.find state.ocaml_mdls_by_cmi_crc crc with
   | Not_found ->
-      (*
       match Hashtbl.find_all state.ocaml_mdls_by_name name with
       | [ mdl ] -> mdl
       | _ ->
-*)
           raise Not_found
 
 let opaque_crc = "--------------------------------"
@@ -165,14 +162,13 @@ let deps_of_pkg state =
         | None -> ()
         | Some unit ->
             StringMap.iter (fun name crc ->
-                if crc <> opaque_crc then
-                  match lookup_cmi state ~name ~crc with
-                  | exception Not_found ->
-                      Printf.eprintf
-                        "mdl %s depends on unfound cmi %s with crc %s\n"
-                        mdl.mdl_longname name crc
-                  | dep_mdl ->
-                      deps := StringSet.add (pkg_of_mdl dep_mdl) !deps
+                match lookup_cmi state ~name ~crc with
+                | exception Not_found ->
+                    Printf.eprintf
+                      "mdl %s depends on unfound cmi %s with crc %s\n"
+                      mdl.mdl_longname name crc
+                | dep_mdl ->
+                    deps := StringSet.add (pkg_of_mdl dep_mdl) !deps
               ) unit.unit_import_cmis
       end;
       begin
@@ -180,14 +176,13 @@ let deps_of_pkg state =
         | None -> ()
         | Some unit ->
             StringMap.iter (fun name crc ->
-                if crc <> opaque_crc then
-                  match lookup_cmi state ~name ~crc with
-                  | exception Not_found ->
-                      Printf.eprintf
-                        "mdl %s depends on unfound cmi %s with crc %s\n"
-                        mdl.mdl_longname name crc
-                  | dep_mdl ->
-                      deps := StringSet.add (pkg_of_mdl dep_mdl) !deps;
+                match lookup_cmi state ~name ~crc with
+                | exception Not_found ->
+                    Printf.eprintf
+                      "mdl %s depends on unfound cmi %s with crc %s\n"
+                      mdl.mdl_longname name crc
+                | dep_mdl ->
+                    deps := StringSet.add (pkg_of_mdl dep_mdl) !deps;
               ) unit.unit_import_cmis;
             StringMap.iter (fun name crc ->
                 match Hashtbl.find state.ocaml_mdls_by_cmx_crc crc with
@@ -524,6 +519,14 @@ let infos_of_opam state pkg opam =
   )
 
 
+let save_line ~dir_name ~line_name line =
+
+  let mdl_dir = Html.digodoc_html_dir // dir_name in
+  EzFile.make_dir ~p:true mdl_dir;
+  EzFile.write_file ( mdl_dir // line_name )
+    line;
+  ()
+
 
 let generate_library_index state bb =
 
@@ -542,6 +545,8 @@ let generate_library_index state bb =
           lib.lib_opam.opam_version
       in
       index := ( lib.lib_name, line ) :: !index;
+
+      save_line ~dir_name:pkg ~line_name:"LINE" line;
 
       if not skip_packages then
         let b = Buffer.create 10000 in
@@ -628,6 +633,7 @@ let generate_opam_index state bb =
            | Some s -> Html.encode s)
       in
       index := (opam.opam_name, line ) :: !index;
+      save_line ~dir_name:pkg ~line_name:"LINE" line;
 
       if not skip_packages then
         let b = Buffer.create 10000 in
@@ -763,33 +769,46 @@ let generate_module_index state bb =
       let opam_pkg = pkg_of_opam opam in
 
       let line =
-      Printf.sprintf
-        {|<li class="package" id="%s:%s"><a href="%s/%s/index.html"><code>%s</code></a>%s in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a>%s</li>|}
-        (id_of_pkg pkg) mdl.mdl_name
-        pkg
-        mdl.mdl_name
-        short_name
-        (if long then
-           Printf.sprintf " alias of %s" mdl.mdl_name
-         else
-           ""
-        )
-        opam_pkg
-        opam.opam_name
-        opam.opam_version
-        (if StringMap.is_empty mdl.mdl_libs then
-           ""
-         else
-           Printf.sprintf " in libs %s"
-             ( String.concat ", "
-                 ( StringMap.to_list mdl.mdl_libs |>
-                   List.map (fun (_,lib) ->
-                       Printf.sprintf {|<a href="%s/index.html" class="digodoc-lib">%s</a>|}
-                         (pkg_of_lib lib) lib.lib_name
-                     ) ))
-        )
+        Printf.sprintf
+          {|<li class="package" id="%s:%s"><a href="%s/%s/index.html"><code>%s</code></a>%s in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a>%s</li>|}
+          (id_of_pkg pkg) mdl.mdl_name
+          pkg
+          mdl.mdl_name
+          short_name
+          (if long then
+             Printf.sprintf " alias of %s" mdl.mdl_name
+           else
+             ""
+          )
+          opam_pkg
+          opam.opam_name
+          opam.opam_version
+          (if StringMap.is_empty mdl.mdl_libs then
+             ""
+           else
+             Printf.sprintf " in libs %s"
+               ( String.concat ", "
+                   ( StringMap.to_list mdl.mdl_libs |>
+                     List.map (fun (_,lib) ->
+                         Printf.sprintf {|<a href="%s/index.html" class="digodoc-lib">%s</a>|}
+                           (pkg_of_lib lib) lib.lib_name
+                       ) ))
+          )
       in
       index := ( short_name, line ) :: !index;
+      save_line
+        ~dir_name: ( Printf.sprintf "MODULE.%s" mdl.mdl_name )
+        ~line_name: ( Printf.sprintf "LINE.%s@%s.%s" mdl.mdl_name
+                        mdl.mdl_opam.opam_name mdl.mdl_opam.opam_version)
+        line;
+      if long then begin
+        save_line
+          ~dir_name: ( Printf.sprintf "MODULE.%s" short_name )
+          ~line_name: (
+            Printf.sprintf "LINE.%s.%s@%s.%s" short_name mdl.mdl_name
+              mdl.mdl_opam.opam_name mdl.mdl_opam.opam_version)
+          line
+      end;
 
       if mdl_is_alone mdl then
         EzFile.write_file ( Html.digodoc_html_dir // pkg // "index.html" )
@@ -818,6 +837,7 @@ let generate_meta_index state bb =
       in
 
       index := ( meta.meta_name , line ) :: !index;
+      save_line ~dir_name:pkg ~line_name:"LINE" line;
 
       if not skip_packages then
         let b = Buffer.create 10000 in
@@ -1026,3 +1046,5 @@ let generate ~state ~continue_on_error =
     );
 
   ()
+
+let generate_index () = ()

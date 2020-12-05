@@ -404,6 +404,8 @@ and dtd_data = parse
 			dtd_end_decl lexbuf;
 			DTDData data
 		}
+	| '>'
+		{       DTDData [] }
 	| _ | eof
 		{ dtd_error lexbuf EInvalidDTDDecl }
 

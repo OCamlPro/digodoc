@@ -44,7 +44,7 @@ open Xml_types
 	{{:#exc}Exceptions} section for more informations. *)
 
 (** Parse the named file into an Xml data structure. *)
-val parse_file : string -> xml
+val parse_file : ?check:bool -> string -> xml
 
 (** Read the content of the in_channel and parse it into an Xml data
  structure. *)
