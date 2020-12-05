@@ -135,6 +135,7 @@ let insert_trailer xml =
   iter xml
 
 let iter_html ?(check_links=false) ?(add_trailer=false) dir =
+  Printf.eprintf "Scanning html files...\n%!";
   assert ( check_links ||  add_trailer );
   (*  EzFile.make_select *)
   EzFile.make_select EzFile.iter_dir ~deep:true ~glob:"*.html"
@@ -158,4 +159,5 @@ let iter_html ?(check_links=false) ?(add_trailer=false) dir =
             if add_trailer then
               EzFile.write_file file
                 ( "<!DOCTYPE html>\n" ^ Xml.to_string ( insert_trailer xml ) )
-      ) dir
+      ) dir;
+  Printf.eprintf "Scan finished.\n%!"

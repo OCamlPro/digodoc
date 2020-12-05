@@ -263,9 +263,11 @@ let iter_modules_with_cmi state f =
     ) state.ocaml_mdls_by_cmi_crc
 
 
-let print_index bb index =
+let print_index bb index entity_name =
   let map = ref StringMap.empty in
+  let n = ref 0 in
   List.iter (fun (entry, line) ->
+      incr n;
       let i = String.make 1 ( Char.lowercase entry.[0] ) in
       match StringMap.find i !map with
       | exception Not_found ->
@@ -275,9 +277,10 @@ let print_index bb index =
     ) index;
 
   Printf.bprintf bb {|
+    <h4>%d %s</h4>
     <div class="by-name">
       <nav>
-|};
+|} !n entity_name;
   StringMap.iter (fun i _ ->
       Printf.bprintf bb {|<a href="#name-%s">%s</a>
 |} i i) !map;
@@ -611,7 +614,7 @@ let generate_library_index state bb =
     )
     ( List.sort compare state.ocaml_libs );
 
-  print_index bb (List.rev !index);
+  print_index bb (List.rev !index) "libraries";
 
   ()
 
@@ -723,7 +726,7 @@ let generate_opam_index state bb =
         ()
     ) state.opam_packages ;
 
-  print_index bb !index;
+  print_index bb !index "packages";
   ()
 
 let generate_module_index state bb =
@@ -756,11 +759,6 @@ let generate_module_index state bb =
 
 
   let list = List.sort compare !list in
-
-
-  Printf.bprintf bb {|
-  <h1 id="index"><a href="#index-module" class="anchor"></a>Index of modules</h1>
-|};
 
   let index = ref [] in
   List.iter (fun ( short_name , long, mdl ) ->
@@ -815,7 +813,7 @@ let generate_module_index state bb =
           ""
     ) list ;
 
-  print_index bb !index;
+  print_index bb !index "modules";
   ()
 
 let generate_meta_index state bb =
@@ -931,7 +929,7 @@ let generate_meta_index state bb =
         ()
     ) state.meta_packages ;
 
-  print_index bb (List.rev !index);
+  print_index bb (List.rev !index) "packages";
   ()
 
 let generate ~state ~continue_on_error =
@@ -1047,4 +1045,7 @@ let generate ~state ~continue_on_error =
 
   ()
 
-let generate_index () = ()
+let generate_index () =
+  Printf.eprintf "Generating index...\n%!";
+  Printf.eprintf "Index generation done.\n%!";
+  ()

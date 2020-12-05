@@ -133,11 +133,13 @@ rule token = parse
 			newline lexbuf;
 			token lexbuf
 		}
+(*
 	| (space | break) +
 		{
 			last_pos := lexeme_end lexbuf;
 			token lexbuf
 		}
+*)
 	| "<!DOCTYPE"
 		{
 			last_pos := lexeme_start lexbuf;

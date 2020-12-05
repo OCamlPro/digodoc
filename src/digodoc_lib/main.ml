@@ -101,7 +101,7 @@ If a MODULE is provided, display the source module corresponding to this module
         iter ~state ~objinfo ~continue_on_error ~switch ~action:GenerateHtml args
     | "--check-links" :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:CheckLinks args
-    | "--add-html" :: args ->
+    | "--add-trailer" :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:AddTrailer args
     | "--gen-index" :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:GenerateIndex args
@@ -112,6 +112,9 @@ If a MODULE is provided, display the source module corresponding to this module
     | "--switch-prefix" :: s :: args ->
         iter ~state ~objinfo ~continue_on_error ~switch:(Some s) ~action args
     | ( "--help" | "-h" | "-help" ) :: _ -> help 0
+    | s :: _ when EzString.starts_with s ~prefix:"-" ->
+        Printf.eprintf "Error: unknown option %S\n%!" s;
+        help 2
     | [ mdl ] ->
         iter ~state ~objinfo ~continue_on_error ~switch ~action:(Search mdl) []
     | _ :: _ -> help 2
@@ -123,7 +126,8 @@ If a MODULE is provided, display the source module corresponding to this module
         | GenerateHtml ->
             let state = get_state ~state ~objinfo ~switch in
             Odoc.generate ~state ~continue_on_error;
-            Html.iter_html Html.digodoc_html_dir
+            Odoc.generate_index ();
+            (*            Html.iter_html ~add_trailer:true Html.digodoc_html_dir *)
         | CheckLinks ->
             Html.iter_html ~check_links:true Html.digodoc_html_dir
         | AddTrailer ->
