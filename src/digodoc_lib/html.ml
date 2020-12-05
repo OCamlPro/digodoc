@@ -9,12 +9,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*
-open EzCompat
-open Types
-*)
+open Ez_html.V1
 open EzFile.OP
-
 
 let digodoc_html_dir = Globals.digodoc_dir // "html"
 
@@ -53,13 +49,13 @@ let generate_page ~filename ~title f =
   EzFile.write_file (digodoc_html_dir // filename) contents;
   ()
 
-let encode = EzHtml.encode
+let encode = HTML.encode
 
 
 open EzFile.OP
+open HTML.TYPES
 
 let check_html ~file xml =
-  let open Xml_types in
   let rec iter =  function
     | PCData _ -> ()
     | Element (tagName, attributes, childNodes) ->
@@ -87,23 +83,12 @@ let check_html ~file xml =
   in
   iter xml
 
-open Xml_types
-module HTML = struct
-  let element tagName ?(a=[]) childNodes =
-    Element (tagName, a, childNodes)
-  let s s = PCData s
-  let div = element "div"
-  let p = element "p"
-  let a = element "a"
-  let hr = element "hr" []
-end
-
 let rec add_trailer list =
   match list with
   | Element ("div", [ "id", "trailer" ], _ ) :: _ -> list
   | e :: list -> e :: add_trailer list
   | [] ->
-      HTML.[
+      HTML.CONS.[
         div ~a:[ "id", "trailer" ]
           [ hr ;
             p [ s "Generated using ";
@@ -123,7 +108,6 @@ let rec add_trailer list =
       ]
 
 let insert_trailer xml =
-  let open Xml_types in
   let rec iter xml =
     match xml with
     | PCData _ -> xml
@@ -142,14 +126,10 @@ let iter_html ?(check_links=false) ?(add_trailer=false) dir =
     ~f:(fun path ->
         let file = dir // path in
         match
-          match Xml.parse_file file with
-          | exception Xml.Error error ->
+          match HTML.parse_file file with
+          | exception HTML.Error error ->
               Printf.eprintf "%s: invalid html (%s)\n%!"
-                file (Xml.error error);
-              None
-          | exception Dtd.Parse_error error ->
-              Printf.eprintf "%s: invalid html (%s)\n%!"
-                file (Dtd.parse_error error);
+                file (HTML.string_of_error error);
               None
           | xml -> Some xml
         with
@@ -158,6 +138,9 @@ let iter_html ?(check_links=false) ?(add_trailer=false) dir =
             if check_links then check_html ~file xml;
             if add_trailer then
               EzFile.write_file file
-                ( "<!DOCTYPE html>\n" ^ Xml.to_string ( insert_trailer xml ) )
+                ( "<!DOCTYPE html>\n" ^ HTML.to_string ( insert_trailer xml ) )
       ) dir;
   Printf.eprintf "Scan finished.\n%!"
+
+let write_file file ~content =
+  EzFile.write_file file (HTML.check content)

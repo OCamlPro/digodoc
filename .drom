@@ -2,17 +2,17 @@
 
 # hash of toml configuration files
 # used for generation of all files
-142bac900103cc85f29edf97238fff25:.
+86aa13ec79320ebdd3dbb02b5b8cae77:.
 # end context for .
 
 # begin context for .github/workflows/doc-deploy.yml
 # file .github/workflows/doc-deploy.yml
-a4831145dc57e4756e6a5defd5757962:.github/workflows/doc-deploy.yml
+96332ff4d4c6f969022aa9da7ea32e92:.github/workflows/doc-deploy.yml
 # end context for .github/workflows/doc-deploy.yml
 
 # begin context for .github/workflows/workflow.yml
 # file .github/workflows/workflow.yml
-22e9a4174053c2cd257c938785e180ef:.github/workflows/workflow.yml
+9f1889abce3e0a0d37a8b6e9b483242d:.github/workflows/workflow.yml
 # end context for .github/workflows/workflow.yml
 
 # begin context for .gitignore
@@ -37,7 +37,7 @@ a4831145dc57e4756e6a5defd5757962:.github/workflows/doc-deploy.yml
 
 # begin context for CHANGES.md
 # file CHANGES.md
-a348088b2249295d6a139fff60dafa8b:CHANGES.md
+979e943a1898dcba9bc97eb8b87d0e45:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -62,7 +62,7 @@ c4217a22064a4a18f9587b930b250fbe:LICENSE.md
 
 # begin context for digodoc_lib.opam
 # file digodoc_lib.opam
-cd65011d7a9a3c9d4b320a5c1c549c62:digodoc_lib.opam
+a103176af52e46f143133467e1e8df79:digodoc_lib.opam
 # end context for digodoc_lib.opam
 
 # begin context for docs/.nojekyll
@@ -102,7 +102,7 @@ ec7bd7c977bb925908818597d08eb061:docs/sphinx/index.html
 
 # begin context for drom.toml
 # file drom.toml
-bbcad901f285b931f0100e5afbac80a8:drom.toml
+e483358a7777365852e1a648f2b2bb65:drom.toml
 # end context for drom.toml
 
 # begin context for dune
@@ -112,13 +112,13 @@ df544cfaf9078d1bba2f90ed1b5adf5f:dune
 
 # begin context for dune-project
 # file dune-project
-6a0a0551000788f34a1152f060b9c32f:dune-project
+c159547f2846aab2c66c5bf18941f8d7:dune-project
 # end context for dune-project
 
-# begin context for ez_xml.opam
-# file ez_xml.opam
-3a64b1aec11509fda815245298266f32:ez_xml.opam
-# end context for ez_xml.opam
+# begin context for ez_html.opam
+# file ez_html.opam
+729f45c3b34732489ccc67c92e22618c:ez_html.opam
+# end context for ez_html.opam
 
 # begin context for meta_file.opam
 # file meta_file.opam
@@ -172,7 +172,7 @@ a9fbe421d8fc3a9c3ac462e114333272:src/digodoc/index.mld
 
 # begin context for src/digodoc/package.toml
 # file src/digodoc/package.toml
-495d978b21a53f51336d5f065d48b960:src/digodoc/package.toml
+107dad0e78397357a0eb0d62d3f78186:src/digodoc/package.toml
 # end context for src/digodoc/package.toml
 
 # begin context for src/digodoc/version.ml
@@ -182,7 +182,7 @@ fab8224b1866cef1103bca89068b73fe:src/digodoc/version.ml
 
 # begin context for src/digodoc_lib/dune
 # file src/digodoc_lib/dune
-ad7d65bcb53535666d62a5ef878286e6:src/digodoc_lib/dune
+b9de39b82fee582e342004ed4c1378f8:src/digodoc_lib/dune
 # end context for src/digodoc_lib/dune
 
 # begin context for src/digodoc_lib/index.mld
@@ -197,7 +197,7 @@ d41eb701e5d6d4a68d23824af541ee36:src/digodoc_lib/index.mld
 
 # begin context for src/digodoc_lib/package.toml
 # file src/digodoc_lib/package.toml
-29485a2ae9c2210bde49031b766e7925:src/digodoc_lib/package.toml
+4d5ec41d350ffb1db522d1e9e8dd9c21:src/digodoc_lib/package.toml
 # end context for src/digodoc_lib/package.toml
 
 # begin context for src/digodoc_lib/version.mlt
@@ -205,25 +205,20 @@ d41eb701e5d6d4a68d23824af541ee36:src/digodoc_lib/index.mld
 1d206409e33500d6a84cb2173a35e626:src/digodoc_lib/version.mlt
 # end context for src/digodoc_lib/version.mlt
 
-# begin context for src/ez_xml/dune
-# file src/ez_xml/dune
-8939c9d413177085513131d740feb247:src/ez_xml/dune
-# end context for src/ez_xml/dune
+# begin context for src/ez_html/dune
+# file src/ez_html/dune
+d3f0b05b1d69bfe71dae9d23744b267d:src/ez_html/dune
+# end context for src/ez_html/dune
 
-# begin context for src/ez_xml/index.mld
-# file src/ez_xml/index.mld
-b709076b3f7ab3f5fae666617daa6d08:src/ez_xml/index.mld
-# end context for src/ez_xml/index.mld
+# begin context for src/ez_html/index.mld
+# file src/ez_html/index.mld
+a63391bac0e218ebfaf11af8413b3305:src/ez_html/index.mld
+# end context for src/ez_html/index.mld
 
-# begin context for src/ez_xml/main.ml
-# file src/ez_xml/main.ml
-ca263a3d57002d095481286b128c299a:src/ez_xml/main.ml
-# end context for src/ez_xml/main.ml
-
-# begin context for src/ez_xml/package.toml
-# file src/ez_xml/package.toml
-e2d242872cdd103320e7dd91d6937f81:src/ez_xml/package.toml
-# end context for src/ez_xml/package.toml
+# begin context for src/ez_html/package.toml
+# file src/ez_html/package.toml
+fad2e79c519b9257237d7389a002f179:src/ez_html/package.toml
+# end context for src/ez_html/package.toml
 
 # begin context for src/meta_file/dune
 # file src/meta_file/dune
@@ -242,7 +237,7 @@ dbd5e44b7907c96263b9f7edcbd9aa54:src/meta_file/dune
 
 # begin context for src/meta_file/package.toml
 # file src/meta_file/package.toml
-a485446d8e9712d01c13df08385a4025:src/meta_file/package.toml
+64f6da3c5918a7d6f182220fca8536c1:src/meta_file/package.toml
 # end context for src/meta_file/package.toml
 
 # begin context for src/meta_file/version.ml
@@ -252,7 +247,7 @@ fab8224b1866cef1103bca89068b73fe:src/meta_file/version.ml
 
 # begin context for test/expect-tests/dune
 # file test/expect-tests/dune
-b75f4a097f0592d8c5e8e0fa70f1ca4f:test/expect-tests/dune
+7fa5d2931634fe9deeb382ef9c69b492:test/expect-tests/dune
 # end context for test/expect-tests/dune
 
 # begin context for test/expect-tests/test.ml
@@ -262,7 +257,7 @@ b75f4a097f0592d8c5e8e0fa70f1ca4f:test/expect-tests/dune
 
 # begin context for test/inline-tests/dune
 # file test/inline-tests/dune
-31082e935b5f6872b4e4a2ff599e9f52:test/inline-tests/dune
+ead7c37975d06c8e1e0385cf5118a4eb:test/inline-tests/dune
 # end context for test/inline-tests/dune
 
 # begin context for test/inline-tests/test.ml
@@ -272,7 +267,7 @@ e001d04969100c711855223ad6c23e6a:test/inline-tests/test.ml
 
 # begin context for test/output-tests/dune
 # file test/output-tests/dune
-4d92ea1a8de8c23c81f1786b79eac662:test/output-tests/dune
+8541c0789d593a36b978545a513ec30e:test/output-tests/dune
 # end context for test/output-tests/dune
 
 # begin context for test/output-tests/test1.expected

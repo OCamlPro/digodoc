@@ -9,6 +9,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Ez_html.V1
 open EzCompat
 open EzFile.OP
 open Types
@@ -333,7 +334,7 @@ let insert_html f =
   let b = Buffer.create 1000 in
   f b;
   let html = Buffer.contents b in
-  Printf.sprintf "{%%html:%s%%}\n" (EzHtml.check html)
+  Printf.sprintf "{%%html:%s%%}\n" (HTML.check html)
 
 let modules_to_html map =
   match StringMap.bindings map with
@@ -497,7 +498,7 @@ let infos_of_opam state pkg opam =
                (String.concat ""
                   (List.map (fun s ->
                        Printf.sprintf "<li>%s</li>"
-                         ( EzHtml.string s )) authors))
+                         ( HTML.encode s )) authors))
            ] ]
   ) @
   ( match opam.opam_homepage with

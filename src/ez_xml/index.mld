@@ -1,9 +1,0 @@
-
-{1 Library ez_xml}
-
-This is the description
-of the digodoc OCaml project
-
-
-This library exposes the following toplevel modules:
-{!modules:Dtd Main Xml XmlParser Xml_lexer Xml_parser}

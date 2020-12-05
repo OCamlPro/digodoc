@@ -8,14 +8,12 @@ edition = "4.10.0"
 github-organization = "ocamlpro"
 license = "LGPL2"
 min-edition = "4.10.0"
-mode = "binary"
 name = "digodoc"
 synopsis = "The digodoc project"
 version = "0.1.0"
 windows-ci = true
 
 # keys that you could also define:
-# build-profile = "...build-profile..."
 # odoc-target = "...odoc-target..."
 # sphinx-target = "...sphinx-target..."
 # archive = "...archive..."
@@ -31,11 +29,13 @@ This is the description
 of the digodoc OCaml project
 """
 
-[drom]
-skip = "src/digodoc/main.ml src/digodoc_lib/main.ml src/ez_xml/main.ml"
+[project]
+skip = "src/digodoc/main.ml src/digodoc_lib/main.ml src/ez_html/main.ml"
 
+# project-wide library dependencies (not for package-specific deps)
 [dependencies]
 
+# project-wide tools dependencies (not for package-specific deps)
 [tools.ocamlformat]
 for-test = true
 [tools.odoc]
@@ -46,21 +46,44 @@ for-test = true
 for-test = true
 
 [project]
-generators = ["ocamllex", "ocamlyacc"]
-pack-modules = true
-share-dirs = ["share"]
+
+# dirs to skip while scanning for dune files
 skip-dirs = []
+
+# dirs to scan for share/ folders (with package names)
+share-dirs = ["share"]
+
+# build profile to use by default
+# build-profile = ...
+
+# Profile options for this project
+#    [profile]
+#    dev = { ocaml-flags = "-w +a-4-40-41-42-44" }
+#    release = { ocaml-flags = "-w -a" }
+[profile]
+# ...
+
+# project-wide fields (depends on project skeleton)
+[fields]
+# ...
 
 
 [[package]]
 dir = "src/digodoc"
+# edit 'src/digodoc/package.toml' for package-specific options
+
 
 [[package]]
 dir = "src/digodoc_lib"
+# edit 'src/digodoc_lib/package.toml' for package-specific options
+
 
 [[package]]
 dir = "src/meta_file"
+# edit 'src/meta_file/package.toml' for package-specific options
+
 
 [[package]]
-dir = "src/ez_xml"
+dir = "src/ez_html"
+# edit 'src/ez_html/package.toml' for package-specific options
 
