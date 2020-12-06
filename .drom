@@ -2,7 +2,7 @@
 
 # hash of toml configuration files
 # used for generation of all files
-86aa13ec79320ebdd3dbb02b5b8cae77:.
+d95f46aa257d8d685495e24c4734a121:.
 # end context for .
 
 # begin context for .github/workflows/doc-deploy.yml
@@ -37,7 +37,7 @@
 
 # begin context for CHANGES.md
 # file CHANGES.md
-979e943a1898dcba9bc97eb8b87d0e45:CHANGES.md
+00421d0278319a8a8c04560b0680375b:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -62,7 +62,7 @@ c4217a22064a4a18f9587b930b250fbe:LICENSE.md
 
 # begin context for digodoc_lib.opam
 # file digodoc_lib.opam
-a103176af52e46f143133467e1e8df79:digodoc_lib.opam
+e70f020835e4fe7173b5f49bba443bfc:digodoc_lib.opam
 # end context for digodoc_lib.opam
 
 # begin context for docs/.nojekyll
@@ -112,7 +112,7 @@ df544cfaf9078d1bba2f90ed1b5adf5f:dune
 
 # begin context for dune-project
 # file dune-project
-c159547f2846aab2c66c5bf18941f8d7:dune-project
+5651a3b843a195ac04faedab8f8534aa:dune-project
 # end context for dune-project
 
 # begin context for ez_html.opam
@@ -182,7 +182,7 @@ fab8224b1866cef1103bca89068b73fe:src/digodoc/version.ml
 
 # begin context for src/digodoc_lib/dune
 # file src/digodoc_lib/dune
-b9de39b82fee582e342004ed4c1378f8:src/digodoc_lib/dune
+7507629a40075e263a080fa63468949e:src/digodoc_lib/dune
 # end context for src/digodoc_lib/dune
 
 # begin context for src/digodoc_lib/index.mld

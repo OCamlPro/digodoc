@@ -25,8 +25,8 @@
  (description "This is the description\nof the digodoc OCaml project\n")
  (depends
    (ocaml (>= 4.10.0))
-   (opam-file-format (and (>= 2.1.1) (< 3.0.0)))
    (meta_file (= version))
+   (ez_opam_file ( >= 0.1 ))
    (ez_html ( >= 0.1 ))
    (ez_file (and (>= 0.1.0) (< 1.0.0)))
    ppx_inline_test

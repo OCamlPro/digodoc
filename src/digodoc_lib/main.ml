@@ -78,7 +78,7 @@ Options:
 --switch-prefix SWITCH: use SWITCH instead of the current opam switch (ignored if with --cached)
 --check-links: check html pages for broken links
 --add-trailer: insert digodoc/ocamlpro trailer
---generate-index: (WIP)
+--gen-index: (WIP)
 If a MODULE is provided, display the source module corresponding to this module
 
 %!|};
@@ -126,14 +126,14 @@ If a MODULE is provided, display the source module corresponding to this module
         | GenerateHtml ->
             let state = get_state ~state ~objinfo ~switch in
             Odoc.generate ~state ~continue_on_error;
-            Odoc.generate_index ();
-            (*            Html.iter_html ~add_trailer:true Html.digodoc_html_dir *)
+            Index.generate ();
+            (* Html.iter_html ~add_trailer:true Html.digodoc_html_dir *)
         | CheckLinks ->
             Html.iter_html ~check_links:true Html.digodoc_html_dir
         | AddTrailer ->
             Html.iter_html ~add_trailer:true Html.digodoc_html_dir
         | GenerateIndex ->
-            Odoc.generate_index ()
+            Index.generate ()
         | OpenDoc ->
             let index = Html.digodoc_html_dir // "index.html" in
             if Sys.file_exists index then
