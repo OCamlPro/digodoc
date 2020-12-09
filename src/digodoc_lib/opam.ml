@@ -9,6 +9,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Ez_opam_file.V1
 open EzFile.OP
 open EzCompat
 open OpamParserTypes.FullPos
