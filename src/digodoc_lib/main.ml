@@ -171,4 +171,8 @@ If a MODULE is provided, display the source module corresponding to this module
   in
 
   let args = Sys.argv |> Array.to_list |> List.tl in
-  iter ~state:None ~objinfo:true ~continue_on_error:false ~switch:None ~action:Scan args
+  iter ~state:None ~objinfo:true ~continue_on_error:false ~switch:None ~action:Scan args;
+  List.iteri  (fun i args ->
+      Printf.eprintf "%d failure: %s\n%!" (i+1)
+        (String.concat " " ( Array.to_list args))
+    ) ( !Process.failures )
