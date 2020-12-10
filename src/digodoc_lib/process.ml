@@ -19,6 +19,8 @@ let skip_calls = match Sys.getenv "SKIP_CALLS" with
   | exception Not_found -> []
   | s -> EzString.split s ','
 
+let failures = ref []
+
 let call ?(continue_on_error=false) ?(stdout = Unix.stdout) args =
   if List.mem args.(0) skip_calls then () else begin
     Printf.eprintf "Calling %s\n%!" (String.concat " " (Array.to_list args));
@@ -38,7 +40,10 @@ let call ?(continue_on_error=false) ?(stdout = Unix.stdout) args =
                     | WSIGNALED n -> Printf.sprintf "SIGNAL %d" n
                     | WSTOPPED n -> Printf.sprintf "STOPPED %d" n )
               in
-              if continue_on_error then () else error "%s" s
+              failures := args :: !failures;
+              if continue_on_error then
+                ()
+              else error "%s" s
         )
     in
     iter ()

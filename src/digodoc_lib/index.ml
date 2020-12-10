@@ -60,9 +60,11 @@ module SAVE = struct
     let oc = open_out file in
     Printf.fprintf oc "opam\n";
     Printf.fprintf oc "%s\n" opam.opam_name;
-    Printf.fprintf oc "%s\n" opam.opam_version;
+    Printf.fprintf oc "%s\n" (String.trim opam.opam_version);
     Printf.fprintf oc "%s\n" (match opam.opam_synopsis with
-        | None -> "" | Some s -> s);
+        | None -> "" | Some s ->
+            String.trim (String.concat " " (EzString.split s '\n'))
+      );
     close_out oc
 
   let save_meta_entry file meta =
@@ -70,7 +72,7 @@ module SAVE = struct
     Printf.fprintf oc "meta\n";
     Printf.fprintf oc "%s\n" meta.meta_name;
     Printf.fprintf oc "%s\n" meta.meta_opam.opam_name;
-    Printf.fprintf oc "%s\n" meta.meta_opam.opam_version;
+    Printf.fprintf oc "%s\n" (String.trim meta.meta_opam.opam_version);
     close_out oc
 
   let save_library_entry file lib =
@@ -78,7 +80,7 @@ module SAVE = struct
     Printf.fprintf oc "library\n";
     Printf.fprintf oc "%s\n" lib.lib_name;
     Printf.fprintf oc "%s\n" lib.lib_opam.opam_name;
-    Printf.fprintf oc "%s\n" lib.lib_opam.opam_version;
+    Printf.fprintf oc "%s\n" (String.trim lib.lib_opam.opam_version);
     close_out oc
 
   let save_module_entry file mdl =
@@ -86,11 +88,12 @@ module SAVE = struct
     Printf.fprintf oc "module\n";
     Printf.fprintf oc "%s\n" mdl.mdl_name;
     Printf.fprintf oc "%s\n" mdl.mdl_opam.opam_name;
-    Printf.fprintf oc "%s\n" mdl.mdl_opam.opam_version;
+    Printf.fprintf oc "%s\n" (String.trim mdl.mdl_opam.opam_version);
     Printf.fprintf oc "%s\n" mdl.mdl_basename;
     StringMap.iter (fun _ lib ->
         Printf.fprintf oc "%s@%s.%s\n"
-          lib.lib_name lib.lib_opam.opam_name lib.lib_opam.opam_version
+          lib.lib_name lib.lib_opam.opam_name
+          (String.trim lib.lib_opam.opam_version)
       ) mdl.mdl_libs;
     close_out oc
 end
@@ -124,12 +127,13 @@ let library_of_string s =
 
 let read_entry file =
   match EzFile.read_lines_to_list file with
-  | [
-    "opam" ;
-    opam_name ;
-    opam_version ;
-    opam_synopsis ;
-  ] -> Opam { opam_name ; opam_version ; opam_synopsis }
+  |
+    "opam" ::
+    opam_name ::
+    opam_version ::
+    opam_synopsis ->
+      let opam_synopsis = String.concat " " opam_synopsis in
+      Opam { opam_name ; opam_version ; opam_synopsis }
   | [
     "meta" ;
     meta_name ;
@@ -887,7 +891,7 @@ let generate () =
   <nav class="toc">
   <ul>
     <li><a href="https://caml.inria.fr/pub/docs/manual-ocaml/">OCaml Manual</a></li>
-    <li><a href="LIBRARY.stdlib.ocaml-base-compiler.%s/Stdlib/index.html#modules">Stdlib Modules</a></li>
+    <li><a href="LIBRARY.stdlib@ocaml-base-compiler.%s/Stdlib/index.html#modules">Stdlib Modules</a></li>
   </ul>
   </nav>
   </header>

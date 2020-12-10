@@ -87,18 +87,21 @@ let call_odoc ~continue_on_error state mdl ~pkgs ext =
       @ includes
     in
 
-    Process.call ~continue_on_error ( Array.of_list cmd );
+
+    try
+      Process.call ~continue_on_error ( Array.of_list cmd );
+      let cmd = [
+        "odoc" ; "html" ;
+        "--theme-uri"; "_odoc-theme" ;
+        "-o" ; Html.digodoc_html_dir ;
+        odoc_target ]
+        @ includes
+      in
+
+      Process.call ~continue_on_error ( Array.of_list cmd );
+    with exn ->
+      Printf.eprintf "odoc_error: %s\n%!" (Printexc.to_string exn)
   end;
-
-  let cmd = [
-    "odoc" ; "html" ;
-    "--theme-uri"; "_odoc-theme" ;
-    "-o" ; Html.digodoc_html_dir ;
-    odoc_target ]
-    @ includes
-  in
-
-  Process.call ~continue_on_error ( Array.of_list cmd );
   ()
 
 let call_odoc_mld ~continue_on_error state pkg mldfile ~pkgs =
@@ -405,11 +408,16 @@ let infos_of_opam state pkg opam =
   let copy_file file =
     let basename = Filename.basename file in
     let dstfile = html_dir // basename in
-    let content =
-      EzFile.read_file ( state.opam_switch_prefix // file ) in
-    EzFile.make_dir ~p:true html_dir ;
-    EzFile.write_file dstfile content;
-    Printf.sprintf {|<a href="%s">%s</a>|} basename basename
+    let srcfile = ( state.opam_switch_prefix // file ) in
+    if Sys.file_exists srcfile then
+      let content = EzFile.read_file srcfile in
+      EzFile.make_dir ~p:true html_dir ;
+      EzFile.write_file dstfile content;
+      Printf.sprintf {|<a href="%s">%s</a>|} basename basename
+    else begin
+      Printf.eprintf "odoc_error: missing file %s\n%!" srcfile;
+      ""
+    end
   in
 
   let opam_pkg = pkg_of_opam opam in
