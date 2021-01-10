@@ -9,7 +9,7 @@
 (package
  (name digodoc)
  (synopsis "The digodoc project")
- (description "This is the description\nof the digodoc OCaml project\n")
+ (description "\n\nThis is the description\nof the digodoc OCaml project\n")
  (depends
    (ocaml (>= 4.10.0))
    (digodoc_lib (= version))
@@ -22,10 +22,11 @@
 (package
  (name digodoc_lib)
  (synopsis "The digodoc project")
- (description "This is the description\nof the digodoc OCaml project\n")
+ (description "\n\nThis is the description\nof the digodoc OCaml project\n")
  (depends
    (ocaml (>= 4.10.0))
    (meta_file (= version))
+   (htmlize (= version))
    (ez_opam_file ( >= 0.1 ))
    (ez_html ( >= 0.1 ))
    (ez_file (and (>= 0.1.0) (< 1.0.0)))
@@ -38,7 +39,7 @@
 (package
  (name meta_file)
  (synopsis "The digodoc project")
- (description "This is the description\nof the digodoc OCaml project\n")
+ (description "\n\nThis is the description\nof the digodoc OCaml project\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
@@ -51,7 +52,7 @@
 (package
  (name ez_html)
  (synopsis "The digodoc project")
- (description "This is the description\nof the digodoc OCaml project\n")
+ (description "\n\nThis is the description\nof the digodoc OCaml project\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
@@ -60,3 +61,20 @@
    odoc
    ocamlformat
  ))
+
+(package
+ (name htmlize)
+ (synopsis "The digodoc project")
+ (description "\n\nThis is the description\nof the digodoc OCaml project\n")
+ (depends
+   (ocaml (>= 4.10.0))
+   (ez_subst ( >= 0.1 ))
+   (ez_html ( >= 0.1 ))
+   (ez_file ( >= 0.2 ))
+   (ez_cmdliner ( >= 0.2 ))
+   ppx_inline_test
+   ppx_expect
+   odoc
+   ocamlformat
+ ))
+
