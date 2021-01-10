@@ -116,7 +116,8 @@ let htmlize_file destdir srcdir path file =
   let brace () var = match var with
     | "content" -> htmlize file content
     | "content-info" -> content_info content
-    | "title" -> title_info path
+    | "title" -> String.concat "/" path
+    | "title-info" -> title_info path
     | "root" ->
         let s =
           String.concat "/"
@@ -198,7 +199,8 @@ let rec htmlize_dir destdir srcdir path basename =
   let brace () var = match var with
     | "content" -> dir_content srcdir files
     | "content-info" -> dir_info files
-    | "title" -> title_info path
+    | "title" -> String.concat "/" path
+    | "title-info" -> title_info path
     | "root" ->
         let s =
           String.concat "/"
@@ -226,7 +228,18 @@ let htmlize_dir destdir dir =
   let basename = Filename.basename dir in
   htmlize_dir destdir dirname [] basename
 
-let () =
+let htmlize target_dir dirs =
+  EzFile.make_dir ~p:true target_dir;
+  let static_dir = target_dir // "_static" in
+  EzFile.make_dir ~p:true static_dir;
+  EzFile.write_file ( static_dir // "style.css" ) Files.style_css;
+  EzFile.write_file ( static_dir // "script.js" ) Files.script_js;
+
+  List.iter (htmlize_dir target_dir) dirs;
+  ()
+
+
+let main () =
   let dirs = ref [] in
   let target_dir = ref "_html" in
   Printexc.record_backtrace true;
@@ -239,11 +252,4 @@ let () =
   let target_dir = !target_dir in
   let dirs = List.rev !dirs in
 
-  EzFile.make_dir ~p:true target_dir;
-  let static_dir = target_dir // "_static" in
-  EzFile.make_dir ~p:true static_dir;
-  EzFile.write_file ( static_dir // "style.css" ) Files.style_css;
-  EzFile.write_file ( static_dir // "script.js" ) Files.script_js;
-
-  List.iter (htmlize_dir target_dir) dirs;
-  ()
+  htmlize target_dir dirs

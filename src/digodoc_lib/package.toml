@@ -40,6 +40,7 @@ ez_file = "0.1.0"
 ez_html = ">=0.1"
 ez_opam_file = ">=0.1"
 meta_file = "version"
+htmlize = "version"
 
 # package tools dependencies
 [tools]

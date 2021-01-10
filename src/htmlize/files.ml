@@ -181,7 +181,7 @@ let html_trailer =
 let html_file_page = {|
 <div class="container position-relative">
  <div class="content">
-  <div class="file-info border">${title}</div>
+  <div class="file-info border">${title-info}</div>
   <div class="content-info border">${content-info}</div>
   <div class="content-div border">${content}</div>
  </div>

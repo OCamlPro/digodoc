@@ -2,7 +2,7 @@
 
 # hash of toml configuration files
 # used for generation of all files
-024580471fd325fb6c087178fdc3b500:.
+3b56cfecf4984a70b5568df45740d35f:.
 # end context for .
 
 # begin context for .github/workflows/doc-deploy.yml
@@ -37,7 +37,7 @@ db0cdb9cfc7ec8f26b6344386ca9d132:.gitignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-dd06b8917652fcc7f1a2999e6f51c31a:CHANGES.md
+7e5e94747fdd83d196443f19ef4f2784:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -57,12 +57,12 @@ c47ee61031c10a27c7a4a8b7c4ede604:README.md
 
 # begin context for digodoc.opam
 # file digodoc.opam
-b144fccc1bf5c7df304473df39f54a08:digodoc.opam
+005ab68f5423e114a1d1ee9a643ea054:digodoc.opam
 # end context for digodoc.opam
 
 # begin context for digodoc_lib.opam
 # file digodoc_lib.opam
-183d0cce9d7703953c1e132ddd1b791a:digodoc_lib.opam
+8402ccd58dc8157fbeca05c169f11ba4:digodoc_lib.opam
 # end context for digodoc_lib.opam
 
 # begin context for docs/.nojekyll
@@ -117,22 +117,22 @@ df544cfaf9078d1bba2f90ed1b5adf5f:dune
 
 # begin context for dune-project
 # file dune-project
-e7198ca75e7fc4b9811e950f5ecdac39:dune-project
+1909c0d3656f369780610891c36908b8:dune-project
 # end context for dune-project
 
 # begin context for ez_html.opam
 # file ez_html.opam
-8e142d376decd4f3e3f27b6ee00ae46d:ez_html.opam
+15abdd70f41ba449b010e93390d8a5b2:ez_html.opam
 # end context for ez_html.opam
 
 # begin context for htmlize.opam
 # file htmlize.opam
-e0dc077aaff19856e16727054e221490:htmlize.opam
+8a84b4b1eebe1db5c35d02598ec5970f:htmlize.opam
 # end context for htmlize.opam
 
 # begin context for meta_file.opam
 # file meta_file.opam
-ac9a3f2d01a53719f507204fd43d8469:meta_file.opam
+7875e382d8fcc907750deb85d20a7073:meta_file.opam
 # end context for meta_file.opam
 
 # begin context for scripts/after.sh
@@ -212,7 +212,7 @@ fab8224b1866cef1103bca89068b73fe:src/digodoc/version.ml
 
 # begin context for src/digodoc_lib/dune
 # file src/digodoc_lib/dune
-db811aa71a94e78d73dd50e4cdbf6dd3:src/digodoc_lib/dune
+13efef240883b5b7ecb5a3817e011cb6:src/digodoc_lib/dune
 # end context for src/digodoc_lib/dune
 
 # begin context for src/digodoc_lib/index.mld
@@ -252,8 +252,13 @@ e1bd27ee36ce397a21ed05e6312d7f0d:src/ez_html/package.toml
 
 # begin context for src/htmlize/dune
 # file src/htmlize/dune
-b4bb54b4d6f5347b687a0cc368bcb85c:src/htmlize/dune
+5055f07c1c621f48054a6107d5c29344:src/htmlize/dune
 # end context for src/htmlize/dune
+
+# begin context for src/htmlize/index.mld
+# file src/htmlize/index.mld
+4e58c02d149821fa90b6edf5689a0a50:src/htmlize/index.mld
+# end context for src/htmlize/index.mld
 
 # begin context for src/htmlize/main.ml
 # file src/htmlize/main.ml

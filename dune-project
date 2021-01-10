@@ -26,6 +26,7 @@
  (depends
    (ocaml (>= 4.10.0))
    (meta_file (= version))
+   (htmlize (= version))
    (ez_opam_file ( >= 0.1 ))
    (ez_html ( >= 0.1 ))
    (ez_file (and (>= 0.1.0) (< 1.0.0)))
