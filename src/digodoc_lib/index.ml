@@ -861,9 +861,10 @@ let generate () =
 
   let state = read_all_entries () in
 
-  (*  let stdlib = Hashtbl.find state.ocaml_libs_by_name "stdlib" in *)
-  let stdlib_version = "4.10.0" (* TODO stdlib.lib_opam.opam_version *) in
-
+  let stdlib_version = Option.value ~default:"4.10.0" @@ List.find_map (function
+      | Library {lib_opam_name = "ocaml-base-compiler" ; lib_opam_version; _} ->
+          Some lib_opam_version
+      | _ -> None) state in
   let header bb ~title =
     Printf.bprintf bb
       {|
@@ -886,7 +887,7 @@ let generate () =
   <h2>OCaml Distribution</h2>
   <ul>
     <li><a href="https://caml.inria.fr/pub/docs/manual-ocaml/">OCaml Manual</a></li>
-    <li><a href="LIBRARY.stdlib.ocaml-base-compiler.%s/Stdlib/index.html#modules">Stdlib Modules</a></li>
+    <li><a href="LIBRARY.stdlib@ocaml-base-compiler.%s/Stdlib/index.html#modules">Stdlib Modules</a></li>
   </ul>
   <nav class="toc">
   <ul>
