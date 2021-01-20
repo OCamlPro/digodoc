@@ -7,7 +7,6 @@ license: "LGPL-2.1-only with OCaml-LGPL-linking-exception"
 synopsis: "The digodoc project"
 description: """
 
-
 This is the description
 of the digodoc OCaml project
 """

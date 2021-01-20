@@ -47,6 +47,6 @@ depends: [
   "ez_file" {>= "0.1.0" & < "1.0.0"}
   "ppx_inline_test" {with-test}
   "ppx_expect" {with-test}
-  "odoc"
+  "odoc" {with-doc}
   "ocamlformat" {with-test}
 ]
