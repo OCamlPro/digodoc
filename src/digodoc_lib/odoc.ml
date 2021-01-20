@@ -361,13 +361,22 @@ let modules_to_html map =
                 (if StringMap.is_empty modul.modul_subs then
                    ""
                  else
+                   let pack_path =
+                     digodoc_odoc_dir // pkg //
+                       mdl.mdl_basename ^ "__.odoc" in
+                   let pack =
+                     if Sys.file_exists pack_path then
+                       mdl.mdl_name ^ "__"
+                     else
+                       mdl.mdl_name
+                   in
                    Printf.sprintf " .{ %s }"
                      ( String.concat ", "
                          ( List.map (fun (name, mdl) ->
                                let pkg = pkg_of_mdl mdl in
                                Printf.sprintf
-                                 {|<a href="../%s/%s/index.html">%s</a>|}
-                                 pkg mdl.mdl_name name
+                                 {|<a href="../%s/%s/%s/index.html">%s</a>|}
+                                 pkg pack name name
                              )
                                ( StringMap.bindings modul.modul_subs )))
                 )
