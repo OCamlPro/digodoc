@@ -104,6 +104,56 @@ let call_odoc ~continue_on_error state mdl ~pkgs ext =
   end;
   ()
 
+let call_odoc_compile ~continue_on_error state mdl ~pkgs ext =
+  let pkg = pkg_of_mdl mdl in
+  let odoc_target = digodoc_odoc_dir // pkg // mdl.mdl_basename ^ ".odoc" in
+  let includes =
+    List.flatten @@
+    List.map (fun pkg ->
+        [ "-I" ; digodoc_odoc_dir // pkg ]
+      ) pkgs
+  in
+  if force_rebuild || not ( Sys.file_exists odoc_target ) then begin
+    let cmd = [
+      "odoc" ; "compile" ;
+      "--pkg" ; pkg ;
+      "-o" ; odoc_target ;
+      state.opam_switch_prefix // mdl.mdl_dir.dir_name //
+      mdl.mdl_basename ^ ext ]
+      @ includes
+    in
+    try
+      Process.call ~continue_on_error ( Array.of_list cmd )
+    with exn ->
+      Printf.eprintf "odoc_error: %s\n%!" (Printexc.to_string exn)
+  end;
+  ()
+
+let call_odoc_html ~continue_on_error mdl ~pkgs =
+  let pkg = pkg_of_mdl mdl in
+  let html_target_dir = Html.digodoc_html_dir // pkg // mdl.mdl_name in
+  let odoc_source = digodoc_odoc_dir // pkg // mdl.mdl_basename ^ ".odoc" in
+  let includes =
+    List.flatten @@
+    List.map (fun pkg ->
+        [ "-I" ; digodoc_odoc_dir // pkg ]
+      ) pkgs
+  in
+  if force_rebuild || not ( Sys.file_exists html_target_dir ) then begin
+    let cmd = [
+      "odoc" ; "html" ;
+      "--theme-uri"; "_odoc-theme" ;
+      "-o" ; Html.digodoc_html_dir ;
+      odoc_source ]
+      @ includes
+    in
+    try
+      Process.call ~continue_on_error ( Array.of_list cmd );
+    with exn ->
+      Printf.eprintf "odoc_error: %s\n%!" (Printexc.to_string exn)
+  end;
+  ()
+
 let call_odoc_mld ~continue_on_error state pkg mldfile ~pkgs =
   let name = Filename.basename mldfile |> Filename.remove_extension in
   let odoc_target = digodoc_odoc_dir // pkg // "page-" ^ name ^ ".odoc" in
@@ -788,15 +838,25 @@ let generate ~state ~continue_on_error =
         let pkgs = Hashtbl.find deps_of_pkg pkg in
         let pkgs = StringSet.to_list !pkgs in
         if StringSet.mem "cmti" mdl.mdl_exts then
-          call_odoc ~continue_on_error state mdl ~pkgs ".cmti"
+          call_odoc_compile ~continue_on_error state mdl ~pkgs ".cmti"
         else
         if StringSet.mem "cmt" mdl.mdl_exts then
-          call_odoc ~continue_on_error state mdl ~pkgs ".cmt"
+          call_odoc_compile ~continue_on_error state mdl ~pkgs ".cmt"
         else
         if StringSet.mem "cmi" mdl.mdl_exts then
-          call_odoc ~continue_on_error state mdl ~pkgs ".cmi"
+          call_odoc_compile ~continue_on_error state mdl ~pkgs ".cmi"
+      );
+
+    iter_modules_with_cmi state (fun _state mdl ->
+        let pkg = pkg_of_mdl mdl in
+        let pkgs = Hashtbl.find deps_of_pkg pkg in
+        let pkgs = StringSet.to_list !pkgs in
+        if not (StringSet.disjoint mdl.mdl_exts
+                  (StringSet.of_list ["cmti";"cmt";"cmi"])) then
+          call_odoc_html ~continue_on_error mdl ~pkgs
       )
   end;
+
 
   generate_opam_pages state;
   generate_library_pages state;
