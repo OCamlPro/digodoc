@@ -184,4 +184,36 @@ let compute ~opam_switch_prefix ?(objinfo=false) () =
 
     ) state.meta_packages ;
 
+  (* Try to associate "orphan" modules to libraries in the same package *)
+  StringMap.iter (fun _n opam ->
+      StringMap.iter (fun _n opam_mdl ->
+          if StringMap.is_empty opam_mdl.mdl_libs &&
+               StringSet.exists (fun s ->
+                   s = "cmt" || s = "cmti" || s = "cmi"
+                 ) opam_mdl.mdl_exts
+          then
+            StringMap.iter (fun _n lib ->
+                if StringMap.exists (fun _n mdl ->
+                       match mdl.mdl_intf with
+                       | Some cu ->
+                           StringMap.exists (fun un _crc ->
+                               String.equal opam_mdl.mdl_name un
+                             ) cu.unit_import_cmis ||
+                             StringMap.exists (fun un _crc ->
+                                 String.equal opam_mdl.mdl_name un
+                               ) cu.unit_import_cmxs
+                       | None ->
+                           false
+                     ) lib.lib_mdls
+                then
+                  begin
+                    lib.lib_mdls <-
+                      StringMap.add opam_mdl.mdl_name opam_mdl lib.lib_mdls;
+                    opam_mdl.mdl_libs <-
+                      StringMap.add lib.lib_name lib opam_mdl.mdl_libs
+                  end
+              ) opam.opam_libs
+        ) opam.opam_mdls
+    ) state.opam_packages;
+
   state
