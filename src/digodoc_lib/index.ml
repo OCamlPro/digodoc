@@ -100,6 +100,19 @@ end
 
 open TYPES
 
+let module_cut m =
+  let rec iter m i len =
+    if i+1 = len then
+      m, ""
+    else
+    if m.[i] = '_' && m.[i+1] = '_' then
+      (* Don't forget to capitalize (to handle for instance Stdlib__map) *)
+      String.sub m 0 i, String.capitalize (String.sub m (i+2) (len - i - 2))
+    else
+      iter m (i+1) len
+  in
+  iter m 0 (String.length m)
+
 let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"
     opam.opam_name opam.opam_version
@@ -117,8 +130,17 @@ let pkg_of_mdl mdl =
   match mdl.mdl_libs with
   | lib :: _rem -> pkg_of_lib lib
   | [] ->
-      Printf.sprintf "MODULE.%s@%s.%s"
-        mdl.mdl_basename mdl.mdl_opam_name version
+      let pack, alias = module_cut mdl.mdl_basename in
+      if alias = "" then
+        Printf.sprintf "MODULE.%s@%s.%s"
+          mdl.mdl_basename mdl.mdl_opam_name version
+      else
+        let pkg =
+          Printf.sprintf "MODULE.%s__@%s.%s" pack mdl.mdl_opam_name version in
+        if Sys.file_exists (Html.digodoc_html_dir // pkg) then
+          pkg
+        else
+          Printf.sprintf "MODULE.%s@%s.%s" pack mdl.mdl_opam_name version
 
 let library_of_string s =
   let lib_name, s = EzString.cut_at s '@' in
@@ -734,19 +756,6 @@ let generate_opam_index state bb =
   print_index bb !index "packages";
   ()
 
-
-let module_cut m =
-  let rec iter m i len =
-    if i+1 = len then
-      m, ""
-    else
-    if m.[i] = '_' && m.[i+1] = '_' then
-      (* Don't forget to capitalize (to handle for instance Stdlib__map) *)
-      String.sub m 0 i, String.capitalize (String.sub m (i+2) (len - i - 2))
-    else
-      iter m (i+1) len
-  in
-  iter m 0 (String.length m)
 
 let generate_module_index state bb =
 
