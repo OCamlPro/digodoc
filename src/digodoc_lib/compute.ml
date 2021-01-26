@@ -128,6 +128,21 @@ let find_modules state =
         ) opam.opam_libs
     ) state.opam_packages
 
+let rec meta_depends ~(base : meta_package) ~(to_check : meta_package) =
+  to_check.meta_name != base.meta_name && (
+    StringMap.exists (fun _ m ->
+        m.meta_name = base.meta_name) to_check.meta_deps ||
+      StringMap.exists (fun _ m ->
+          meta_depends ~base ~to_check:m) to_check.meta_deps
+  )
+
+let lib_depends ~(base : ocaml_lib) ~(to_check : ocaml_lib) =
+  StringMap.exists (fun _ base_meta ->
+      StringMap.exists (fun _ to_check_meta ->
+          meta_depends ~base:base_meta ~to_check:to_check_meta
+        ) to_check.lib_metas
+    ) base.lib_metas
+
 let compute ~opam_switch_prefix ?(objinfo=false) () =
 
   let state = {
@@ -192,27 +207,37 @@ let compute ~opam_switch_prefix ?(objinfo=false) () =
                    s = "cmt" || s = "cmti" || s = "cmi"
                  ) opam_mdl.mdl_exts
           then
-            StringMap.iter (fun _n lib ->
-                if StringMap.exists (fun _n mdl ->
-                       match mdl.mdl_intf with
-                       | Some cu ->
-                           StringMap.exists (fun un _crc ->
-                               String.equal opam_mdl.mdl_name un
-                             ) cu.unit_import_cmis ||
+            let libs =
+              StringMap.fold (fun _n lib libs ->
+                  if StringMap.exists (fun _n mdl ->
+                         match mdl.mdl_intf with
+                         | Some cu ->
                              StringMap.exists (fun un _crc ->
                                  String.equal opam_mdl.mdl_name un
-                               ) cu.unit_import_cmxs
-                       | None ->
-                           false
-                     ) lib.lib_mdls
-                then
-                  begin
-                    lib.lib_mdls <-
-                      StringMap.add opam_mdl.mdl_name opam_mdl lib.lib_mdls;
-                    opam_mdl.mdl_libs <-
-                      StringMap.add lib.lib_name lib opam_mdl.mdl_libs
-                  end
-              ) opam.opam_libs
+                               ) cu.unit_import_cmis ||
+                               StringMap.exists (fun un _crc ->
+                                   String.equal opam_mdl.mdl_name un
+                                 ) cu.unit_import_cmxs
+                         | None ->
+                             false
+                       ) lib.lib_mdls
+                  then
+                    lib :: libs
+                  else
+                    libs
+                ) opam.opam_libs []
+            in
+            let filtered_libs =
+              List.filter (fun to_check ->
+                  not (List.exists (fun base -> lib_depends ~base ~to_check) libs)
+                ) libs
+            in
+            List.iter (fun lib ->
+                lib.lib_mdls <-
+                  StringMap.add opam_mdl.mdl_name opam_mdl lib.lib_mdls;
+                opam_mdl.mdl_libs <-
+                  StringMap.add lib.lib_name lib opam_mdl.mdl_libs
+              ) filtered_libs
         ) opam.opam_mdls
     ) state.opam_packages;
 
