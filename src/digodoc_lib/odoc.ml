@@ -55,7 +55,7 @@ let pkg_of_mdl mdl =
         let pkg =
           Printf.sprintf "MODULE.%s__@%s.%s"
             pack mdl.mdl_opam.opam_name version in
-        if Sys.file_exists (Html.digodoc_html_dir // pkg) then
+        if Sys.file_exists (digodoc_odoc_dir // pkg) then
           pkg
         else
           Printf.sprintf "MODULE.%s@%s.%s"
