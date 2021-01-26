@@ -47,8 +47,19 @@ let pkg_of_mdl mdl =
   match StringMap.bindings mdl.mdl_libs with
   | (_, lib) :: _rem -> pkg_of_lib lib
   | [] ->
-      Printf.sprintf "MODULE.%s@%s.%s"
-        mdl.mdl_basename mdl.mdl_opam.opam_name version
+      let pack, alias = Index.module_cut mdl.mdl_basename in
+      if alias = "" then
+        Printf.sprintf "MODULE.%s@%s.%s"
+          mdl.mdl_basename mdl.mdl_opam.opam_name version
+      else
+        let pkg =
+          Printf.sprintf "MODULE.%s__@%s.%s"
+            pack mdl.mdl_opam.opam_name version in
+        if Sys.file_exists (Html.digodoc_html_dir // pkg) then
+          pkg
+        else
+          Printf.sprintf "MODULE.%s@%s.%s"
+            pack mdl.mdl_opam.opam_name version
 
 let mdl_is_alone mdl =
   StringMap.is_empty mdl.mdl_libs
@@ -86,8 +97,6 @@ let call_odoc ~continue_on_error state mdl ~pkgs ext =
       mdl.mdl_basename ^ ext ]
       @ includes
     in
-
-
     try
       Process.call ~continue_on_error ( Array.of_list cmd );
       let cmd = [
