@@ -100,6 +100,19 @@ end
 
 open TYPES
 
+let module_cut m =
+  let rec iter m i len =
+    if i+1 = len then
+      m, ""
+    else
+    if m.[i] = '_' && m.[i+1] = '_' then
+      (* Don't forget to capitalize (to handle for instance Stdlib__map) *)
+      String.sub m 0 i, String.capitalize (String.sub m (i+2) (len - i - 2))
+    else
+      iter m (i+1) len
+  in
+  iter m 0 (String.length m)
+
 let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"
     opam.opam_name opam.opam_version
@@ -117,8 +130,17 @@ let pkg_of_mdl mdl =
   match mdl.mdl_libs with
   | lib :: _rem -> pkg_of_lib lib
   | [] ->
-      Printf.sprintf "MODULE.%s@%s.%s"
-        mdl.mdl_basename mdl.mdl_opam_name version
+      let pack, alias = module_cut mdl.mdl_basename in
+      if alias = "" then
+        Printf.sprintf "MODULE.%s@%s.%s"
+          mdl.mdl_basename mdl.mdl_opam_name version
+      else
+        let pkg =
+          Printf.sprintf "MODULE.%s__@%s.%s" pack mdl.mdl_opam_name version in
+        if Sys.file_exists (Html.digodoc_html_dir // pkg) then
+          pkg
+        else
+          Printf.sprintf "MODULE.%s@%s.%s" pack mdl.mdl_opam_name version
 
 let library_of_string s =
   let lib_name, s = EzString.cut_at s '@' in
@@ -735,23 +757,11 @@ let generate_opam_index state bb =
   ()
 
 
-let module_cut m =
-  let rec iter m i len =
-    if i+1 = len then
-      m, ""
-    else
-    if m.[i] = '_' && m.[i+1] = '_' then
-      String.sub m 0 i, String.sub m (i+2) (len - i - 2)
-    else
-      iter m (i+1) len
-  in
-  iter m 0 (String.length m)
-
 let generate_module_index state bb =
 
   let index = ref [] in
 
-  let add_module alias mdl =
+  let add_module pack alias mdl =
     let pkg = pkg_of_mdl mdl in
     let opam_pkg = pkg_of_opam {
         opam_name = mdl.mdl_opam_name ;
@@ -762,18 +772,28 @@ let generate_module_index state bb =
 
     let search_id = Printf.sprintf "%s:%s" pkg mdl.mdl_name in
 
+    let html_path, mdl_name =
+      if alias = "" then
+        Printf.sprintf "%s/%s" pkg mdl.mdl_name, mdl.mdl_name
+      else
+        (* In general, when we have a packed module M__N,
+           M is generated and contains an alias N = M__N.
+           However, when M already exists (written by the user),
+           then the generated module is called M__. *)
+        let path = Printf.sprintf "%s/%s__/%s" pkg pack alias in
+        if Sys.file_exists (Html.digodoc_html_dir // path) then
+          path, Printf.sprintf "%s__.%s" pack alias
+        else
+          Printf.sprintf "%s/%s/%s" pkg pack alias,
+          Printf.sprintf "%s.%s" pack alias
+    in
+
     let line =
       Printf.sprintf
-        {|<li class="package" id="%s"><a href="%s/%s/index.html"><code>%s</code></a>%s in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a>%s</li>|}
+        {|<li class="package" id="%s"><a href="%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a>%s</li>|}
         search_id
-        pkg
-        mdl.mdl_name
-        alias
-        (if alias <> mdl.mdl_name then
-           Printf.sprintf " alias of %s" mdl.mdl_name
-         else
-           ""
-        )
+        html_path
+        mdl_name
         opam_pkg
         mdl.mdl_opam_name
         mdl.mdl_opam_version
@@ -789,16 +809,13 @@ let generate_module_index state bb =
                     ) libs ))
         )
     in
-    index := ( alias, line ) :: !index;
+    index := ( mdl.mdl_name, line ) :: !index;
   in
 
   List.iter (function
       | Module mdl ->
-          let _pack,alias = module_cut mdl.mdl_name in
-
-          if alias <> "" then
-            add_module alias mdl;
-          add_module mdl.mdl_name mdl
+          let pack, alias = module_cut mdl.mdl_name in
+          add_module pack alias mdl
       | _ -> ()
     ) state ;
 

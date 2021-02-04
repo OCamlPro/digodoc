@@ -47,8 +47,19 @@ let pkg_of_mdl mdl =
   match StringMap.bindings mdl.mdl_libs with
   | (_, lib) :: _rem -> pkg_of_lib lib
   | [] ->
-      Printf.sprintf "MODULE.%s@%s.%s"
-        mdl.mdl_basename mdl.mdl_opam.opam_name version
+      let pack, alias = Index.module_cut mdl.mdl_basename in
+      if alias = "" then
+        Printf.sprintf "MODULE.%s@%s.%s"
+          mdl.mdl_basename mdl.mdl_opam.opam_name version
+      else
+        let pkg =
+          Printf.sprintf "MODULE.%s__@%s.%s"
+            pack mdl.mdl_opam.opam_name version in
+        if Sys.file_exists (digodoc_odoc_dir // pkg) then
+          pkg
+        else
+          Printf.sprintf "MODULE.%s@%s.%s"
+            pack mdl.mdl_opam.opam_name version
 
 let mdl_is_alone mdl =
   StringMap.is_empty mdl.mdl_libs
@@ -86,8 +97,6 @@ let call_odoc ~continue_on_error state mdl ~pkgs ext =
       mdl.mdl_basename ^ ext ]
       @ includes
     in
-
-
     try
       Process.call ~continue_on_error ( Array.of_list cmd );
       let cmd = [
@@ -98,6 +107,56 @@ let call_odoc ~continue_on_error state mdl ~pkgs ext =
         @ includes
       in
 
+      Process.call ~continue_on_error ( Array.of_list cmd );
+    with exn ->
+      Printf.eprintf "odoc_error: %s\n%!" (Printexc.to_string exn)
+  end;
+  ()
+
+let call_odoc_compile ~continue_on_error state mdl ~pkgs ext =
+  let pkg = pkg_of_mdl mdl in
+  let odoc_target = digodoc_odoc_dir // pkg // mdl.mdl_basename ^ ".odoc" in
+  let includes =
+    List.flatten @@
+    List.map (fun pkg ->
+        [ "-I" ; digodoc_odoc_dir // pkg ]
+      ) pkgs
+  in
+  if force_rebuild || not ( Sys.file_exists odoc_target ) then begin
+    let cmd = [
+      "odoc" ; "compile" ;
+      "--pkg" ; pkg ;
+      "-o" ; odoc_target ;
+      state.opam_switch_prefix // mdl.mdl_dir.dir_name //
+      mdl.mdl_basename ^ ext ]
+      @ includes
+    in
+    try
+      Process.call ~continue_on_error ( Array.of_list cmd )
+    with exn ->
+      Printf.eprintf "odoc_error: %s\n%!" (Printexc.to_string exn)
+  end;
+  ()
+
+let call_odoc_html ~continue_on_error mdl ~pkgs =
+  let pkg = pkg_of_mdl mdl in
+  let html_target_dir = Html.digodoc_html_dir // pkg // mdl.mdl_name in
+  let odoc_source = digodoc_odoc_dir // pkg // mdl.mdl_basename ^ ".odoc" in
+  let includes =
+    List.flatten @@
+    List.map (fun pkg ->
+        [ "-I" ; digodoc_odoc_dir // pkg ]
+      ) pkgs
+  in
+  if force_rebuild || not ( Sys.file_exists html_target_dir ) then begin
+    let cmd = [
+      "odoc" ; "html" ;
+      "--theme-uri"; "_odoc-theme" ;
+      "-o" ; Html.digodoc_html_dir ;
+      odoc_source ]
+      @ includes
+    in
+    try
       Process.call ~continue_on_error ( Array.of_list cmd );
     with exn ->
       Printf.eprintf "odoc_error: %s\n%!" (Printexc.to_string exn)
@@ -311,13 +370,22 @@ let modules_to_html map =
                 (if StringMap.is_empty modul.modul_subs then
                    ""
                  else
+                   let pack_path =
+                     digodoc_odoc_dir // pkg //
+                       mdl.mdl_basename ^ "__.odoc" in
+                   let pack =
+                     if Sys.file_exists pack_path then
+                       mdl.mdl_name ^ "__"
+                     else
+                       mdl.mdl_name
+                   in
                    Printf.sprintf " .{ %s }"
                      ( String.concat ", "
                          ( List.map (fun (name, mdl) ->
                                let pkg = pkg_of_mdl mdl in
                                Printf.sprintf
-                                 {|<a href="../%s/%s/index.html">%s</a>|}
-                                 pkg mdl.mdl_name name
+                                 {|<a href="../%s/%s/%s/index.html">%s</a>|}
+                                 pkg pack name name
                              )
                                ( StringMap.bindings modul.modul_subs )))
                 )
@@ -788,15 +856,25 @@ let generate ~state ~continue_on_error =
         let pkgs = Hashtbl.find deps_of_pkg pkg in
         let pkgs = StringSet.to_list !pkgs in
         if StringSet.mem "cmti" mdl.mdl_exts then
-          call_odoc ~continue_on_error state mdl ~pkgs ".cmti"
+          call_odoc_compile ~continue_on_error state mdl ~pkgs ".cmti"
         else
         if StringSet.mem "cmt" mdl.mdl_exts then
-          call_odoc ~continue_on_error state mdl ~pkgs ".cmt"
+          call_odoc_compile ~continue_on_error state mdl ~pkgs ".cmt"
         else
         if StringSet.mem "cmi" mdl.mdl_exts then
-          call_odoc ~continue_on_error state mdl ~pkgs ".cmi"
+          call_odoc_compile ~continue_on_error state mdl ~pkgs ".cmi"
+      );
+
+    iter_modules_with_cmi state (fun _state mdl ->
+        let pkg = pkg_of_mdl mdl in
+        let pkgs = Hashtbl.find deps_of_pkg pkg in
+        let pkgs = StringSet.to_list !pkgs in
+        if not (StringSet.disjoint mdl.mdl_exts
+                  (StringSet.of_list ["cmti";"cmt";"cmi"])) then
+          call_odoc_html ~continue_on_error mdl ~pkgs
       )
   end;
+
 
   generate_opam_pages state;
   generate_library_pages state;

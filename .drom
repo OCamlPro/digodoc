@@ -37,7 +37,7 @@ db0cdb9cfc7ec8f26b6344386ca9d132:.gitignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-7e5e94747fdd83d196443f19ef4f2784:CHANGES.md
+be8f3f428f089e1570920c3e7627382f:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -57,7 +57,7 @@ c47ee61031c10a27c7a4a8b7c4ede604:README.md
 
 # begin context for digodoc.opam
 # file digodoc.opam
-005ab68f5423e114a1d1ee9a643ea054:digodoc.opam
+b144fccc1bf5c7df304473df39f54a08:digodoc.opam
 # end context for digodoc.opam
 
 # begin context for digodoc_lib.opam
@@ -122,17 +122,17 @@ df544cfaf9078d1bba2f90ed1b5adf5f:dune
 
 # begin context for ez_html.opam
 # file ez_html.opam
-15abdd70f41ba449b010e93390d8a5b2:ez_html.opam
+8e142d376decd4f3e3f27b6ee00ae46d:ez_html.opam
 # end context for ez_html.opam
 
 # begin context for htmlize.opam
 # file htmlize.opam
-8a84b4b1eebe1db5c35d02598ec5970f:htmlize.opam
+e0dc077aaff19856e16727054e221490:htmlize.opam
 # end context for htmlize.opam
 
 # begin context for meta_file.opam
 # file meta_file.opam
-7875e382d8fcc907750deb85d20a7073:meta_file.opam
+ac9a3f2d01a53719f507204fd43d8469:meta_file.opam
 # end context for meta_file.opam
 
 # begin context for scripts/after.sh
@@ -237,7 +237,7 @@ a73167b84c7d267ee7c64538461bea5e:src/digodoc_lib/package.toml
 
 # begin context for src/ez_html/dune
 # file src/ez_html/dune
-2f64757a8934c6e550f88a7638d272a2:src/ez_html/dune
+8b4343935c05c9a0301dd12bf2e21d8c:src/ez_html/dune
 # end context for src/ez_html/dune
 
 # begin context for src/ez_html/index.mld
@@ -322,7 +322,7 @@ e001d04969100c711855223ad6c23e6a:test/inline-tests/test.ml
 
 # begin context for test/output-tests/dune
 # file test/output-tests/dune
-8541c0789d593a36b978545a513ec30e:test/output-tests/dune
+6a7f832fcda23f1696690229411ae087:test/output-tests/dune
 # end context for test/output-tests/dune
 
 # begin context for test/output-tests/test1.expected
