@@ -10,3 +10,5 @@
 (**************************************************************************)
 
 let digodoc_dir = "_digodoc"
+
+let htmlize_sources_dir = "_digodoc/sources"

@@ -79,10 +79,14 @@ let main () =
   let cached = ref false in
   let switch = ref None in
   let continue_on_error = ref false in
+  let sources = ref true in 
   EZCMD.parse EZCMD.TYPES.[
 
       "--no-objinfo", Arg.Clear objinfo,
       " do not call ocamlobjinfo to attach modules to libraries";
+
+      "--no-sources", Arg.Clear sources,
+      "do not generate sources for opam packages";
 
       "--cached", Arg.Set cached,
       " read cached state";
@@ -124,6 +128,7 @@ let main () =
   let cached = !cached in
   let switch = !switch in
   let continue_on_error = !continue_on_error in
+  let sources = !sources in
   let state =
     if cached then
       let ic = open_in_bin cache_file  in
@@ -139,7 +144,7 @@ let main () =
         Printer.print state
     | GenerateHtml ->
         let state = get_state ~state ~objinfo ~switch in
-        Odoc.generate ~state ~continue_on_error;
+        Odoc.generate ~state ~continue_on_error ~sources;
         Index.generate ();
         (* Html.iter_html ~add_trailer:true Html.digodoc_html_dir *)
     | CheckLinks ->
@@ -183,7 +188,7 @@ let main () =
               exit 0
         end
     | HtmlizeSources dir ->
-        Htmlize.Main.htmlize "_digodoc/sources" [dir]
+        Htmlize.Main.htmlize Globals.htmlize_sources_dir [dir]
   end;
 
   List.iteri  (fun i args ->
