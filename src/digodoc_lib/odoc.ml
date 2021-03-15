@@ -912,7 +912,10 @@ let generate ~state ~continue_on_error ~sources =
       and opam_htmlize_sources = htmlize_sources_of_opam opam in
       if not (Sys.file_exists opam_htmlize_sources) then begin
         get_opam_sources ~continue_on_error opam;
-        Htmlize.Main.htmlize_dir Globals.htmlize_sources_dir opam_sources;
+        if not (Sys.file_exists Globals.htmlize_sources_dir) then 
+          Htmlize.Main.htmlize Globals.htmlize_sources_dir [opam_sources]
+        else
+          Htmlize.Main.htmlize_dir Globals.htmlize_sources_dir opam_sources;
         EzFile.remove_dir ~all:true opam_sources
       end
     ) state.opam_packages;

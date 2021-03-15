@@ -129,7 +129,7 @@ let htmlize_file destdir srcdir path file =
   in
   generate_page ~brace destdir
 
-let dir_content srcdir files =
+let dir_content srcdir files path =
   let b = Buffer.create 1000 in
   Printf.bprintf b {|<div class="files-div"><table class="files-table">
  <tbody class="file">
@@ -138,8 +138,14 @@ let dir_content srcdir files =
   Printf.bprintf b {|  <tr class="file">
 |};
   Printf.bprintf b {|   <td class="file-icon">%s</td>|} Files.svg_directory;
-  Printf.bprintf b {|   <td class="file-name"><a href='../index.html'>&lt;PARENT DIRECTORY&gt;</a></td>
-|};
+  let parent_directory =
+    match path with
+    | [] -> assert false
+    | [_dir] -> "."
+    | _ -> ".."
+  in
+  Printf.bprintf b {|   <td class="file-name"><a href='%s/index.html'>&lt;PARENT DIRECTORY&gt;</a></td>
+|} parent_directory;
   Printf.bprintf b {|   <td class="file-kind">Upper Directory</td>
 |};
   Printf.bprintf b {|  </tr>
@@ -197,7 +203,7 @@ let rec htmlize_dir destdir srcdir path basename =
   Array.sort compare files;
 
   let brace () var = match var with
-    | "content" -> dir_content srcdir files
+    | "content" -> dir_content srcdir files path
     | "content-info" -> dir_info files
     | "title" -> String.concat "/" path
     | "title-info" -> title_info path
