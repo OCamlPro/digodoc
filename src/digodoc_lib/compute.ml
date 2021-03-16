@@ -50,9 +50,12 @@ let check_file state ~objinfo opam_package file =
   let dirname = Filename.dirname file in
   let basename = Filename.basename file in
   let dir = Directory.get state dirname in
-  if basename = "META" then
-    let filename = state.opam_switch_prefix // file in
-    let meta_name = Meta_file.Parser.name_of_META file in
+  if basename = "META" || dirname = "metas" then
+    let filename, meta_name = 
+      if dirname = "metas" 
+      then Sys.getcwd() // file, opam_package.opam_name
+      else state.opam_switch_prefix // file, Meta_file.Parser.name_of_META file 
+    in
     (*    Printf.eprintf "opam package %S DEFINES ocamlfind package %S\n%!"
           opam_package.opam_name meta_name ; *)
 

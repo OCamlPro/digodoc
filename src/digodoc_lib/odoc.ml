@@ -30,6 +30,28 @@ open Types
 
 let digodoc_odoc_dir = Globals.digodoc_dir // "odoc"
 
+let sources_dir = "sources"
+
+let fullname opam = opam.opam_name ^ "." ^ opam.opam_version
+
+let get_opam_sources ~continue_on_error opam =
+  let package_name = fullname opam in
+  let cmd = [
+    "opam"; "source";
+    "--dir"; sources_dir // package_name;
+    package_name]
+  in
+    try
+      Process.call ~continue_on_error (Array.of_list cmd)
+    with exn ->
+      Printf.eprintf "opam_error: %s\n%!" (Printexc.to_string exn)
+
+let sources_of_opam opam =
+  sources_dir // (fullname opam)
+
+let htmlize_sources_of_opam opam =
+  Globals.htmlize_sources_dir // fullname opam
+
 let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"
     opam.opam_name opam.opam_version
@@ -622,7 +644,7 @@ let generate_library_pages state =
 
   ()
 
-let generate_opam_pages state =
+let generate_opam_pages ~sources state =
 
   StringMap.iter (fun _ opam ->
       let pkg = pkg_of_opam opam in
@@ -679,6 +701,14 @@ let generate_opam_pages state =
 
         Printf.bprintf b "%s\n"
           (modules_to_html opam.opam_mdls);
+
+        if sources then begin 
+          Printf.bprintf b "\n{1:sources Package sources}\n";
+          
+          let opam_sources = htmlize_sources_of_opam opam in
+          Printf.bprintf b {|{%%html:<a href="../../../%s/index.html">Link to the sources</a>%%}|}
+            opam_sources
+        end;
 
         Printf.bprintf b "\n{1:files Package files}\n";
         Printf.bprintf b {|{%%html:<pre>|};
@@ -839,7 +869,7 @@ let generate_meta_pages state =
 
   ()
 
-let generate ~state ~continue_on_error =
+let generate ~state ~continue_on_error ~sources =
 
   (* Iter on modules first *)
 
@@ -875,8 +905,24 @@ let generate ~state ~continue_on_error =
       )
   end;
 
+  if sources then begin
+    EzFile.make_dir ~p:true sources_dir;
+    StringMap.iter (fun _ opam ->
+      let opam_sources = sources_of_opam opam 
+      and opam_htmlize_sources = htmlize_sources_of_opam opam in
+      if not (Sys.file_exists opam_htmlize_sources) then begin
+        get_opam_sources ~continue_on_error opam;
+        if not (Sys.file_exists Globals.htmlize_sources_dir) then 
+          Htmlize.Main.htmlize Globals.htmlize_sources_dir [opam_sources]
+        else
+          Htmlize.Main.htmlize_dir Globals.htmlize_sources_dir opam_sources;
+        EzFile.remove_dir ~all:true opam_sources
+      end
+    ) state.opam_packages;
+    EzFile.remove_dir ~all:true sources_dir
+  end;
 
-  generate_opam_pages state;
+  generate_opam_pages ~sources state;
   generate_library_pages state;
   generate_meta_pages state;
   generate_module_entries state;
