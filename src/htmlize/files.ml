@@ -77,17 +77,17 @@ body {
 
 .content {
     max-width: 1280px;
-    margin-right: auto;
-    margin-left: auto;
+    margin-right: 30px;
+    margin-left: 30px;
 }
 
 .border {
   border-bottom-right-radius: 6px;
   border-bottom-left-radius: 6px;
   box-sizing: border-box;
-  padding: 16px;
+  padding: 10px;
   margin: -1px -1px 0;
-  border: 1px solid grey;
+  border: 1px solid #e1e4e8;
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
 }
@@ -120,18 +120,19 @@ body {
 .sp-n { color: rgb(3, 100, 200); }
 .sp-m { color: rgb(50, 50, 210); }
 
+.line {
+  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
+  font-size: 12px;
+  line-height: 15px;
+  vertical-align: top;
+}
+
 .line-num {
-    width: 1%;
-    min-width: 50px;
-    padding-right: 10px;
-    padding-left: 10px;
-    font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
-    font-size: 12px;
-    line-height: 20px;
-    color: var(--color-diff-blob-num-text);
+    min-width: 30px;
+    padding-right: 15px;
+    color: rgba(27,31,35,0.3);
     text-align: right;
     white-space: nowrap;
-    vertical-align: top;
     cursor: pointer;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -140,16 +141,13 @@ body {
 }
 
 .line-code {
-  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
-  font-size: 12px;
   white-space: pre;
-
-  position: relative;
   padding-right: 10px;
-  padding-left: 10px;
-  line-height: 20px;
+  padding-left: 5px;
+  position: relative;
   vertical-align: top;
 }
+
 |}
 let script_js = {||}
 

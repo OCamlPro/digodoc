@@ -30,7 +30,6 @@ let htmlize filename content =
   let lines = Color.file filename content in
 
   List.iter (fun (i, line) ->
-      let i = i + 1 in
       Printf.bprintf b {|  <tr class="line">
 |};
       Printf.bprintf b {|   <td id="L%d" class="line-num">%d</td>
