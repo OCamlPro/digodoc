@@ -118,7 +118,11 @@ body {
 .sp-c { color: rgb(100, 120, 140); }
 .sp-s { color: rgb(3, 50, 100); }
 .sp-n { color: rgb(3, 100, 200); }
-.sp-m { color: rgb(50, 50, 210); }
+.sp-m { color: #005cc5; }
+.sp-l { color: #22863a; }
+.sp-f { color: #6f42c1; }
+.sp-a { color: #e36209; }
+.sp-typ { color: #32a190; }
 
 .line {
   font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;

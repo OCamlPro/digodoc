@@ -20,6 +20,10 @@ type color =
   | STRING
   | NUMBER
   | MODULE
+  | LABEL
+  | FUNCTION
+  | ARGUMENT
+  | TYPE
 
 module OCAML = struct
 
@@ -111,7 +115,7 @@ module OCAML = struct
     | INFIXOP2 _
     | INFIXOP3 _
     | INFIXOP4 _
-    | LABEL _
+
     | LBRACE
     | LBRACELESS
     | LBRACKET
@@ -181,11 +185,19 @@ module OCAML = struct
     | UIDENT _
         -> MODULE
 
+    | Approx_tokens.LABEL _ -> LABEL
+
+    | LFUNCTION _ -> FUNCTION
+    | LARGUMENT _ -> ARGUMENT
+    | LTYPE _ -> TYPE
+
   let file content =
     let len = String.length content in
     let colors = Array.make len TEXT in
 
     let tokens = Approx_lexer.tokens_of_string content in
+
+    let tokens = Transformer.transform tokens in
 
     List.iter (fun (token, ( (lex_start, lex_end), _, _)) ->
         let lex_start = lex_start.Lexing.pos_cnum in

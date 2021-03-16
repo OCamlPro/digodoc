@@ -273,7 +273,7 @@ and code st = parse
       { (st, UNDERSCORE) }
   | "~"
       { (st, TILDE) }
-  | "~" lowercase identchar * ':'
+  | "~" lowercase identchar * ':'?
       { let s = Lexing.lexeme lexbuf in
         let name = String.sub s 1 (String.length s - 2) in
         (*

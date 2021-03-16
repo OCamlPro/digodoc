@@ -37,12 +37,12 @@ db0cdb9cfc7ec8f26b6344386ca9d132:.gitignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-be8f3f428f089e1570920c3e7627382f:CHANGES.md
+fe5aaae6395b7f519841f683163ff321:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
 # file LICENSE.md
-28d70c714efdab954b0d2a4a01a36ea5:LICENSE.md
+d091b81b6155e5fd5d6556fc8bba0094:LICENSE.md
 # end context for LICENSE.md
 
 # begin context for Makefile
@@ -177,7 +177,7 @@ cc854655d83c8d0e4b05ca700c2f63e8:sphinx/install.rst
 
 # begin context for sphinx/license.rst
 # file sphinx/license.rst
-7e1915956bf6badafd6f880da8845e07:sphinx/license.rst
+cdf74f69fd392ea9a545b06789762a13:sphinx/license.rst
 # end context for sphinx/license.rst
 
 # begin context for src/digodoc/dune

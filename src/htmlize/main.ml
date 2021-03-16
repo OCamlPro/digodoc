@@ -16,7 +16,20 @@ open Ezcmd.V2
 (* open EZCMD.TYPES *)
 open EzFile.OP
 
-
+let string_of_color color =
+  let open Color in
+  match color with
+    | TEXT -> "t"
+    | COMMENT -> "c"
+    | KEYWORD -> "k"
+    | STRING -> "s"
+    | NUMBER -> "n"
+    | MODULE -> "m"
+    | LABEL -> "l"
+    | FUNCTION -> "f"
+    | ARGUMENT -> "a"
+    | TYPE -> "typ"
+                   
 let is_directory file =
   match Unix.lstat file with
   | exception _ -> false
@@ -25,7 +38,7 @@ let is_directory file =
 let htmlize filename content =
   let b = Buffer.create 1000 in
   Printf.bprintf b {|<div class="content-div wrap-x"><table class="content-table">
- <tbody>
+ <tbody>s
 |};
   let lines = Color.file filename content in
 
@@ -40,15 +53,8 @@ let htmlize filename content =
           let s = HTML.encode s in
           match color with
           | Color.TEXT -> Buffer.add_string b s
-          | _ -> Printf.bprintf b {|<span class="sp-%c">%s</span>|}
-                   (match color with
-                    | TEXT -> 't'
-                    | COMMENT -> 'c'
-                    | KEYWORD -> 'k'
-                    | STRING -> 's'
-                    | NUMBER -> 'n'
-                    | MODULE -> 'm'
-                   ) s
+          | _ -> Printf.bprintf b {|<span class="sp-%s">%s</span>|}
+                  (string_of_color color) s
         ) line;
 
       Printf.bprintf b {|</td>|};

@@ -167,6 +167,9 @@ type token =
   | P4_QUOTATION_CONTENT
   | P4_QUOTATION_CLOSE
 
+  | LFUNCTION of string
+  | LARGUMENT of string
+  | LTYPE of string
 
 let string_of_tok = function
   | AMPERAMPER -> "AMPERAMPER"
@@ -313,5 +316,7 @@ let string_of_tok = function
   | P4_QUOTATION_OPEN -> "P4_QUOTATION_OPEN"
   | P4_QUOTATION_CONTENT -> "P4_QUOTATION_CONTENT"
   | P4_QUOTATION_CLOSE -> "P4_QUOTATION_CLOSE"
-
-
+  
+  | LFUNCTION _ -> "LFUNCTION"
+  | LARGUMENT _ -> "LARGUMENT"
+  | LTYPE _ -> "LTYPE"
