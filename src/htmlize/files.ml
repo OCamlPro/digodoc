@@ -123,6 +123,7 @@ body {
 .sp-f { color: #6f42c1; }
 .sp-a { color: #e36209; }
 .sp-typ { color: #32a190; }
+.sp-syn { color: #ff6666; }
 
 .line {
   font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;

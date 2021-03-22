@@ -29,6 +29,7 @@ let string_of_color color =
     | FUNCTION -> "f"
     | ARGUMENT -> "a"
     | TYPE -> "typ"
+    | SYNTAX -> "syn"
                    
 let is_directory file =
   match Unix.lstat file with
@@ -38,7 +39,7 @@ let is_directory file =
 let htmlize filename content =
   let b = Buffer.create 1000 in
   Printf.bprintf b {|<div class="content-div wrap-x"><table class="content-table">
- <tbody>s
+ <tbody>
 |};
   let lines = Color.file filename content in
 

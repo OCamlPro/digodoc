@@ -88,6 +88,7 @@ let keywords = [
   "or", OR;
   "private", PRIVATE;
   "rec", REC;
+  "ref", REF;
   "sig", SIG;
   "struct", STRUCT;
   "then", THEN;
@@ -381,6 +382,7 @@ and code st = parse
   | "`"  { (st, BACKQUOTE) }
   | "("  { (st, LPAREN) }
   | ")"  { (st, RPAREN) }
+  | "()" { (st, UNIT) }
   | "*"  { (st, STAR) }
   | ","  { (st, COMMA) }
   | "->" { (st, MINUSGREATER) }
@@ -851,6 +853,7 @@ module Simple = struct
     | RBRACE  -> wrap RBRACE
     | RBRACKET  -> wrap RBRACKET
     | REC  -> wrap REC
+    | REF -> wrap REF
     | RPAREN  -> wrap RPAREN
     | SEMI  -> wrap SEMI
     | SEMISEMI  -> wrap SEMISEMI
@@ -865,6 +868,7 @@ module Simple = struct
     | TRY  -> wrap TRY
     | TYPE  -> wrap TYPE
     | TYPEVAR  -> wrap TYPEVAR
+    | UNIT -> wrap UNIT
     | UIDENT x -> wrap (UIDENT x)
     | UNDERSCORE  -> wrap UNDERSCORE
     | VAL  -> wrap VAL

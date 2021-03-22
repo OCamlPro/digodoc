@@ -15,6 +15,8 @@ open Approx_tokens
 (* Research of function's name. Functions name are considered in those cases:
    1) After the tokens 'let' and 'lident' there should be at least one token that is not 'equal' or 'spaces'*) 
 
+
+
 let transform_let tokens  =
     let in_let = ref false 
     and first_ident = ref true 

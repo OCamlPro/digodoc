@@ -116,6 +116,7 @@ type token =
   | RBRACE
   | RBRACKET
   | REC
+  | REF 
   | RPAREN
   | SEMI
   | SEMISEMI
@@ -170,6 +171,8 @@ type token =
   | LFUNCTION of string
   | LARGUMENT of string
   | LTYPE of string
+
+  | UNIT
 
 let string_of_tok = function
   | AMPERAMPER -> "AMPERAMPER"
@@ -265,6 +268,7 @@ let string_of_tok = function
   | RBRACE -> "RBRACE"
   | RBRACKET -> "RBRACKET"
   | REC -> "REC"
+  | REF -> "REF"
   | RPAREN -> "RPAREN"
   | SEMI -> "SEMI"
   | SEMISEMI -> "SEMISEMI"
@@ -320,3 +324,5 @@ let string_of_tok = function
   | LFUNCTION _ -> "LFUNCTION"
   | LARGUMENT _ -> "LARGUMENT"
   | LTYPE _ -> "LTYPE"
+
+  | UNIT -> "UNIT"

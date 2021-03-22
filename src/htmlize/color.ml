@@ -24,11 +24,13 @@ type color =
   | FUNCTION
   | ARGUMENT
   | TYPE
+  | SYNTAX
 
 module OCAML = struct
 
   let color_of_token = function
     | Approx_tokens.AND
+    | AS
     | ASSERT
     | BEGIN
     | CLASS
@@ -63,6 +65,7 @@ module OCAML = struct
     | OR
     | PRIVATE
     | REC
+    | REF
     | SIG
     | STRUCT
     | THEN
@@ -91,30 +94,15 @@ module OCAML = struct
     | LINE_DIRECTIVE _
       -> COMMENT
 
-    | AMPERAMPER
-    | AMPERSAND
-    | AS
-    | BACKQUOTE
-    | BANG
-    | BAR
-    | BARBAR
+    
     | BARRBRACKET
     | COLON
     | COLONCOLON
-    | COLONEQUAL
-    | COLONGREATER
     | DOT
     | DOTDOT
     | EOF
-    | EQUAL
-    | GREATER
     | GREATERRBRACE
     | GREATERRBRACKET
-    | INFIXOP0 _
-    | INFIXOP1 _
-    | INFIXOP2 _
-    | INFIXOP3 _
-    | INFIXOP4 _
 
     | LBRACE
     | LBRACELESS
@@ -127,29 +115,16 @@ module OCAML = struct
     | LBRACKETAT
     | LBRACKETATAT
     | LBRACKETATATAT
-    | LESS
-    | LESSMINUS
     | LIDENT _
     | LPAREN
-    | MINUS
-    | MINUSDOT
     | MINUSGREATER
-    | OPTLABEL _
-    | PLUS
-    | PLUSDOT
     | PREFIXOP _
-    | QUESTION
-    | QUESTIONQUESTION
     | QUOTE
     | RBRACE
     | RBRACKET
     | RPAREN
     | SEMI
     | SEMISEMI
-    | SHARP
-    | STAR
-    | TILDE
-    | TYPEVAR
     | UNDERSCORE
 
     | ESCAPED_EOL
@@ -183,13 +158,43 @@ module OCAML = struct
       -> NUMBER
 
     | UIDENT _
+    | UNIT 
         -> MODULE
 
     | Approx_tokens.LABEL _ -> LABEL
 
     | LFUNCTION _ -> FUNCTION
     | LARGUMENT _ -> ARGUMENT
-    | LTYPE _ -> TYPE
+    | LTYPE _ | TYPEVAR -> TYPE
+
+    | BANG
+    | AMPERAMPER
+    | AMPERSAND
+    | BACKQUOTE
+    | BAR
+    | BARBAR
+    | COLONEQUAL
+    | COLONGREATER
+    | EQUAL
+    | GREATER
+    | INFIXOP0 _
+    | LESS
+    | LESSMINUS
+    | MINUS
+    | MINUSDOT
+    | OPTLABEL _
+    | PLUS
+    | PLUSDOT
+    | QUESTION
+    | QUESTIONQUESTION
+    | SHARP
+    | STAR
+    | TILDE
+    | INFIXOP1 _
+    | INFIXOP2 _
+    | INFIXOP3 _
+    | INFIXOP4 _
+      -> SYNTAX
 
   let file content =
     let len = String.length content in
