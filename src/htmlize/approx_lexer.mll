@@ -82,6 +82,7 @@ let keywords = [
   "module", MODULE;
   "mutable", MUTABLE;
   "new", NEW;
+  "not", NOT;
   "object", OBJECT;
   "of", OF;
   "open", OPEN;
@@ -383,6 +384,7 @@ and code st = parse
   | "("  { (st, LPAREN) }
   | ")"  { (st, RPAREN) }
   | "()" { (st, UNIT) }
+  | "[]" { (st, EMPTYLIST ) }
   | "*"  { (st, STAR) }
   | ","  { (st, COMMA) }
   | "->" { (st, MINUSGREATER) }
@@ -838,6 +840,7 @@ module Simple = struct
     | MUTABLE  -> wrap MUTABLE
     | NATIVEINT x -> wrap (NATIVEINT x)
     | NEW  -> wrap NEW
+    | NOT  -> wrap NOT
     | OBJECT  -> wrap OBJECT
     | OF  -> wrap OF
     | OPEN  -> wrap OPEN
@@ -869,6 +872,7 @@ module Simple = struct
     | TYPE  -> wrap TYPE
     | TYPEVAR  -> wrap TYPEVAR
     | UNIT -> wrap UNIT
+    | EMPTYLIST -> wrap EMPTYLIST
     | UIDENT x -> wrap (UIDENT x)
     | UNDERSCORE  -> wrap UNDERSCORE
     | VAL  -> wrap VAL

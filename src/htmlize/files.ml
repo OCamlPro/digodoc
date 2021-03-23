@@ -124,6 +124,7 @@ body {
 .sp-a { color: #e36209; }
 .sp-typ { color: #32a190; }
 .sp-syn { color: #ff6666; }
+.sp-ch { color: #0000ff; }
 
 .line {
   font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;

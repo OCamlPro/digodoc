@@ -52,6 +52,7 @@ let transform_let tokens  =
             | LIDENT name when !is_function ->
                 tokens.(i) <- LARGUMENT name
             | QUESTION -> is_optional := true
+            (*TODO: stack for parentheses, to know the one that closes typed or optional argument*)
             | RPAREN -> is_optional := false
             | EQUAL when not !is_optional ->
                 in_let:= false;
@@ -67,9 +68,63 @@ let transform_let tokens  =
     done;
     tokens
 
+let transform_fun tokens  =
+    let in_fun = ref false 
+    and is_type = ref false
+    and is_optional = ref false
+    and len = Array.length tokens in
+    for i = 0 to len-1 do
+        if !in_fun then
+            match tokens.(i) with
+            | LIDENT name when !is_type -> 
+                tokens.(i) <- LTYPE name
+            | LIDENT name ->
+                tokens.(i) <- LARGUMENT name
+            | COLON -> is_type := true
+            | QUESTION -> is_optional := true
+            (*TODO: stack for parentheses, to know the one that closes typed or optional argument*)
+            | RPAREN -> is_type :=false; is_optional := false
+            | MINUSGREATER ->
+                in_fun:= false;
+                is_type:=false;
+            | _ -> ()
+        else
+            match tokens.(i) with
+            | FUNCTION | FUN -> in_fun:=true
+            | _ -> ()
+    done;
+    tokens
+
+let transform_match tokens  =
+    let in_match = ref false 
+    and is_type = ref false
+    and len = Array.length tokens in
+    for i = 0 to len-1 do
+        if !in_match then
+            match tokens.(i) with
+            | LIDENT name when !is_type -> 
+                tokens.(i) <- LTYPE name
+            | LIDENT name ->
+                tokens.(i) <- LARGUMENT name
+            | COLON -> is_type := true
+            (*TODO: stack for parentheses, to know the one that closes typed argument*)
+            | RPAREN -> is_type :=false;
+            | MINUSGREATER ->
+                in_match:= false;
+                is_type:=false;
+            | _ -> ()
+        else
+            match tokens.(i) with
+            | BAR -> in_match:=true
+            | _ -> ()
+    done;
+    tokens
+
 let transform tokens =
     let (toks,toks_inf) = List.split tokens in
     let toks = Array.of_list toks in
     let toks = transform_let toks in
+    let toks = transform_fun toks in
+    let toks = transform_match toks in
     let toks = Array.to_list toks in
     List.combine toks toks_inf

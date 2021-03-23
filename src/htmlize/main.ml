@@ -24,6 +24,7 @@ let string_of_color color =
     | KEYWORD -> "k"
     | STRING -> "s"
     | NUMBER -> "n"
+    | CHAR -> "ch"
     | MODULE -> "m"
     | LABEL -> "l"
     | FUNCTION -> "f"

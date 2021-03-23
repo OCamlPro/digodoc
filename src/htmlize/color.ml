@@ -19,6 +19,7 @@ type color =
   | COMMENT
   | STRING
   | NUMBER
+  | CHAR
   | MODULE
   | LABEL
   | FUNCTION
@@ -42,7 +43,6 @@ module OCAML = struct
     | END
     | EXCEPTION
     | EXTERNAL
-    | FALSE
     | FOR
     | FUN
     | FUNCTION
@@ -59,6 +59,7 @@ module OCAML = struct
     | MODULE
     | MUTABLE
     | NEW
+    | NOT
     | OBJECT
     | OF
     | OPEN
@@ -70,7 +71,6 @@ module OCAML = struct
     | STRUCT
     | THEN
     | TO
-    | TRUE
     | TRY
     | TYPE
     | VAL
@@ -125,7 +125,6 @@ module OCAML = struct
     | RPAREN
     | SEMI
     | SEMISEMI
-    | UNDERSCORE
 
     | ESCAPED_EOL
     | EOL
@@ -144,12 +143,13 @@ module OCAML = struct
 
       -> TEXT
 
-    | CHAR _
     | STRING_OPEN
     | STRING_CONTENT
     | STRING_CLOSE
       -> STRING
 
+    | TRUE
+    | FALSE
     | FLOAT _
     | INT _
     | INT32 _
@@ -158,7 +158,8 @@ module OCAML = struct
       -> NUMBER
 
     | UIDENT _
-    | UNIT 
+    | UNIT
+    | EMPTYLIST
         -> MODULE
 
     | Approx_tokens.LABEL _ -> LABEL
@@ -190,11 +191,14 @@ module OCAML = struct
     | SHARP
     | STAR
     | TILDE
+    | UNDERSCORE
     | INFIXOP1 _
     | INFIXOP2 _
     | INFIXOP3 _
     | INFIXOP4 _
       -> SYNTAX
+
+    | CHAR _ -> CHAR
 
   let file content =
     let len = String.length content in

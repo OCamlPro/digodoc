@@ -101,6 +101,7 @@ type token =
   | MUTABLE
   | NATIVEINT of (nativeint overflow)
   | NEW
+  | NOT
   | OBJECT
   | OF
   | OPEN
@@ -173,6 +174,7 @@ type token =
   | LTYPE of string
 
   | UNIT
+  | EMPTYLIST
 
 let string_of_tok = function
   | AMPERAMPER -> "AMPERAMPER"
@@ -253,6 +255,7 @@ let string_of_tok = function
   | MUTABLE -> "MUTABLE"
   | NATIVEINT _ -> "NATIVEINT"
   | NEW -> "NEW"
+  | NOT -> "NOT"
   | OBJECT -> "OBJECT"
   | OF -> "OF"
   | OPEN -> "OPEN"
@@ -326,3 +329,4 @@ let string_of_tok = function
   | LTYPE _ -> "LTYPE"
 
   | UNIT -> "UNIT"
+  | EMPTYLIST -> "EMPTYLIST"
