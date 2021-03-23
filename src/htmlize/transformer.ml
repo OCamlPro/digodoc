@@ -115,8 +115,40 @@ let transform_match tokens  =
             | _ -> ()
         else
             match tokens.(i) with
-            | BAR -> in_match:=true
+            | BAR | WITH -> in_match:=true
             | _ -> ()
+    done;
+    tokens
+
+let transform_cons tokens = 
+    let is_module_name tok =
+        match tok with
+        | UIDENT _ -> true 
+        | _ -> false
+    in
+    let in_mod_dec = ref false
+    and len = Array.length tokens 
+    and i = ref 0 in
+    while !i < len do
+        begin
+            if !in_mod_dec then begin
+                (* Skip open/include/module expression *)
+                while not (is_module_name tokens.(!i))  do
+                    i:= !i+1
+                done; 
+                while not (tokens.(!i) = SPACES || tokens.(!i) = EOL ) do
+                    i:= !i+1
+                done;
+                in_mod_dec := false
+            end
+            else 
+                match tokens.(!i) with
+                | OPEN | INCLUDE | MODULE -> in_mod_dec := true
+                | UIDENT _ when tokens.(!i+1) = DOT -> ()
+                | UIDENT s -> tokens.(!i) <- CONSTRUCTOR s
+                | _ -> ();
+        end;
+        i:=!i+1
     done;
     tokens
 
@@ -126,5 +158,6 @@ let transform tokens =
     let toks = transform_let toks in
     let toks = transform_fun toks in
     let toks = transform_match toks in
+    let toks = transform_cons toks in
     let toks = Array.to_list toks in
     List.combine toks toks_inf

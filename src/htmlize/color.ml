@@ -164,7 +164,7 @@ module OCAML = struct
 
     | Approx_tokens.LABEL _ -> LABEL
 
-    | LFUNCTION _ -> FUNCTION
+    | LFUNCTION _ | CONSTRUCTOR _ -> FUNCTION
     | LARGUMENT _ -> ARGUMENT
     | LTYPE _ | TYPEVAR -> TYPE
 
@@ -205,6 +205,8 @@ module OCAML = struct
     let colors = Array.make len TEXT in
 
     let tokens = Approx_lexer.tokens_of_string content in
+
+    (*List.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok)) (List.map fst tokens);*)
 
     let tokens = Transformer.transform tokens in
 

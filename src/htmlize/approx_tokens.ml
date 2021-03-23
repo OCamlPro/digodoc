@@ -175,6 +175,7 @@ type token =
 
   | UNIT
   | EMPTYLIST
+  | CONSTRUCTOR of string
 
 let string_of_tok = function
   | AMPERAMPER -> "AMPERAMPER"
@@ -330,3 +331,4 @@ let string_of_tok = function
 
   | UNIT -> "UNIT"
   | EMPTYLIST -> "EMPTYLIST"
+  | CONSTRUCTOR _ -> "CONSTRUCTOR"
