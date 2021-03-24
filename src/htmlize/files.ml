@@ -116,7 +116,7 @@ body {
 
 .sp-k { color: rgb(220,3,3); }
 .sp-c { color: rgb(100, 120, 140); }
-.sp-s { color: rgb(3, 50, 100); }
+.sp-s { color: rgb(3, 50, 100); font-style: italic }
 .sp-n { color: rgb(3, 100, 200); }
 .sp-m { color: #005cc5; }
 .sp-l { color: #22863a; }

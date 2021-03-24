@@ -16,7 +16,6 @@ open Approx_tokens
    1) After the tokens 'let' and 'lident' there should be at least one token that is not 'equal' or 'spaces'*) 
 
 
-
 let transform_let tokens  =
     let in_let = ref false 
     and first_ident = ref true 
@@ -98,9 +97,10 @@ let transform_fun tokens  =
 let transform_match tokens  =
     let in_match = ref false 
     and is_type = ref false
+    and in_type = ref false
     and len = Array.length tokens in
     for i = 0 to len-1 do
-        if !in_match then
+        if !in_match && not !in_type then
             match tokens.(i) with
             | LIDENT name when !is_type -> 
                 tokens.(i) <- LTYPE name
@@ -109,13 +109,15 @@ let transform_match tokens  =
             | COLON -> is_type := true
             (*TODO: stack for parentheses, to know the one that closes typed argument*)
             | RPAREN -> is_type :=false;
-            | MINUSGREATER ->
+            | MINUSGREATER | WHEN ->
                 in_match:= false;
                 is_type:=false;
             | _ -> ()
         else
             match tokens.(i) with
             | BAR | WITH -> in_match:=true
+            | TYPE -> in_type:=true; 
+            | LET -> in_type:=false; in_match:=false
             | _ -> ()
     done;
     tokens
@@ -150,14 +152,65 @@ let transform_cons tokens =
         end;
         i:=!i+1
     done;
+    tokens   
+
+let transform_type tokens  =
+    let is_type = ref false
+    and in_val = ref false
+    and in_type = ref false
+    and in_record = ref false
+    and len = Array.length tokens in
+    for i = 0 to len-1 do
+        if !in_type then
+            match tokens.(i) with
+            | LIDENT name when not !in_record || !is_type -> 
+                tokens.(i) <- LTYPE name
+            | COLON -> is_type := true
+            | SEMI -> is_type :=false
+            (*TODO: stack for braces, to know the one that closes record*)
+            | LBRACE -> in_record := true
+            | RBRACE -> in_record := false
+            | LET | MODULE | OPEN | INCLUDE 
+            | EXTERNAL | CLASS -> 
+                in_type:=false;
+                is_type:=false
+            | VAL ->
+                in_type:=false;
+                is_type:=false;
+                in_val:=true
+            | _ -> ()
+        else if !in_val then
+            match tokens.(i) with 
+            | COLON -> is_type := true
+            | LIDENT name when !is_type ->
+                tokens.(i) <- LTYPE name
+            | LET | MODULE | OPEN | INCLUDE 
+            | EXTERNAL | CLASS ->
+                is_type:=false; 
+                in_val:=false
+            | TYPE ->
+                in_type :=true;
+                is_type:=false;
+                in_val:=false               
+            | VAL -> is_type:=false 
+            | _ -> ()
+        else 
+            match tokens.(i) with
+            | TYPE -> in_type:=true;
+            | VAL -> in_val:=true;
+            | _ -> ()
+    done;
     tokens
+
 
 let transform tokens =
     let (toks,toks_inf) = List.split tokens in
     let toks = Array.of_list toks in
-    let toks = transform_let toks in
-    let toks = transform_fun toks in
-    let toks = transform_match toks in
-    let toks = transform_cons toks in
-    let toks = Array.to_list toks in
-    List.combine toks toks_inf
+    let toks = transform_let toks 
+               |> transform_fun 
+               |> transform_match
+               |> transform_cons 
+               |> transform_type 
+    in
+        let toks = Array.to_list toks in
+        List.combine toks toks_inf

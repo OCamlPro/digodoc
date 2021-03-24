@@ -117,7 +117,6 @@ type token =
   | RBRACE
   | RBRACKET
   | REC
-  | REF 
   | RPAREN
   | SEMI
   | SEMISEMI
@@ -177,6 +176,19 @@ type token =
   | EMPTYLIST
   | CONSTRUCTOR of string
 
+  | INTT
+  | FLOATT
+  | CHART
+  | STRINGT
+  | BYTES
+  | BOOL
+  | ARRAY
+  | LIST
+  | UNITT
+  | EXN
+  | FORMAT
+  | OPTION
+  | REF
 let string_of_tok = function
   | AMPERAMPER -> "AMPERAMPER"
   | AMPERSAND -> "AMPERSAND"
@@ -272,7 +284,6 @@ let string_of_tok = function
   | RBRACE -> "RBRACE"
   | RBRACKET -> "RBRACKET"
   | REC -> "REC"
-  | REF -> "REF"
   | RPAREN -> "RPAREN"
   | SEMI -> "SEMI"
   | SEMISEMI -> "SEMISEMI"
@@ -332,3 +343,16 @@ let string_of_tok = function
   | UNIT -> "UNIT"
   | EMPTYLIST -> "EMPTYLIST"
   | CONSTRUCTOR _ -> "CONSTRUCTOR"
+  | INTT -> "INTT"
+  | FLOATT -> "FLOATT"
+  | CHART -> "CHART"
+  | STRINGT -> "STRINGT"
+  | BYTES -> "BYTES"
+  | BOOL -> "BOOL"
+  | ARRAY -> "ARRAY"
+  | LIST -> "LIST"
+  | UNITT -> "UNITT"
+  | EXN -> "EXN"
+  | FORMAT -> "FORMAT"
+  | OPTION -> "OPTION"
+  | REF -> "REF"

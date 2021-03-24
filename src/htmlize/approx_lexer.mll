@@ -89,7 +89,6 @@ let keywords = [
   "or", OR;
   "private", PRIVATE;
   "rec", REC;
-  "ref", REF;
   "sig", SIG;
   "struct", STRUCT;
   "then", THEN;
@@ -115,6 +114,27 @@ let keywords = [
 let keyword_table =
   let t = Hashtbl.create 149 in
   List.iter (fun (x,y) -> Hashtbl.add t x y) keywords;
+  t
+
+let types = [
+  "int", INTT;
+  "float",FLOATT;
+  "char",CHART;
+  "string",STRINGT;
+  "bytes",BYTES;
+  "bool",BOOL;
+  "array",ARRAY;
+  "list",LIST;
+  "unit",UNITT;
+  "exn",EXN;
+  "format",FORMAT;
+  "option",OPTION;
+  "ref",REF
+]
+
+let type_table =
+  let t = Hashtbl.create 13 in
+  List.iter (fun (x,y) -> Hashtbl.add t x y) types;
   t
 
 (*
@@ -302,7 +322,9 @@ and code st = parse
           with Not_found -> rewind lexbuf (String.length s - i); (st, LIDENT s)
         with Not_found ->
           try (st, Hashtbl.find keyword_table s)
-          with Not_found -> (st, LIDENT s) }
+          with Not_found -> 
+            try (st, Hashtbl.find type_table s)
+            with Not_found -> (st, LIDENT s) }
   | uppercase identchar *
       { (st, UIDENT(Lexing.lexeme lexbuf)) }      (* No capitalized keywords *)
   | int_literal
@@ -856,7 +878,6 @@ module Simple = struct
     | RBRACE  -> wrap RBRACE
     | RBRACKET  -> wrap RBRACKET
     | REC  -> wrap REC
-    | REF -> wrap REF
     | RPAREN  -> wrap RPAREN
     | SEMI  -> wrap SEMI
     | SEMISEMI  -> wrap SEMISEMI
@@ -906,6 +927,19 @@ module Simple = struct
         Some (simplify_p4_token st lb lb.Lexing.lex_start_p substr)
     | P4_QUOTATION_CONTENT
     | P4_QUOTATION_CLOSE -> assert false
+    | INTT -> wrap INTT
+    | FLOATT -> wrap FLOATT
+    | CHART -> wrap CHART
+    | STRINGT -> wrap STRINGT
+    | BYTES -> wrap BYTES
+    | BOOL -> wrap BOOL
+    | ARRAY -> wrap ARRAY
+    | LIST -> wrap LIST
+    | UNITT -> wrap UNITT
+    | EXN -> wrap EXN
+    | FORMAT -> wrap FORMAT
+    | OPTION -> wrap OPTION
+    | REF -> wrap REF
 
 end
 *)

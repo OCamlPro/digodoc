@@ -66,7 +66,6 @@ module OCAML = struct
     | OR
     | PRIVATE
     | REC
-    | REF
     | SIG
     | STRUCT
     | THEN
@@ -159,14 +158,30 @@ module OCAML = struct
 
     | UIDENT _
     | UNIT
-    | EMPTYLIST
         -> MODULE
 
     | Approx_tokens.LABEL _ -> LABEL
 
-    | LFUNCTION _ | CONSTRUCTOR _ -> FUNCTION
+    | LFUNCTION _ 
+    | CONSTRUCTOR _
+    | EMPTYLIST -> FUNCTION
     | LARGUMENT _ -> ARGUMENT
-    | LTYPE _ | TYPEVAR -> TYPE
+    
+    | INTT  
+    | FLOATT 
+    | CHART   
+    | STRINGT
+    | BYTES   
+    | BOOL  
+    | ARRAY   
+    | LIST  
+    | UNITT   
+    | EXN 
+    | FORMAT 
+    | OPTION 
+    | REF   
+    | LTYPE _ 
+    | TYPEVAR -> TYPE
 
     | BANG
     | AMPERAMPER
@@ -206,7 +221,7 @@ module OCAML = struct
 
     let tokens = Approx_lexer.tokens_of_string content in
 
-    (*List.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok)) (List.map fst tokens);*)
+    List.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok)) (List.map fst tokens);
 
     let tokens = Transformer.transform tokens in
 
