@@ -227,7 +227,7 @@ module OCAML = struct
         Transformer.transform tokens
       with _ -> tokens
     in
-    Printf.printf "STAAAAAAAAAAAAAAAAAAAART\n";
+    (*Printf.printf "STAAAAAAAAAAAAAAAAAAAART\n";*)
     List.iter (fun (token, ( (lex_start, lex_end), _, _)) ->
         let lex_start = lex_start.Lexing.pos_cnum in
         let lex_end = lex_end.Lexing.pos_cnum in
@@ -236,7 +236,7 @@ module OCAML = struct
           colors.(i) <- color
         done;
       ) tokens;
-    Printf.printf "EEEEEEEEEEEEEEEEEEEEEENDS\n";
+    (*Printf.printf "EEEEEEEEEEEEEEEEEEEEEENDS\n";*)
 colors
 end
 

@@ -30,10 +30,10 @@ let transform_let tokens  =
     and is_tuple = ref false
     and is_type = ref false
     and is_optional = ref false
-    and len = Array.length tokens
-    and fd = EzFile.open_out "pes.txt" in
+    and len = Array.length tokens in
+    (*and fd = EzFile.open_out "pes.txt" in*)
     for i = 0 to len-1 do
-        Printf.fprintf fd "%d %s\n" i (string_of_tok tokens.(i));
+        (*Printf.fprintf fd "%d %s\n" i (string_of_tok tokens.(i));*)
         if !in_let then
             match tokens.(i) with
             | LIDENT name when !first_ident ->
@@ -77,8 +77,8 @@ let transform_let tokens  =
             | AND -> in_let:=true
             | _ -> ()
     done;
-    close_out fd;
-    EzFile.remove "pes.txt";
+    (*close_out fd;
+    EzFile.remove "pes.txt";*)
     tokens
 
 let transform_fun tokens  =
@@ -144,10 +144,10 @@ let transform_cons tokens =
     let in_mod_dec = ref false
     and len = Array.length tokens 
     and i = ref 0 
-    and in_arguments = ref false
-    and fd = EzFile.open_out "pes.txt" in
+    and in_arguments = ref false in
+    (*and fd = EzFile.open_out "pes.txt" in*)
     while !i < len do
-        Printf.fprintf fd "%d %s\n" !i (string_of_tok tokens.(!i));
+        (*Printf.fprintf fd "%d %s\n" !i (string_of_tok tokens.(!i));*)
         begin
             if !in_mod_dec then begin
                 (* Skip open/include/module expression *)
@@ -172,8 +172,8 @@ let transform_cons tokens =
         end;
         i:=!i+1
     done;
-    close_out fd;
-    EzFile.remove "pes.txt";
+    (*close_out fd;
+    EzFile.remove "pes.txt";*)
     tokens   
 
 let transform_type tokens  =
@@ -181,10 +181,10 @@ let transform_type tokens  =
     and in_val = ref false
     and in_type = ref false
     and in_record = ref false
-    and len = Array.length tokens
-    and fd = EzFile.open_out "pes.txt" in
+    and len = Array.length tokens in
+    (*and fd = EzFile.open_out "pes.txt" in*)
     for i = 0 to len-1 do
-        Printf.fprintf fd "%d %s\n" i (string_of_tok tokens.(i));
+        (*Printf.fprintf fd "%d %s\n" i (string_of_tok tokens.(i));*)
         if !in_type then
             match tokens.(i) with
             | LIDENT name when not !in_record || !is_type -> 
@@ -224,8 +224,8 @@ let transform_type tokens  =
             | VAL -> in_val:=true;
             | _ -> ()
     done;
-    close_out fd;
-    EzFile.remove "pes.txt";
+    (*close_out fd;
+    EzFile.remove "pes.txt";*)
     tokens
 
 
@@ -243,22 +243,14 @@ let transform tokens =
     in
     let (toks,toks_inf) = safe_split tokens [] [] in
     let toks = Array.of_list toks in
-    Printf.printf "SIZE OF LIST=%d\n" (Array.length toks);
-    Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks;
-    let toks' = begin Printf.printf "\nTRANSFORM LET\n"; transform_let toks end in 
-         Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks';
-
-     let toks' = begin Printf.printf "TRANSFORM FUN\n";transform_fun toks' end in
-              Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks';
-
-     let toks' = begin Printf.printf "TRANSFORM MATCH\n";transform_match toks' end in 
-              Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks';
-
-     let toks' = begin Printf.printf "TRANSFORM CONS\n";transform_cons toks' end in 
-              Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks';
-
-     let toks' =  begin Printf.printf "TRANSFORM TYPE\n";transform_type toks' end 
+    (*Printf.printf "SIZE OF LIST=%d\n" (Array.length toks);
+    Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks;*)
+    let toks' = transform_let toks 
+               |> transform_fun 
+               |> transform_match
+               |> transform_cons 
+               |> transform_type
+               (* TODO: records,classes,functors and objects *)
     in
-        let toks' = Array.to_list toks' in
-        let x = safe_combine toks' toks_inf [] in
-        Printf.printf "BASRTTTT\n"; x
+        let tokens = Array.to_list toks' in
+        safe_combine tokens toks_inf []

@@ -39,7 +39,7 @@ let is_directory file =
 
 let htmlize filename content =
   let b = Buffer.create 1000 in
-  Printf.bprintf b {|<div class="content-div wrap-x"><table class="content-table">
+  Printf.bprintf b {|<div class="wrap-x"><table class="content-table">
  <tbody>
 |};
   let lines = Color.file filename content in
@@ -70,7 +70,7 @@ let htmlize filename content =
 
 let content_info content =
   let lines = EzString.split content '\n' in
-  Printf.sprintf "%d lines | %d chars"
+  Printf.sprintf {|%d lines <span class="separator">|</span> %d chars|}
     (List.length lines) (String.length content)
 
 let generate_page ~brace destdir =
@@ -94,7 +94,8 @@ let title_info path =
   let rec iter list =
     match list with
     | [] -> assert false
-    | [ file ] -> [ HTML.encode file ]
+    | [ file ] -> [ Printf.sprintf "<b>%s</b>"
+                      (HTML.encode file) ]
     | dir :: file ->
         let s =
           Printf.sprintf "<a href='%s/index.html'>%s</a>"
@@ -103,7 +104,7 @@ let title_info path =
         in
         s :: iter file
   in
-  String.concat " / " (iter path)
+  String.concat {| <span class="separator">/</span> |} (iter path)
 
 let htmlize_file destdir srcdir path file =
 
