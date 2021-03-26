@@ -186,9 +186,10 @@ type token =
   | LIST
   | UNITT
   | EXN
-  | FORMAT
   | OPTION
   | REF
+
+
 let string_of_tok = function
   | AMPERAMPER -> "AMPERAMPER"
   | AMPERSAND -> "AMPERSAND"
@@ -201,7 +202,11 @@ let string_of_tok = function
   | BARBAR -> "BARBAR"
   | BARRBRACKET -> "BARRBRACKET"
   | BEGIN -> "BEGIN"
-  | CHAR _ -> "CHAR"
+  | CHAR c -> begin
+    match c with 
+    | InRange c ->  "(CHAR "^ (String.make 1 c) ^")"
+    | Overflow s -> "(CHARo "^s ^")"
+    end
   | CLASS -> "CLASS"
   | COLON -> "COLON"
   | COLONCOLON -> "COLONCOLON"
@@ -219,7 +224,7 @@ let string_of_tok = function
   | EXCEPTION -> "EXCEPTION"
   | EXTERNAL -> "EXTERNAL"
   | FALSE -> "FALSE"
-  | FLOAT _ -> "FLOAT"
+  | FLOAT f -> "(FLOAT " ^ f ^ ")"
   | FOR -> "FOR"
   | FUN -> "FUN"
   | FUNCTION -> "FUNCTION"
@@ -230,17 +235,21 @@ let string_of_tok = function
   | IF -> "IF"
   | IN -> "IN"
   | INCLUDE -> "INCLUDE"
-  | INFIXOP0 _ -> "INFIXOP0"
-  | INFIXOP1 _ -> "INFIXOP1"
-  | INFIXOP2 _ -> "INFIXOP2"
-  | INFIXOP3 _ -> "INFIXOP3"
-  | INFIXOP4 _ -> "INFIXOP4"
+  | INFIXOP0 op -> "(INFIXOP0 "^ op^")"
+  | INFIXOP1 op -> "(INFIXOP1 "^ op^")"
+  | INFIXOP2 op -> "(INFIXOP2 "^ op^")"
+  | INFIXOP3 op -> "(INFIXOP3 "^ op^")"
+  | INFIXOP4 op -> "(INFIXOP4 "^ op^")"
   | INHERIT -> "INHERIT"
   | INITIALIZER -> "INITIALIZER"
-  | INT _ -> "INT"
+  | INT i -> begin
+      match i with
+      | InRange i -> "(INT "^ (string_of_int i) ^ ")"
+      | Overflow s -> "(INTo "^s ^")"
+    end 
   | INT32 _ -> "INT32"
   | INT64 _ -> "INT64"
-  | LABEL _ -> "LABEL"
+  | LABEL l -> "(LABEL "^l^")"
   | LAZY -> "LAZY"
   | LBRACE -> "LBRACE"
   | LBRACELESS -> "LBRACELESS"
@@ -256,8 +265,8 @@ let string_of_tok = function
   | LESS -> "LESS"
   | LESSMINUS -> "LESSMINUS"
   | LET -> "LET"
-  | LIDENT _ -> "LIDENT"
-  | LINE_DIRECTIVE _ -> "LINE_DIRECTIVE"
+  | LIDENT id -> "(LIDENT "^id^")"
+  | LINE_DIRECTIVE d -> "(LINE_DIRECTIVE "^d^")"
   | LPAREN -> "LPAREN"
   | MATCH -> "MATCH"
   | METHOD -> "METHOD"
@@ -272,11 +281,11 @@ let string_of_tok = function
   | OBJECT -> "OBJECT"
   | OF -> "OF"
   | OPEN -> "OPEN"
-  | OPTLABEL _ -> "OPTLABEL"
+  | OPTLABEL l -> "(OPTLABEL "^l^")"
   | OR -> "OR"
   | PLUS -> "PLUS"
   | PLUSDOT -> "PLUSDOT"
-  | PREFIXOP _ -> "PREFIXOP"
+  | PREFIXOP op -> "(PREFIXOP "^op^")"
   | PRIVATE -> "PRIVATE"
   | QUESTION -> "QUESTION"
   | QUESTIONQUESTION -> "QUESTIONQUESTION"
@@ -298,7 +307,7 @@ let string_of_tok = function
   | TRY -> "TRY"
   | TYPE -> "TYPE"
   | TYPEVAR -> "TYPEVAR"
-  | UIDENT _ -> "UIDENT"
+  | UIDENT s -> "(UIDENT "^s^")"
   | UNDERSCORE -> "UNDERSCORE"
   | VAL -> "VAL"
   | VIRTUAL -> "VIRTUAL"
@@ -353,6 +362,5 @@ let string_of_tok = function
   | LIST -> "LIST"
   | UNITT -> "UNITT"
   | EXN -> "EXN"
-  | FORMAT -> "FORMAT"
   | OPTION -> "OPTION"
   | REF -> "REF"

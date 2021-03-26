@@ -77,19 +77,25 @@ body {
 
 .content {
     max-width: 1280px;
-    margin-right: 30px;
-    margin-left: 30px;
+    margin-right: 15px;
+    margin-left: 15px;
 }
 
 .border {
-  border-bottom-right-radius: 6px;
-  border-bottom-left-radius: 6px;
   box-sizing: border-box;
   padding: 10px;
   margin: -1px -1px 0;
   border: 1px solid #e1e4e8;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+}
+
+.round-border-top {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.round-border-bottom {
+  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 10px;
 }
 
 .position-relative {
@@ -134,7 +140,7 @@ body {
 }
 
 .line-num {
-    min-width: 30px;
+    min-width: 20px;
     padding-right: 15px;
     color: rgba(27,31,35,0.3);
     text-align: right;
@@ -185,9 +191,9 @@ let html_trailer =
 let html_file_page = {|
 <div class="container position-relative">
  <div class="content">
-  <div class="file-info border">${title-info}</div>
-  <div class="content-info border">${content-info}</div>
-  <div class="content-div border">${content}</div>
+  <div class="file-info border round-border-top round-border-bottom">${title-info}</div>
+  <div class="content-info border round-border-top">${content-info}</div>
+  <div class="content-div border round-border-bottom">${content}</div>
  </div>
 </div>
 |}

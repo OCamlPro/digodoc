@@ -12,8 +12,15 @@
 
 open Approx_tokens
 
-(* Research of function's name. Functions name are considered in those cases:
-   1) After the tokens 'let' and 'lident' there should be at least one token that is not 'equal' or 'spaces'*) 
+let is_module_name tok =
+    match tok with
+    | UIDENT _ -> true 
+    | _ -> false
+
+let is_ident_name tok =
+    match tok with
+    | LIDENT _ -> true 
+    | _ -> false
 
 
 let transform_let tokens  =
@@ -23,8 +30,10 @@ let transform_let tokens  =
     and is_tuple = ref false
     and is_type = ref false
     and is_optional = ref false
-    and len = Array.length tokens in
+    and len = Array.length tokens
+    and fd = EzFile.open_out "pes.txt" in
     for i = 0 to len-1 do
+        Printf.fprintf fd "%d %s\n" i (string_of_tok tokens.(i));
         if !in_let then
             match tokens.(i) with
             | LIDENT name when !first_ident ->
@@ -39,7 +48,6 @@ let transform_let tokens  =
                         | RPAREN -> is_type :=false; is_optional := false
                         | LIDENT name when !is_type -> 
                             tokens.(!j) <- LTYPE name
-                        | UIDENT name when !is_type -> tokens.(!j) <- LTYPE name
                         | SPACES -> ()
                         | _ when not !is_tuple ->
                             is_function:=true
@@ -59,12 +67,18 @@ let transform_let tokens  =
                 is_tuple:=false;
                 is_type:=false;
                 first_ident:=true
+            | OPEN -> in_let := false
             | _ -> ()
         else
             match tokens.(i) with
-            | LET -> in_let:=true
+            | LET when tokens.(i+1) = SPACES &&  
+                        is_ident_name tokens.(i+2) -> in_let:=true
+            | LET when tokens.(i+2) = REC -> in_let:=true
+            | AND -> in_let:=true
             | _ -> ()
     done;
+    close_out fd;
+    EzFile.remove "pes.txt";
     tokens
 
 let transform_fun tokens  =
@@ -97,6 +111,7 @@ let transform_fun tokens  =
 let transform_match tokens  =
     let in_match = ref false 
     and is_type = ref false
+    and in_record = ref false
     and in_type = ref false
     and len = Array.length tokens in
     for i = 0 to len-1 do
@@ -115,7 +130,10 @@ let transform_match tokens  =
             | _ -> ()
         else
             match tokens.(i) with
-            | BAR | WITH -> in_match:=true
+            | BAR  -> in_match:=true
+            | WITH when not !in_record -> in_match:=true 
+            | LBRACE -> in_record:=true
+            | RBRACE -> in_record:=false
             | TYPE -> in_type:=true; 
             | LET -> in_type:=false; in_match:=false
             | _ -> ()
@@ -123,19 +141,19 @@ let transform_match tokens  =
     tokens
 
 let transform_cons tokens = 
-    let is_module_name tok =
-        match tok with
-        | UIDENT _ -> true 
-        | _ -> false
-    in
     let in_mod_dec = ref false
     and len = Array.length tokens 
-    and i = ref 0 in
+    and i = ref 0 
+    and in_arguments = ref false
+    and fd = EzFile.open_out "pes.txt" in
     while !i < len do
+        Printf.fprintf fd "%d %s\n" !i (string_of_tok tokens.(!i));
         begin
             if !in_mod_dec then begin
                 (* Skip open/include/module expression *)
-                while not (is_module_name tokens.(!i))  do
+                while not (is_module_name tokens.(!i)) &&
+                      not (is_ident_name tokens.(!i)) &&
+                      tokens.(!i) <> STRUCT do
                     i:= !i+1
                 done; 
                 while not (tokens.(!i) = SPACES || tokens.(!i) = EOL ) do
@@ -145,13 +163,17 @@ let transform_cons tokens =
             end
             else 
                 match tokens.(!i) with
-                | OPEN | INCLUDE | MODULE -> in_mod_dec := true
+                | OPEN | INCLUDE | MODULE when not !in_arguments -> in_mod_dec := true
                 | UIDENT _ when tokens.(!i+1) = DOT -> ()
                 | UIDENT s -> tokens.(!i) <- CONSTRUCTOR s
+                | LET |FUNCTION | FUN ->  in_arguments := true
+                | MINUSGREATER | EQUAL ->  in_arguments := false
                 | _ -> ();
         end;
         i:=!i+1
     done;
+    close_out fd;
+    EzFile.remove "pes.txt";
     tokens   
 
 let transform_type tokens  =
@@ -159,8 +181,10 @@ let transform_type tokens  =
     and in_val = ref false
     and in_type = ref false
     and in_record = ref false
-    and len = Array.length tokens in
+    and len = Array.length tokens
+    and fd = EzFile.open_out "pes.txt" in
     for i = 0 to len-1 do
+        Printf.fprintf fd "%d %s\n" i (string_of_tok tokens.(i));
         if !in_type then
             match tokens.(i) with
             | LIDENT name when not !in_record || !is_type -> 
@@ -188,7 +212,7 @@ let transform_type tokens  =
             | EXTERNAL | CLASS ->
                 is_type:=false; 
                 in_val:=false
-            | TYPE ->
+            | TYPE | EXCEPTION->
                 in_type :=true;
                 is_type:=false;
                 in_val:=false               
@@ -196,21 +220,45 @@ let transform_type tokens  =
             | _ -> ()
         else 
             match tokens.(i) with
-            | TYPE -> in_type:=true;
+            | TYPE | EXCEPTION-> in_type:=true;
             | VAL -> in_val:=true;
             | _ -> ()
     done;
+    close_out fd;
+    EzFile.remove "pes.txt";
     tokens
 
 
 let transform tokens =
-    let (toks,toks_inf) = List.split tokens in
-    let toks = Array.of_list toks in
-    let toks = transform_let toks 
-               |> transform_fun 
-               |> transform_match
-               |> transform_cons 
-               |> transform_type 
+    let rec safe_split l accX accY =
+        match l with
+        | [] -> List.rev accX, List.rev accY
+        | (x,y)::ll -> safe_split ll (x::accX) (y::accY)
     in
-        let toks = Array.to_list toks in
-        List.combine toks toks_inf
+    let rec safe_combine l1 l2 acc =
+        match l1,l2 with
+        | [],[] -> List.rev acc
+        | x::xs,y::ys -> safe_combine xs ys ((x,y)::acc)
+        | _ -> failwith "Invalid argument" 
+    in
+    let (toks,toks_inf) = safe_split tokens [] [] in
+    let toks = Array.of_list toks in
+    Printf.printf "SIZE OF LIST=%d\n" (Array.length toks);
+    Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks;
+    let toks' = begin Printf.printf "\nTRANSFORM LET\n"; transform_let toks end in 
+         Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks';
+
+     let toks' = begin Printf.printf "TRANSFORM FUN\n";transform_fun toks' end in
+              Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks';
+
+     let toks' = begin Printf.printf "TRANSFORM MATCH\n";transform_match toks' end in 
+              Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks';
+
+     let toks' = begin Printf.printf "TRANSFORM CONS\n";transform_cons toks' end in 
+              Array.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok))  toks';
+
+     let toks' =  begin Printf.printf "TRANSFORM TYPE\n";transform_type toks' end 
+    in
+        let toks' = Array.to_list toks' in
+        let x = safe_combine toks' toks_inf [] in
+        Printf.printf "BASRTTTT\n"; x

@@ -127,7 +127,6 @@ let types = [
   "list",LIST;
   "unit",UNITT;
   "exn",EXN;
-  "format",FORMAT;
   "option",OPTION;
   "ref",REF
 ]
@@ -305,7 +304,7 @@ and code st = parse
         (st, LABEL name) }
   | "?"  { (st, QUESTION) }
   | "??" { (st, QUESTIONQUESTION) }
-  | "?" lowercase identchar * ':'
+  | "?" lowercase identchar * ':'?
       { let s = Lexing.lexeme lexbuf in
         let name = String.sub s 1 (String.length s - 2) in
         (*
@@ -937,7 +936,6 @@ module Simple = struct
     | LIST -> wrap LIST
     | UNITT -> wrap UNITT
     | EXN -> wrap EXN
-    | FORMAT -> wrap FORMAT
     | OPTION -> wrap OPTION
     | REF -> wrap REF
 
