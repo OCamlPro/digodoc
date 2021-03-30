@@ -181,6 +181,7 @@ let transform_type tokens  =
     and in_val = ref false
     and in_type = ref false
     and in_record = ref false
+    and in_match = ref false
     and len = Array.length tokens in
     (*and fd = EzFile.open_out "pes.txt" in*)
     for i = 0 to len-1 do
@@ -220,7 +221,10 @@ let transform_type tokens  =
             | _ -> ()
         else 
             match tokens.(i) with
-            | TYPE | EXCEPTION-> in_type:=true;
+            | TYPE -> in_type:=true;
+            | EXCEPTION when not !in_match ->  in_type:=true;
+            | BAR -> in_match:=true;
+            | MINUSGREATER -> in_match:=false;
             | VAL -> in_val:=true;
             | _ -> ()
     done;

@@ -242,7 +242,7 @@ end
 
 
 let file filename content =
-  Printf.printf "FIIILE = %s!!!!!!\n" filename;
+  (*Printf.printf "FIIILE = %s!!!!!!\n" filename;*)
   let colors =
     let len = String.length content in
     let basename = Filename.basename filename in

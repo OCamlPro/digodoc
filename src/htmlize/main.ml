@@ -39,7 +39,7 @@ let is_directory file =
 
 let htmlize filename content =
   let b = Buffer.create 1000 in
-  Printf.bprintf b {|<div class="wrap-x"><table class="content-table">
+  Printf.bprintf b {|<div class="wrap-x padding"><table class="content-table">
  <tbody>
 |};
   let lines = Color.file filename content in
@@ -139,26 +139,32 @@ let htmlize_file destdir srcdir path file =
 
 let dir_content srcdir files path =
   let b = Buffer.create 1000 in
-  Printf.bprintf b {|<div class="files-div"><table class="files-table">
- <tbody class="file">
-|};
-
-  Printf.bprintf b {|  <tr class="file">
-|};
-  Printf.bprintf b {|   <td class="file-icon">%s</td>|} Files.svg_directory;
-  let parent_directory =
+  
+  let has_parent_directory =
     match path with
     | [] -> assert false
-    | [_dir] -> "."
-    | _ -> ".."
+    | [_dir] -> false
+    | _ -> true
   in
-  Printf.bprintf b {|   <td class="file-name"><a href='%s/index.html'>&lt;PARENT DIRECTORY&gt;</a></td>
-|} parent_directory;
-  Printf.bprintf b {|   <td class="file-kind">Upper Directory</td>
-|};
-  Printf.bprintf b {|  </tr>
-|};
+  if has_parent_directory then begin
+    Printf.bprintf b {|<div class="files-div">
+  |};
 
+    Printf.bprintf b {|  <a class="file-link" href='../index.html'><div class="file">
+  |};
+    Printf.bprintf b {|   <table class="file-tab"><tbody><tr>
+  |};
+    Printf.bprintf b {|     <td class="file-icon">%s</td>
+  |} Files.svg_directory;
+  
+    Printf.bprintf b {|     <td class="file-name">..</td>
+  |};
+    Printf.bprintf b {|     <td class="file-kind">Upper Directory</td>
+  |};
+    Printf.bprintf b {|   </tr></tbody></table>
+  |};
+    Printf.bprintf b {|  </div></a>|};
+  end;
   let files = Array.to_list files in
   let files = List.map (fun file ->
       let filename = srcdir // file in
@@ -167,40 +173,55 @@ let dir_content srcdir files path =
       st.st_kind <> Unix.S_DIR, file, st) files
   in
   let files = List.sort compare files in
-  List.iter (fun (_, file, st) ->
-      Printf.bprintf b {|  <tr class="file">
-|};
+  List.iteri (fun i (_, file, st) ->
+      let style =
+        if i = 0 && not has_parent_directory
+        then "file" 
+        else if i = (List.length files) - 1 
+        then "file top-border round-border"
+        else "file top-border"
+      in
+      Printf.bprintf b {|  <a class="file-link" href='%s/index.html'><div class='%s'>
+        |} (HTML.encode (escape_file file)) style;
+      
+      Printf.bprintf b {|   <table class="file-tab"><tbody><tr>
+        |};
 
       (match st.Unix.st_kind with
        | Unix.S_DIR ->
-           Printf.bprintf b {|  <td class="file-icon">%s</td>|} Files.svg_directory
+           Printf.bprintf b {|  <td class="file-icon">%s</td>
+          |} Files.svg_directory
        | _ ->
-           Printf.bprintf b {|  <td class="file-icon">%s</td>|} Files.svg_file
+           Printf.bprintf b {|  <td class="file-icon">%s</td>
+          |} Files.svg_file
       );
 
       (match st.Unix.st_kind with
        | Unix.S_DIR | Unix.S_REG ->
-           Printf.bprintf b {|   <td class="file-name"><a href='%s/index.html'>%s</a></td>|} (HTML.encode (escape_file file)) (HTML.encode file);
+           Printf.bprintf b {|   <td class="file-name">%s</td>
+          |} (HTML.encode file);
        | _ ->
-           Printf.bprintf b {|   <td class="file-name">%s</td>|} (HTML.encode file);
+           Printf.bprintf b {|   <td class="file-name">%s</td>
+          |} (HTML.encode file);
       );
       Printf.bprintf b {|   <td class="file-kind">%s</td>
-|}
+      |}
         (match st.Unix.st_kind with
          | Unix.S_REG ->
              Printf.sprintf "%d bytes" st.Unix.st_size
          | Unix.S_DIR ->
              "Directory"
          | _ -> "???");
-      Printf.bprintf b {|  </tr>
-|};
+     Printf.bprintf b {|   </tr></tbody></table>
+    |};
+  Printf.bprintf b {|  </div></a>
+  |};
     ) files;
-  Printf.bprintf b {| </tbody>
-</table></div>
-|};
+  Printf.bprintf b {|</div>
+  |};
   Buffer.contents b
 
-let dir_info _files = "FILE"
+let dir_info files = Printf.sprintf {|%d files|} (Array.length files)
 
 let rec htmlize_dir destdir srcdir path basename =
   let path = path @ [ basename ] in
