@@ -131,7 +131,7 @@ let transform_match tokens  =
         else
             match tokens.(i) with
             | BAR  -> in_match:=true
-            | WITH when not !in_record -> in_match:=true 
+            | WITH when not !in_record && tokens.(i+2)<>TYPE -> in_match:=true 
             | LBRACE -> in_record:=true
             | RBRACE -> in_record:=false
             | TYPE -> in_type:=true; 
@@ -206,6 +206,7 @@ let transform_type tokens  =
             | _ -> ()
         else if !in_val then
             match tokens.(i) with 
+            (* TODO : do not colorate arg_name as type in 'val f: arg_name:arg_type -> unit' *)
             | COLON -> is_type := true
             | LIDENT name when !is_type ->
                 tokens.(i) <- LTYPE name

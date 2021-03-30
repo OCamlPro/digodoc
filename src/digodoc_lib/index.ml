@@ -40,11 +40,17 @@ module TYPES = struct
     mdl_libs : library_entry list ;
   }
 
+  type source_entry = {
+    src_opam_name: string;
+    src_opam_version: string;
+  }
+
   type entry =
       Module of module_entry
     | Library of library_entry
     | Opam of opam_entry
     | Meta of meta_entry
+    | Source of source_entry
 
 end
 
@@ -124,6 +130,10 @@ let pkg_of_lib lib =
 let pkg_of_meta meta =
   Printf.sprintf "META.%s@%s.%s"
     meta.meta_name meta.meta_opam_name meta.meta_opam_version
+
+let pkg_of_src src = 
+  Printf.sprintf "%s.%s"
+    src.src_opam_name src.src_opam_version
 
 let pkg_of_mdl mdl =
   let version = mdl.mdl_opam_version in
@@ -856,6 +866,38 @@ let generate_meta_index state bb =
   print_index bb !index "packages";
   ()
 
+let generate_source_index state bb =
+
+  let index = ref [] in
+
+  List.iter ( function
+      | Source src ->
+          let pkg = pkg_of_src src in
+          let opam_pkg = pkg_of_opam  {
+              opam_name = src.src_opam_name ;
+              opam_version = src.src_opam_version ;
+              opam_synopsis = "" ;
+            }
+          in
+          let search_id = pkg in
+          let line =
+            Printf.sprintf
+              {|<li class="package" id="%s"><a href="../sources/%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
+              search_id
+              pkg src.src_opam_name
+              opam_pkg
+              src.src_opam_name
+              src.src_opam_version
+          in
+
+          index := ( src.src_opam_name , line ) :: !index;
+
+      | _ -> ()
+    ) state ;
+
+  print_index bb !index "packages";
+  ()
+
 let read_all_entries () =
   let entries = ref [] in
   let dir = Html.digodoc_html_dir in
@@ -865,6 +907,13 @@ let read_all_entries () =
 
           if EzString.starts_with file ~prefix:"ENTRY." then
             let entry = read_entry ( dir // file ) in
+            begin  
+              match entry with
+              | Opam {opam_name; opam_version; _ } ->
+                let src = Source {src_opam_name=opam_name;src_opam_version=opam_version} in
+                entries := src :: !entries
+              | _ -> ()
+            end;
             entries := entry :: !entries
 
         ) ( try Sys.readdir dir with _ -> [||] )
@@ -892,6 +941,7 @@ let generate () =
       | <a href="metas.html">Meta Index</a>
       | <a href="libraries.html">Libraries Index</a>
       | <a href="modules.html">Modules Index</a>
+      | <a href="sources.html">Sources Index</a>
       <form class="form-search">
         <span>
           <input id="search" class="search-query" type="text" placeholder="Search packages"/>
@@ -953,6 +1003,15 @@ let generate () =
     (fun bb ~title ->
        header bb ~title;
        generate_module_index state bb;
+       trailer bb;
+    );
+
+  Html.generate_page
+    ~filename:"sources.html"
+    ~title:"Sources Index"
+    (fun bb ~title ->
+       header bb ~title;
+       generate_source_index state bb;
        trailer bb;
     );
 

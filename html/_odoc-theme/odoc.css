@@ -60,7 +60,7 @@ body { background-color: var(--color-bg);
   padding: calc(1.5 * var(--size-line));
   padding-top: calc(0.5 * var(--size-line)); }
 
-.content > * { max-width: 78ch; width: 75% }
+.content > * { max-width: 83ch; width: 80% }
 .toc
 { position: absolute;
   top: 0px; right: 0px;
