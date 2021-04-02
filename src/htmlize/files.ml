@@ -15,7 +15,9 @@ body {
   font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
   font-size: 14px;
   line-height: 1.5;
+  min-width: 800px;
   color: var(--color-text-primary);
+  margin:0px;
 }
 
 /************ Links *****************/
@@ -25,6 +27,11 @@ body {
 .content a {
     color: #0366d6;
     text-decoration: none;
+}
+
+#footer a {
+  color:#e1e4e8;
+  text-decoration: none;
 }
 
 .topnav a {
@@ -48,7 +55,7 @@ body {
 /* Change the color of links on hover */
 .topnav a:hover {
   background-color: #ddd;
-  color: black;
+  color: #659CD6;
 }
 
 /* Add a color to the active/current link */
@@ -76,7 +83,7 @@ body {
 
 .content {
     font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace !important;
-    max-width: 1280px;
+    width: 100%;
 }
 
 .border {
@@ -118,14 +125,38 @@ body {
 
 /* Add a black background color to the top navigation */
 .topnav {
-    background-color: #333;
+    background-color: #659CD6;
     overflow: hidden;
+    border-bottom: 1px solid grey;
+}
+
+.search {
+    float: left;
+    margin-top:10px;
+    margin-right:20px;
+}
+
+#footer{
+  background-color: #659CD6;
+  text-align:center;
+  color: white;
+  bottom:0;
+  width:100%;
+  height:50px;
+  margin-top: 30px;
+  border-top: 1px solid grey;
+}
+
+.container{
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 /************** Tables, rows, cells ***************/
 
-.file-tab{
-  width: 100%;
+table{
+  width: inherit;
+  height: inherit;
 } 
 
 .file-name{
@@ -133,7 +164,7 @@ body {
 }
 
 .file-icon {
-  width: 3%;
+  width: 2%;
   min-width: 25px;
 }
 
@@ -201,8 +232,34 @@ body {
   color: #dcdcdc;
 }
 
+/************ Inputs ***************/
+
+.search-query{
+  text-align: center;
+  width:200px;
+  height:25px;
+  border-radius: 20px;
+  outline: none;
+}
+
+
 |}
-let script_js = {||}
+let script_js = {|
+  var footerHandler = () => {
+    let footer = document.getElementById("footer");
+
+    footer.style.position = 'relative' 
+
+    if (window.innerHeight <= document.body.clientHeight){
+      footer.style.position = 'relative' 
+    } else{
+      footer.style.position = 'fixed' 
+    } 
+  }
+
+  window.onload = footerHandler;
+  window.onresize = footerHandler;
+|}
 
 let html_header = {|<!DOCTYPE html>
 <html lang="en">
@@ -213,19 +270,41 @@ let html_header = {|<!DOCTYPE html>
    <script defer="defer" type="application/javascript" src="${root}_static/script.js"></script>
   </head>
  <body>
-<div class="topnav">
-  <a class="active" href="#home">Home</a>
-  <a href="#news">News</a>
-  <a href="#contact">Contact</a>
+<div id="header" class="topnav">
+  <a href="${root}../html/index.html">Packages</a>
+  <a href="${root}../html/libraries.html">Libraries</a>
+  <a href="${root}../html/metas.html">Metas</a>
+  <a href="${root}../html/modules.html">Modules</a>
+  <a href="${root}../html/sources.html">Sources</a>
   <div class="topnav-right">
-    <a href="#search">Search</a>
-    <a href="#about">About</a>
+    <div class="search">
+      <input id="search" class="search-query" type="text" placeholder="Search"/>
+    </div>
+    <a href="#footer">Contact</a>
   </div>
 </div>
 |}
 
 let html_trailer =
   {|\
+    <div id="footer">
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <b>© 2021 OCamlPro</b>
+            </td>
+            <td>
+              <nav float="right">
+                <a href="https://www.ocamlpro.com/contact/">Contact page</a>
+                |
+                <a href="#header">To the top</a>
+              </nav>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
  </body>
 </html>
 |}
