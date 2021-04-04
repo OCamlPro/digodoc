@@ -453,7 +453,7 @@ let print_index bb index entity_name =
     ) index;
 
   Printf.bprintf bb {|
-    <h4>%d %s</h4>
+    <h4 id="item-number">%d %s</h4>
     <div class="by-name">
       <nav>
 |} !n entity_name;
@@ -863,7 +863,7 @@ let generate_meta_index state bb =
       | _ -> ()
     ) state ;
 
-  print_index bb !index "packages";
+  print_index bb !index "metas";
   ()
 
 let generate_source_index state bb =
@@ -895,7 +895,7 @@ let generate_source_index state bb =
       | _ -> ()
     ) state ;
 
-  print_index bb !index "packages";
+  print_index bb !index "sources";
   ()
 
 let read_all_entries () =

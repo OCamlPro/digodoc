@@ -20,23 +20,18 @@ if (dirname != "html"){
   var filename = path_reversed[0];
   switch (filename) {
     case "index.html":
-      console.log(1);
       document.getElementById("packages-item").className = "active";
       break;
     case "libraries.html":
-      console.log(2);
       document.getElementById("libraries-item").className = "active";
       break;
     case "metas.html":
-      console.log(3);
       document.getElementById("metas-item").className = "active";
       break;  
     case "modules.html":
-      console.log(4);
       document.getElementById("modules-item").className = "active";
       break;
     case "sources.html":
-      console.log(5);
       document.getElementById("sources-item").className = "active";
       break;  
     default:
