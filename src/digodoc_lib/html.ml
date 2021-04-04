@@ -142,5 +142,54 @@ let iter_html ?(check_links=false) ?(add_trailer=false) dir =
       ) dir;
   Printf.eprintf "Scan finished.\n%!"
 
+let add_header_footer () =
+  let open Htmlize in 
+  Printf.eprintf "Adding header and footer!\n";
+  let html_dir = digodoc_html_dir in
+  let script = {|<script defer="defer" 
+                      type="application/javascript" 
+                      src="${root-html}headerFooter.js">
+                </script>|} in
+
+  EzFile.make_select EzFile.iter_dir ~deep:true ~glob:"*.html"
+    ~f:(fun path ->
+        if EzString.starts_with ~prefix:"ENTRY" (EzFile.basename path) 
+        then ()
+        else begin
+          let file = html_dir // path in
+          let brace () var = 
+            match var with
+            | "root-html" ->
+              let dirname = EzFile.dirname path in 
+              let path_list = 
+                if String.contains path '/'   
+                then 
+                  String.split_on_char '/' dirname 
+                else []
+              in
+              let s =
+                String.concat "/"
+                  (List.map (fun _s -> "..") 
+                    path_list)
+              in
+              if s = "" then s else s ^ "/" 
+            | _ -> 
+              Printf.kprintf failwith "Unknown var %S" var
+          in
+        
+          let html = EzFile.read_file file 
+          and header = Ez_subst.V1.EZ_SUBST.string Files.body_header ~brace ~ctxt:()
+          and footer = Files.body_trailer
+          and script = Ez_subst.V1.EZ_SUBST.string script ~brace ~ctxt:() in
+
+          let html' = Patchtml.edit_html ~header ~footer ~script html in
+
+          EzFile.remove file;
+
+          EzFile.write_file file html'
+        end
+      ) html_dir
+
+
 let write_file file ~content =
   EzFile.write_file file (HTML.check content)

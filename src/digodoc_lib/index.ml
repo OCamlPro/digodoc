@@ -934,22 +934,6 @@ let generate () =
   let header bb ~title =
     Printf.bprintf bb
       {|
-  <header>
-   <nav>
-    <div>
-     <span><a href="index.html">Opam Index</a>
-      | <a href="metas.html">Meta Index</a>
-      | <a href="libraries.html">Libraries Index</a>
-      | <a href="modules.html">Modules Index</a>
-      | <a href="sources.html">Sources Index</a>
-      <form class="form-search">
-        <span>
-          <input id="search" class="search-query" type="text" placeholder="Search packages"/>
-        </span>
-      </form>
-     </span>
-    </div>
-   </nav>
   <h1>OCaml Documentation: %s</h1>
   <h2>OCaml Distribution</h2>
   <ul>

@@ -41,6 +41,7 @@ ez_cmdliner = "0.2"
 ez_file = "0.2"
 ez_subst = "0.1"
 ez_html = ">=0.1"
+lambdasoup = "0.7.2"
 
 # package tools dependencies
 [tools]

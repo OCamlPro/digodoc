@@ -30,13 +30,13 @@ a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,select,
 small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,
 fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,
 article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,
-menu,nav,output,ruby,section,summary,time,mark,audio,video,button,input
+menu,nav,output,ruby,section,summary,time,mark,audio,video,button
 { margin: 0; padding: 0; border: 0; /* outline: 0; */
   font-size: inherit; font: inherit; font-weight: inherit;
   line-height: inherit; vertical-align: baseline;
   text-align: inherit; color: inherit; background: transparent; }
 
-table { border-collapse: collapse; border-spacing: 0; }
+table { border-collapse: collapse; border-spacing: 0; width: inherit; height: inherit;}
 *,  *:before,  *:after { box-sizing: border-box; }
 
 /* Geometry, a bit annoying at the moment and not exactly
@@ -60,7 +60,7 @@ body { background-color: var(--color-bg);
   padding: calc(1.5 * var(--size-line));
   padding-top: calc(0.5 * var(--size-line)); }
 
-.content > * { max-width: 83ch; width: 80% }
+.content > * { max-width: 78ch; width: 75% }
 .toc
 { position: absolute;
   top: 0px; right: 0px;
@@ -330,15 +330,88 @@ form.form-search {
 
 input#search {
   height: 35px;
-  background-color: lightblue;
+  text-align: center;
+  background-color: white;
   border-radius: 20px 20px 20px 20px;
-  font-size: 16px;
+  font-size: 15px;
+  width:206px;
+  height: 31px;
+  outline: none;
 }
 
 button#search-button {
-    height: 35px;
-    width: 100px;
+  height: 35px;
+  width: 100px;
   border: 1px;
   background-color: lightblue;
   border-radius: 0 20px 20px 0;
+}
+
+.topnav a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+.topnav a:hover {
+  background-color: #ddd;
+  color: #659CD6;
+}
+
+/* Add a color to the active/current link */
+.topnav a.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.topnav {
+  background-color: #659CD6;
+  overflow: hidden;
+  border-bottom: 1px solid grey;
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+  line-height: 1.5;
+  margin-top: 0;
+  box-shadow: none;
+}
+
+.topnav-right {
+  margin-top: 0;
+  float: right;
+}
+
+.search {
+  float: left;
+  margin-top:10px;
+  margin-right:20px;
+}
+
+#footer a {
+  color:#e1e4e8;
+  text-decoration: none;
+}
+
+#footer{
+  background-color: #659CD6;
+  text-align:center;
+  color: white;
+  bottom:0;
+  width:100%;
+  margin-top: 30px;
+  border-top: 1px solid grey;
+  font-size: 14px;
+  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+  min-height: 50px;
+  box-shadow: none;
+}
+
+#footer table {
+  margin-top: 5px;
+  min-height: inherit;
+}
+
+i {
+  font-style: italic;
 }

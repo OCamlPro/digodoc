@@ -220,14 +220,11 @@ module OCAML = struct
 
     let tokens = Approx_lexer.tokens_of_string content in
 
-    (*List.iter (fun tok -> Printf.printf "%s " (Approx_tokens.string_of_tok tok)) (List.map fst tokens);*)
-
     let tokens = 
       try
         Transformer.transform tokens
       with _ -> tokens
     in
-    (*Printf.printf "STAAAAAAAAAAAAAAAAAAAART\n";*)
     List.iter (fun (token, ( (lex_start, lex_end), _, _)) ->
         let lex_start = lex_start.Lexing.pos_cnum in
         let lex_end = lex_end.Lexing.pos_cnum in
@@ -236,13 +233,11 @@ module OCAML = struct
           colors.(i) <- color
         done;
       ) tokens;
-    (*Printf.printf "EEEEEEEEEEEEEEEEEEEEEENDS\n";*)
-colors
+    colors
 end
 
 
 let file filename content =
-  (*Printf.printf "FIIILE = %s!!!!!!\n" filename;*)
   let colors =
     let len = String.length content in
     let basename = Filename.basename filename in
@@ -275,7 +270,6 @@ let file filename content =
   in
 
   let rec iter linenum pos lines rev =
-    (*    Printf.eprintf "linenum=%d\n%!" linenum; *)
     match lines with
     | [] -> List.rev rev
     | line :: lines ->

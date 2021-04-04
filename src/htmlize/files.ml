@@ -238,7 +238,7 @@ table{
   text-align: center;
   width:200px;
   height:25px;
-  border-radius: 20px;
+  border-radius: 20px; 
   outline: none;
 }
 
@@ -261,6 +261,21 @@ let script_js = {|
   window.onresize = footerHandler;
 |}
 
+let body_header = {|
+<div id="header" class="topnav">
+  <a id="packages-item" href="${root-html}index.html">Packages</a>
+  <a id="libraries-item" href="${root-html}libraries.html">Libraries</a>
+  <a id="metas-item" href="${root-html}metas.html">Metas</a>
+  <a id="modules-item" href="${root-html}modules.html">Modules</a>
+  <a id="sources-item" href="${root-html}sources.html">Sources</a>
+  <div class="topnav-right">
+    <div class="search">
+      <input id="search" class="search-query" type="text" placeholder="Search"/>
+    </div>
+    <a href="#footer">Contact</a>
+  </div>
+</div>|}
+
 let html_header = {|<!DOCTYPE html>
 <html lang="en">
  <head>
@@ -270,29 +285,15 @@ let html_header = {|<!DOCTYPE html>
    <script defer="defer" type="application/javascript" src="${root}_static/script.js"></script>
   </head>
  <body>
-<div id="header" class="topnav">
-  <a href="${root}../html/index.html">Packages</a>
-  <a href="${root}../html/libraries.html">Libraries</a>
-  <a href="${root}../html/metas.html">Metas</a>
-  <a href="${root}../html/modules.html">Modules</a>
-  <a href="${root}../html/sources.html">Sources</a>
-  <div class="topnav-right">
-    <div class="search">
-      <input id="search" class="search-query" type="text" placeholder="Search"/>
-    </div>
-    <a href="#footer">Contact</a>
-  </div>
-</div>
-|}
+|} ^ body_header
 
-let html_trailer =
-  {|\
-    <div id="footer">
+let body_trailer = 
+  {|<div id="footer">
       <table>
         <tbody>
           <tr>
             <td>
-              <b>© 2021 OCamlPro</b>
+              <i>Copyright OCamlPro and the authors of the libraries.</i>
             </td>
             <td>
               <nav float="right">
@@ -304,10 +305,15 @@ let html_trailer =
           </tr>
         </tbody>
       </table>
-    </div>
+    </div>|}
+
+let html_trailer =
+  body_trailer ^
+  {|
  </body>
 </html>
 |}
+
 let html_file_page = {|
 <div class="container position-relative">
  <div class="content">

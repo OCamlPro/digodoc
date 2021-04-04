@@ -872,7 +872,9 @@ let generate_meta_pages state =
 let generate ~state ~continue_on_error ~sources =
 
   (* Iter on modules first *)
-
+  if Sys.file_exists Html.digodoc_html_dir then begin
+    EzFile.remove_dir ~all:true Html.digodoc_html_dir
+  end;
   EzFile.make_dir ~p:true Html.digodoc_html_dir;
   Process.call [|
     "rsync"; "-auv"; "html/.";  Html.digodoc_html_dir // "." |];

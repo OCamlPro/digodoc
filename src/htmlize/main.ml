@@ -132,6 +132,13 @@ let htmlize_file destdir srcdir path file =
             (List.map (fun _s -> "..") path)
         in
         if s = "" then s else s ^ "/"
+    | "root-html" -> 
+        let s =
+          String.concat "/"
+            (List.map (fun _s -> "..") path)
+        in
+        let s = if s = "" then s else s ^ "/" in
+        s // "../html/"
     | _ ->
         Printf.kprintf failwith "Unknown var %S" var
   in
@@ -242,6 +249,13 @@ let rec htmlize_dir destdir srcdir path basename =
             (List.map (fun _s -> "..") path)
         in
         if s = "" then s else s ^ "/"
+    | "root-html" -> 
+        let s =
+          String.concat "/"
+            (List.map (fun _s -> "..") path)
+        in
+        let s = if s = "" then s else s ^ "/" in
+        s // "../html/"  
     | _ ->
         Printf.kprintf failwith "Unknown var %S" var
   in

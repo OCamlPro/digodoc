@@ -146,6 +146,7 @@ let main () =
         let state = get_state ~state ~objinfo ~switch in
         Odoc.generate ~state ~continue_on_error ~sources;
         Index.generate ();
+        Html.add_header_footer ()
         (* Html.iter_html ~add_trailer:true Html.digodoc_html_dir *)
     | CheckLinks ->
         Html.iter_html ~check_links:true Html.digodoc_html_dir

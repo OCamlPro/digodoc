@@ -9,6 +9,8 @@ This code assumes that:
 */
 
 window.onload = () => {
+    footerHandler();
+
     let name = document.getElementById("search")
 
     name.onkeyup = () => {
@@ -32,5 +34,6 @@ window.onload = () => {
                 h3.style.display = "none"
             }
         });
+        footerHandler();
     }
 }

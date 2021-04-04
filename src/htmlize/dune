@@ -4,7 +4,7 @@
   (name htmlize)
   (public_name htmlize)
   (wrapped true)
-  (libraries ez_subst ez_html ez_file ez_cmdliner )
+   (libraries ez_subst ez_html ez_file ez_cmdliner lambdasoup)
   
   
   )
