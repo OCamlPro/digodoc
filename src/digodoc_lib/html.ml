@@ -178,8 +178,8 @@ let add_header_footer () =
           in
         
           let html = EzFile.read_file file 
-          and header = Ez_subst.V1.EZ_SUBST.string Files.body_header ~brace ~ctxt:()
-          and footer = Files.body_trailer
+          and header = Ez_subst.V1.EZ_SUBST.string (Files.body_header ()) ~brace ~ctxt:()
+          and footer = Files.body_trailer ()
           and script = Ez_subst.V1.EZ_SUBST.string script ~brace ~ctxt:() in
 
           let html' = Patchtml.edit_html ~header ~footer ~script html in

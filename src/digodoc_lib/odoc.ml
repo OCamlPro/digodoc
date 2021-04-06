@@ -644,7 +644,7 @@ let generate_library_pages state =
 
   ()
 
-let generate_opam_pages ~sources state =
+let generate_opam_pages state =
 
   StringMap.iter (fun _ opam ->
       let pkg = pkg_of_opam opam in
@@ -702,12 +702,12 @@ let generate_opam_pages ~sources state =
         Printf.bprintf b "%s\n"
           (modules_to_html opam.opam_mdls);
 
-        if sources then begin 
+        if !Htmlize.Globals.sources then begin 
           Printf.bprintf b "\n{1:sources Package sources}\n";
           
           let opam_sources = htmlize_sources_of_opam opam in
-          Printf.bprintf b {|{%%html:<a href="../../../%s/index.html">Link to the sources</a>%%}|}
-            opam_sources
+          Printf.bprintf b {|{%%html:<a href="../../../%s/index.html">%s</a>%%}|}
+            opam_sources opam.opam_name
         end;
 
         Printf.bprintf b "\n{1:files Package files}\n";
@@ -869,7 +869,7 @@ let generate_meta_pages state =
 
   ()
 
-let generate ~state ~continue_on_error ~sources =
+let generate ~state ~continue_on_error  =
 
   (* Iter on modules first *)
   if Sys.file_exists Html.digodoc_html_dir then begin
@@ -907,7 +907,8 @@ let generate ~state ~continue_on_error ~sources =
       )
   end;
 
-  if sources then begin
+  if !Htmlize.Globals.sources then begin
+    Htmlize.Globals.with_header := true;
     EzFile.make_dir ~p:true sources_dir;
     StringMap.iter (fun _ opam ->
       let opam_sources = sources_of_opam opam 
@@ -924,7 +925,7 @@ let generate ~state ~continue_on_error ~sources =
     EzFile.remove_dir ~all:true sources_dir
   end;
 
-  generate_opam_pages ~sources state;
+  generate_opam_pages state;
   generate_library_pages state;
   generate_meta_pages state;
   generate_module_entries state;

@@ -75,8 +75,13 @@ let content_info content =
 
 let generate_page ~brace destdir =
   let ctxt = () in
-  let header = EZ_SUBST.string Files.html_header ~ctxt ~brace in
-  let trailer = EZ_SUBST.string Files.html_trailer ~ctxt ~brace in
+  let header = 
+    if !Globals.with_header
+    then Files.html_header ^ (Files.body_header ()) 
+    else Files.html_header
+  in
+  let header = EZ_SUBST.string header ~ctxt ~brace in
+  let trailer = EZ_SUBST.string (Files.html_trailer ()) ~ctxt ~brace in
   let page = EZ_SUBST.string Files.html_file_page ~ctxt ~brace in
 
   EzFile.make_dir ~p:true destdir;

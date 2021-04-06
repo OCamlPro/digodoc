@@ -989,15 +989,16 @@ let generate () =
        generate_module_index state bb;
        trailer bb;
     );
-
-  Html.generate_page
-    ~filename:"sources.html"
-    ~title:"Sources Index"
-    (fun bb ~title ->
-       header bb ~title;
-       generate_source_index state bb;
-       trailer bb;
-    );
+  if !Htmlize.Globals.sources then begin
+    Html.generate_page
+      ~filename:"sources.html"
+      ~title:"Sources Index"
+      (fun bb ~title ->
+        header bb ~title;
+        generate_source_index state bb;
+        trailer bb;
+      )
+  end;
 
   Printf.eprintf "Index generation done.\n%!";
   ()

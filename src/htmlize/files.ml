@@ -261,20 +261,25 @@ let script_js = {|
   window.onresize = footerHandler;
 |}
 
-let body_header = {|
-<div id="header" class="topnav">
-  <a id="packages-item" href="${root-html}index.html">Packages</a>
-  <a id="libraries-item" href="${root-html}libraries.html">Libraries</a>
-  <a id="metas-item" href="${root-html}metas.html">Metas</a>
-  <a id="modules-item" href="${root-html}modules.html">Modules</a>
-  <a id="sources-item" href="${root-html}sources.html">Sources</a>
-  <div class="topnav-right">
-    <div class="search">
-      <input id="search" class="search-query" type="text" placeholder="Search"/>
-    </div>
-    <a href="#footer">Contact</a>
-  </div>
-</div>|}
+let body_header () = 
+  Printf.sprintf  
+    {|
+    <div id="header" class="topnav">
+      <a id="packages-item" href="${root-html}index.html">Packages</a>
+      <a id="libraries-item" href="${root-html}libraries.html">Libraries</a>
+      <a id="metas-item" href="${root-html}metas.html">Metas</a>
+      <a id="modules-item" href="${root-html}modules.html">Modules</a>
+      %s
+      <div class="topnav-right">
+        <div class="search">
+          <input id="search" class="search-query" type="text" placeholder="Search"/>
+        </div>
+        <a href="#footer">Contact</a>
+      </div>
+    </div>|}
+    (if !Globals.sources 
+     then {|<a id="sources-item" href="${root-html}sources.html">Sources</a>|}
+     else "")
 
 let html_header = {|<!DOCTYPE html>
 <html lang="en">
@@ -285,30 +290,33 @@ let html_header = {|<!DOCTYPE html>
    <script defer="defer" type="application/javascript" src="${root}_static/script.js"></script>
   </head>
  <body>
-|} ^ body_header
+|} 
 
-let body_trailer = 
-  {|<div id="footer">
-      <table>
-        <tbody>
-          <tr>
-            <td>
-              <i>Copyright OCamlPro and the authors of the libraries.</i>
-            </td>
-            <td>
-              <nav float="right">
-                <a href="https://www.ocamlpro.com/contact/">Contact page</a>
-                |
-                <a href="#header">To the top</a>
-              </nav>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>|}
+let body_trailer () = 
+  Printf.sprintf
+    {|<div id="footer">
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <i>Copyright OCamlPro and the authors of the libraries.</i>
+              </td>
+              <td>
+                <nav float="right">
+                  <a href="https://www.ocamlpro.com/contact/">Contact page</a>
+                  %s
+                </nav>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>|}
+      (if !Globals.with_header 
+       then {| | <a href="#header">To the top</a>|} 
+       else "")
 
-let html_trailer =
-  body_trailer ^
+let html_trailer () =
+  (body_trailer ()) ^
   {|
  </body>
 </html>
