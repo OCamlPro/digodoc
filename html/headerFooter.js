@@ -19,6 +19,9 @@ if (dirname != "html"){
 } else {
   var filename = path_reversed[0];
   switch (filename) {
+    case "about.html":
+      document.getElementById("about-item").className = "active";
+      break;
     case "index.html":
       document.getElementById("packages-item").className = "active";
       break;

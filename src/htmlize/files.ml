@@ -265,6 +265,7 @@ let body_header () =
   Printf.sprintf  
     {|
     <div id="header" class="topnav">
+      <a id="about-item" href="${root-html}about.html">About</a>
       <a id="packages-item" href="${root-html}index.html">Packages</a>
       <a id="libraries-item" href="${root-html}libraries.html">Libraries</a>
       <a id="metas-item" href="${root-html}metas.html">Metas</a>
@@ -274,7 +275,6 @@ let body_header () =
         <div class="search">
           <input id="search" class="search-query" type="text" placeholder="Search"/>
         </div>
-        <a href="#footer">Contact</a>
       </div>
     </div>|}
     (if !Globals.sources 
