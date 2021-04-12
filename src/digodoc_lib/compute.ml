@@ -43,7 +43,7 @@
 
 open EzCompat
 open EzFile.OP
-open Types
+open Type
 
 let check_file state ~objinfo opam_package file =
 

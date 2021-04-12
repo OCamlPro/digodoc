@@ -60,7 +60,7 @@ module SAVE = struct
     EzFile.make_dir ~p:true ( Filename.dirname filename );
     open_out filename
 
-  open Types
+  open Type
 
   let save_opam_entry file opam =
     let oc = open_out file in
@@ -195,7 +195,7 @@ let read_entry file =
 
 (*
 open Ez_html.V1
-open Types
+open Type
 
 (* Note:
    In our first version, we were computing dependencies at the module level,

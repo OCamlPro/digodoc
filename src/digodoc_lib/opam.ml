@@ -13,7 +13,7 @@ open Ez_opam_file.V1
 open EzFile.OP
 open EzCompat
 open OpamParserTypes.FullPos
-open Types
+open Type
 
 
 let create state opam_name opam_files =

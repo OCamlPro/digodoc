@@ -12,7 +12,7 @@
 open Ez_html.V1
 open EzCompat
 open EzFile.OP
-open Types
+open Type
 
 (* Note:
    In our first version, we were computing dependencies at the module level,
@@ -495,15 +495,24 @@ let libraries_to_html title map =
 let infos_of_opam state pkg opam =
   let html_dir = Html.digodoc_html_dir // pkg in
 
-  let copy_file file =
+  let omd_generate_file file = 
     let basename = Filename.basename file in
-    let dstfile = html_dir // basename in
+    let name,_ = EzFile.cut_extension basename in
+    let html_file = (pkg // name ^ ".html") in
     let srcfile = ( state.opam_switch_prefix // file ) in
-    if Sys.file_exists srcfile then
-      let content = EzFile.read_file srcfile in
+    if Sys.file_exists srcfile then begin
       EzFile.make_dir ~p:true html_dir ;
-      EzFile.write_file dstfile content;
-      Printf.sprintf {|<a href="%s">%s</a>|} basename basename
+      let generate bb ~title =
+        ignore title;
+        let content = EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html in
+        Printf.bprintf bb {|%s|} content 
+      in 
+      Html.generate_page
+        ~filename:html_file
+        ~title:"basename"
+        generate ;
+      Printf.sprintf {|<a href="%s.html">%s</a>|} name basename
+    end
     else begin
       Printf.eprintf "odoc_error: missing file %s\n%!" srcfile;
       ""
@@ -552,9 +561,9 @@ let infos_of_opam state pkg opam =
   ) @
   (
     List.map (function
-        | README_md file -> [ "readme-file" ; copy_file file ]
-        | CHANGES_md file -> [ "changes-file" ; copy_file file ]
-        | LICENSE_md file -> [ "license-file" ; copy_file file ]
+        | README_md file -> [ "readme-file" ; omd_generate_file file ]
+        | CHANGES_md file -> [ "changes-file" ; omd_generate_file file ]
+        | LICENSE_md file -> [ "license-file" ; omd_generate_file file ]
         | ODOC_PAGE file -> [ "odoc-file" ; file ]
       ) opam.opam_docs
   )

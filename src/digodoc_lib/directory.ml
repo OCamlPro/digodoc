@@ -11,7 +11,7 @@
 
 open EzCompat
 open EzFile.OP
-open Types
+open Type
 
 open Meta_file.Types
 

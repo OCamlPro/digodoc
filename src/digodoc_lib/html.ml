@@ -17,6 +17,18 @@ let digodoc_html_dir = Globals.digodoc_dir // "html"
 (* generate page _digodoc/html/${filename} *)
 let generate_page ~filename ~title f =
 
+  let dirname = EzFile.dirname filename in 
+  let path_list = 
+      if String.contains filename '/'   
+      then 
+        String.split_on_char '/' dirname 
+      else [] in
+  let s =
+    String.concat "/"
+      (List.map (fun _s -> "..") 
+        path_list) in
+  let root = if s = "" then s else s ^ "/" in
+
 
   (* removed 'async' from the script line because unregnized by ez_ml parser *)
   let bb = Buffer.create 10000 in
@@ -24,15 +36,15 @@ let generate_page ~filename ~title f =
 <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
   <title>%s</title>
-  <link rel="stylesheet" href="_odoc-theme/odoc.css"/>
-  <script type="text/javascript" src="search.js" charset="utf-8"></script>
+  <link rel="stylesheet" href="%s_odoc-theme/odoc.css"/>
+  <script type="text/javascript" src="%ssearch.js" charset="utf-8"></script>
   <meta charset="utf-8"/>
   <meta name="generator" content="digodoc 0.1"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <script src="highlight.pack.js"></script>
+  <script src="%shighlight.pack.js"></script>
   <script>hljs.initHighlightingOnLoad();</script>
 </head>
-|} title;
+|} title root root root;
   Printf.bprintf bb
     {|
 <body>
@@ -50,7 +62,6 @@ let generate_page ~filename ~title f =
   ()
 
 let encode = HTML.encode
-
 
 open EzFile.OP
 open HTML.TYPES
@@ -144,7 +155,7 @@ let iter_html ?(check_links=false) ?(add_trailer=false) dir =
 
 let add_header_footer () =
   let open Htmlize in 
-  Printf.eprintf "Adding header and footer!\n";
+  Printf.eprintf "Adding header and footer...\n%!";
   let html_dir = digodoc_html_dir in
   let script = {|<script defer="defer" 
                       type="application/javascript" 

@@ -24,7 +24,7 @@
 
 open EzCompat
 open EzFile.OP
-open Types
+open Type
 open Ezcmd.V2
 
 let cache_file = "_digodoc/digodoc.state"
@@ -38,6 +38,7 @@ type action =
   | CheckLinks
   | AddTrailer
   | HtmlizeSources of string
+  | Test
 
 let main () =
 
@@ -113,8 +114,11 @@ let main () =
 
       "--switch-prefix", Arg.String (fun s -> switch := Some s),
       "use SWITCH instead of the current opam switch (ignored if with --cached)";
+      
       "--sources", Arg.String (fun s -> set_action (HtmlizeSources s)),
       "DIR Htmlize sources in DIR";
+
+      "--test", arg_set_action Test, ""
     ]
     (fun arg -> set_action (Search arg))
     "digodoc [OPTIONS] MODULE";
@@ -188,6 +192,13 @@ let main () =
         end
     | HtmlizeSources dir ->
         Htmlize.Main.htmlize Globals.htmlize_sources_dir [dir]
+    | Test ->
+      (*let cmi_infos = Cmt_format.read_cmi "_build/install/default/lib/digodoc_lib/digodoc_lib__Odoc.cmi" in
+      let fd =open_out "res.types" in
+      Format.fprintf  (Format.formatter_of_out_channel fd) "\n%a\n" Pp.pp_cmi_infos cmi_infos;*)
+      let cmt_infos = Cmt_format.read_cmt "tmp/markup__Error.cmt" in
+      let fd =open_out "res.types" in
+      Format.fprintf  (Format.formatter_of_out_channel fd) "\n%a\n" Pp.pp_cmt_infos cmt_infos;
   end;
 
   List.iteri  (fun i args ->
