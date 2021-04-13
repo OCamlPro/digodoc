@@ -16,11 +16,13 @@ var path_reversed = window.location.pathname.split('/').reverse();
 var dirname = path_reversed[1];
 if (dirname != "html"){
   window.onload = footerHandler;
+  document.getElementById("search").style.display = "none";
 } else {
   var filename = path_reversed[0];
   switch (filename) {
     case "about.html":
       document.getElementById("about-item").className = "active";
+      document.getElementById("search").style.display = "none";
       break;
     case "index.html":
       document.getElementById("packages-item").className = "active";

@@ -64,6 +64,8 @@ body {
   color: white;
 }
 
+a.digodoc-opam { color: green; }
+
 /**************** Divs *****************/
 
 .file{
@@ -259,6 +261,8 @@ let script_js = {|
 
   window.onload = footerHandler;
   window.onresize = footerHandler;
+
+  document.getElementById("search").style.display = "none";
 |}
 
 let body_header () = 

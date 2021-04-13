@@ -31,7 +31,10 @@ let string_of_color color =
     | ARGUMENT -> "a"
     | TYPE -> "typ"
     | SYNTAX -> "syn"
-                   
+
+let pkg_of_opam opam_name opam_version =
+  Printf.sprintf "OPAM.%s.%s"opam_name opam_version
+
 let is_directory file =
   match Unix.lstat file with
   | exception _ -> false
@@ -109,7 +112,17 @@ let title_info path =
         in
         s :: iter file
   in
-  String.concat {| <span class="separator">/</span> |} (iter path)
+  let path_html =
+    String.concat "/"
+      (List.map (fun _s -> "..") path)
+  and opam_name,opam_version = EzFile.cut_extension (List.hd path) in
+  let pkg_link =      
+    Printf.sprintf {| <a class="digodoc-opam" href="%s/../html/%s/index.html">package</a>|}
+      path_html
+      (pkg_of_opam opam_name opam_version)
+  in
+    String.concat {| <span class="separator">/</span> |} (pkg_link::iter path)
+
 
 let htmlize_file destdir srcdir path file =
 
