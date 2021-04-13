@@ -50,7 +50,7 @@ let sources_of_opam opam =
   sources_dir // (fullname opam)
 
 let htmlize_sources_of_opam opam =
-  Globals.htmlize_sources_dir // fullname opam
+  "sources" // fullname opam
 
 let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"
@@ -715,7 +715,7 @@ let generate_opam_pages state =
           Printf.bprintf b "\n{1:sources Package sources}\n";
           
           let opam_sources = htmlize_sources_of_opam opam in
-          Printf.bprintf b {|{%%html:<a href="../../../%s/index.html">%s</a>%%}|}
+          Printf.bprintf b {|{%%html:<div><a href="../../%s/index.html">%s</a></div>%%}|}
             opam_sources opam.opam_name
         end;
 
