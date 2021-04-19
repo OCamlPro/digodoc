@@ -48,4 +48,5 @@ depends: [
   "ppx_expect" {with-test}
   "odoc" {with-doc}
   "ocamlformat" {with-test}
+  "crunch" {>= "2.1.0"}
 ]

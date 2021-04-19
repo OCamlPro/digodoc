@@ -45,7 +45,9 @@ table { border-collapse: collapse; border-spacing: 0; width: inherit; height: in
 
    See also media adjustements at the end of the stylesheet. */
 
-body { background-color: var(--color-bg);
+body { 
+      min-width: 800px;
+      background-color: var(--color-bg);
        color: var(--color-fg); }
 
 .content
@@ -333,9 +335,11 @@ input#search {
   text-align: center;
   background-color: white;
   border-radius: 20px 20px 20px 20px;
+  border: 0px;
   font-size: 15px;
-  width:206px;
-  height: 31px;
+  width:206px;   
+  margin-top: 4px;
+  height: 25px;
   outline: none;
 }
 

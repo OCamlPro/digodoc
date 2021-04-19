@@ -76,20 +76,31 @@ let content_info content =
   Printf.sprintf {|%d lines <span class="separator">|</span> %d chars|}
     (List.length lines) (String.length content)
 
+let headerref = ref None
+
+let footerref = ref None
+
+let file_content filename =
+  match Sys.getenv "DIGODOC_CONFIG" with
+  | dir when EzFile.exists (dir // filename) -> 
+    EzFile.read_file (dir // filename)
+  | exception Not_found | _ ->
+    begin   
+      match Files.read filename with
+      | None -> ""
+      | Some file_content -> file_content
+    end
+
+
 let generate_page ~brace destdir =
   let ctxt = () in
-  let header = 
-    if !Globals.with_header
-    then Files.html_header ^ (Files.body_header ()) 
-    else Files.html_header
-  in
-  let header = EZ_SUBST.string header ~ctxt ~brace in
-  let trailer = EZ_SUBST.string (Files.html_trailer ()) ~ctxt ~brace in
-  let page = EZ_SUBST.string Files.html_file_page ~ctxt ~brace in
+  headerref:= Some (EZ_SUBST.string (file_content "header.html") ~ctxt ~brace);
+  footerref:= Some (EZ_SUBST.string (file_content "footer.html") ~ctxt ~brace);
+  let page = EZ_SUBST.string (file_content "canvas.html") ~ctxt ~brace in
 
   EzFile.make_dir ~p:true destdir;
   EzFile.write_file ( destdir // "index.html" )
-    ( Printf.sprintf "%s%s%s" header page trailer );
+    ( Printf.sprintf "%s" page );
   ()
 
 let escape_file file =
@@ -139,7 +150,7 @@ let htmlize_file destdir srcdir path file =
   EzFile.make_dir ~p:true rawdir;
   EzFile.write_file ( rawdir // file ) content ;
 
-  let brace () var = match var with
+  let rec brace () var = match var with
     | "content" -> htmlize file content
     | "content-info" -> content_info content
     | "title" -> String.concat "/" path
@@ -157,10 +168,30 @@ let htmlize_file destdir srcdir path file =
         in
         let s = if s = "" then s else s ^ "/" in
         s // "../html/"
+    | "header" -> begin
+      match !headerref with
+      | Some h -> h
+      | None -> ""
+    end
+    | "footer" -> begin
+      match !footerref with
+      | Some f -> f
+      | None -> ""
+    end
+    | "sources" ->
+      if !Globals.sources 
+      then 
+        Printf.sprintf {|<a id="sources-item" href="%ssources.html">Sources</a>|}
+        (brace () "root-html")
+      else ""
+    | "header_link" ->
+        if !Globals.with_header 
+        then {| | <a href="#header">To the top</a>|} 
+        else ""
     | _ ->
         Printf.kprintf failwith "Unknown var %S" var
   in
-  generate_page ~brace destdir
+  generate_page ~brace destdir 
 
 let dir_content srcdir files path =
   let b = Buffer.create 1000 in
@@ -180,7 +211,7 @@ let dir_content srcdir files path =
     Printf.bprintf b {|   <table class="file-tab"><tbody><tr>
   |};
     Printf.bprintf b {|     <td class="file-icon">%s</td>
-  |} Files.svg_directory;
+  |} (file_content "svg_directory.html");
   
     Printf.bprintf b {|     <td class="file-name">..</td>
   |};
@@ -215,10 +246,10 @@ let dir_content srcdir files path =
       (match st.Unix.st_kind with
        | Unix.S_DIR ->
            Printf.bprintf b {|  <td class="file-icon">%s</td>
-          |} Files.svg_directory
+          |} (file_content "svg_directory.html")
        | _ ->
            Printf.bprintf b {|  <td class="file-icon">%s</td>
-          |} Files.svg_file
+          |} (file_content "svg_file.html")
       );
 
       (match st.Unix.st_kind with
@@ -256,7 +287,7 @@ let rec htmlize_dir destdir srcdir path basename =
   let files = Sys.readdir srcdir in
   Array.sort compare files;
 
-  let brace () var = match var with
+  let rec brace () var = match var with
     | "content" -> dir_content srcdir files path
     | "content-info" -> dir_info files
     | "title" -> String.concat "/" path
@@ -274,6 +305,26 @@ let rec htmlize_dir destdir srcdir path basename =
         in
         let s = if s = "" then s else s ^ "/" in
         s // "../html/"  
+    | "header" -> begin
+      match !headerref with
+      | Some h -> h
+      | None -> ""
+    end
+    | "footer" -> begin
+      match !footerref with
+      | Some f -> f
+      | None -> ""
+    end
+    | "sources" ->
+      if !Globals.sources 
+      then 
+        Printf.sprintf {|<a id="sources-item" href="%ssources.html">Sources</a>|}
+            (brace () "root-html")
+      else ""
+    | "header_link" ->
+        if !Globals.with_header 
+        then {| | <a href="#header">To the top</a>|} 
+        else ""
     | _ ->
         Printf.kprintf failwith "Unknown var %S" var
   in
@@ -299,8 +350,8 @@ let htmlize target_dir dirs =
   EzFile.make_dir ~p:true target_dir;
   let static_dir = target_dir // "_static" in
   EzFile.make_dir ~p:true static_dir;
-  EzFile.write_file ( static_dir // "style.css" ) Files.style_css;
-  EzFile.write_file ( static_dir // "script.js" ) Files.script_js;
+  EzFile.write_file ( static_dir // "style_sources.css" )(file_content "style_sources.css");
+  EzFile.write_file ( static_dir // "script_sources.js" ) (file_content "script_sources.js");
 
   List.iter (htmlize_dir target_dir) dirs;
   ()

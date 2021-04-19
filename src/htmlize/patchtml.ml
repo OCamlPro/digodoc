@@ -25,8 +25,3 @@ let edit_html ?header ?footer ?script html =
     script
     "script";
   to_string html
-
-let html_generic_header_footer html =
-  edit_html
-    ~header:(Files.body_header()) ~footer:(Files.body_trailer ())
-    html

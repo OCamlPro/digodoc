@@ -153,6 +153,17 @@ let iter_html ?(check_links=false) ?(add_trailer=false) dir =
       ) dir;
   Printf.eprintf "Scan finished.\n%!"
 
+let file_content filename =
+  match Sys.getenv "DIGODOC_CONFIG" with
+  | dir when EzFile.exists (dir // filename) -> 
+    EzFile.read_file (dir // filename)
+  | exception Not_found | _ ->
+    begin   
+      match Htmlize.Files.read filename with
+      | None -> ""
+      | Some file_content -> file_content
+    end
+
 let add_header_footer () =
   let open Htmlize in 
   Printf.eprintf "Adding header and footer...\n%!";
@@ -161,6 +172,7 @@ let add_header_footer () =
                       type="application/javascript" 
                       src="${root-html}headerFooter.js">
                 </script>|} in
+  
 
   EzFile.make_select EzFile.iter_dir ~deep:true ~glob:"*.html"
     ~f:(fun path ->
@@ -168,7 +180,7 @@ let add_header_footer () =
         then ()
         else begin
           let file = html_dir // path in
-          let brace () var = 
+          let rec brace () var = 
             match var with
             | "root-html" ->
               let dirname = EzFile.dirname path in 
@@ -183,14 +195,24 @@ let add_header_footer () =
                   (List.map (fun _s -> "..") 
                     path_list)
               in
-              if s = "" then s else s ^ "/" 
+              if s = "" then s else s ^ "/"
+            | "sources" -> 
+              if !Globals.sources 
+              then 
+                Printf.sprintf {|<a id="sources-item" href="%ssources.html">Sources</a>|}
+                (brace () "root-html")
+              else ""
+            | "header_link" ->
+              if !Globals.with_header 
+              then {| | <a href="#header">To the top</a>|} 
+              else ""
             | _ -> 
               Printf.kprintf failwith "Unknown var %S" var
           in
         
           let html = EzFile.read_file file 
-          and header = Ez_subst.V1.EZ_SUBST.string (Files.body_header ()) ~brace ~ctxt:()
-          and footer = Files.body_trailer ()
+          and header = Ez_subst.V1.EZ_SUBST.string (file_content "header.html") ~brace ~ctxt:()
+          and footer = Ez_subst.V1.EZ_SUBST.string (file_content "footer.html") ~brace ~ctxt:()
           and script = Ez_subst.V1.EZ_SUBST.string script ~brace ~ctxt:() in
 
           let html' = Patchtml.edit_html ~header ~footer ~script html in

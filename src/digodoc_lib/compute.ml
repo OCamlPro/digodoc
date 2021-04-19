@@ -244,4 +244,8 @@ let compute ~opam_switch_prefix ?(objinfo=false) () =
         ) opam.opam_mdls
     ) state.opam_packages;
 
+    (* TODO : 1) For all files in state find their crc_cmis inside their .cma,.cmx,.cmxa etc and save it
+              2) iterate over keep-dir to find .cmi and save extension with path to it
+              3) iterate to find .cmt .cmti from .cmi and .ml/.mli<*)
+
   state

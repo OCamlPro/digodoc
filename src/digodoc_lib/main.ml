@@ -193,12 +193,10 @@ let main () =
     | HtmlizeSources dir ->
         Htmlize.Main.htmlize Globals.htmlize_sources_dir [dir]
     | Test ->
-      (*let cmi_infos = Cmt_format.read_cmi "_build/install/default/lib/digodoc_lib/digodoc_lib__Odoc.cmi" in
-      let fd =open_out "res.types" in
-      Format.fprintf  (Format.formatter_of_out_channel fd) "\n%a\n" Pp.pp_cmi_infos cmi_infos;*)
-      let cmt_infos = Cmt_format.read_cmt "tmp/markup__Error.cmt" in
-      let fd =open_out "res.types" in
-      Format.fprintf  (Format.formatter_of_out_channel fd) "\n%a\n" Pp.pp_cmt_infos cmt_infos;
+        Test.generate ();
+
+
+
   end;
 
   List.iteri  (fun i args ->
