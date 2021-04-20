@@ -419,3 +419,14 @@ button#search-button {
 i {
   font-style: italic;
 }
+
+#ocamlpro {
+  align-items: center;
+  padding:5px;
+  height: 53.5px;
+  width: 135px;
+}
+
+#logo {
+  width: 120px; 
+}

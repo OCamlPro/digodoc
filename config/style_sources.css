@@ -230,4 +230,14 @@ body {
     border-radius: 20px; 
     outline: none;
   }
+
+  #ocamlpro {
+    padding: 0px;
+    height: 53.5px;
+    width: 135px;
+}
   
+  #logo {
+    padding-top: 15px;
+    width: 120px;  
+  }
