@@ -4,7 +4,9 @@
   (name digodoc_lib)
   (public_name digodoc_lib)
   (wrapped true)
-  (libraries meta_file htmlize ez_opam_file ez_html ez_file compiler-libs.common omd)
+  (libraries omd meta_file htmlize ez_opam_file ez_html ez_file )
+  
+  
   )
 
 

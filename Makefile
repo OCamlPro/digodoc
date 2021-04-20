@@ -79,4 +79,6 @@ distclean: clean
 	rm -rf _opam _drom
 	./scripts/after.sh distclean
 
+test-html:
+	DIGODOC_CONFIG=$$(pwd)/config ./digodoc --test
 

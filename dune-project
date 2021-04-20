@@ -25,11 +25,13 @@
  (description "\n\nThis is the description\nof the digodoc OCaml project\n")
  (depends
    (ocaml (>= 4.10.0))
+   (omd ( >= 1.3.1 ))
    (meta_file (= version))
    (htmlize (= version))
    (ez_opam_file ( >= 0.1 ))
    (ez_html ( >= 0.1 ))
    (ez_file (and (>= 0.1.0) (< 1.0.0)))
+   odoc
    ppx_inline_test
    ppx_expect
    odoc
@@ -73,6 +75,7 @@
    (ez_html ( >= 0.1 ))
    (ez_file ( >= 0.2 ))
    (ez_cmdliner ( >= 0.2 ))
+   crunch
    ppx_inline_test
    ppx_expect
    odoc

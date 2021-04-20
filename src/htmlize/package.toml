@@ -25,6 +25,8 @@ gen-version = "version.ml"
 # default is [ "ocamllex", "ocamlyacc" ]
 # generators = [ "ocamllex", "menhir" ]
 
+skip = [ "main.ml" ]
+
 # whether all modules should be packed/wrapped (default is true)
 # pack-modules = false
 
