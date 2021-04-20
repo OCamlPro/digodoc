@@ -42,12 +42,12 @@ ez_opam_file = ">=0.1"
 meta_file = "version"
 htmlize = "version"
 omd = ">=1.3.1"
-odoc = ""
 
 # package tools dependencies
 [tools]
+odoc = ""
 # ...
 
 # package fields (depends on package skeleton)
 [fields]
-dune-libraries = "omd"
+# dune-libraries = "omd"

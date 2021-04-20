@@ -2,7 +2,7 @@
 
 # hash of toml configuration files
 # used for generation of all files
-923e8f1801873e9f3cc6dff6a2e73229:.
+0cd3d6dca2c170405c05e5b4b6ff75ea:.
 # end context for .
 
 # begin context for .github/workflows/doc-deploy.yml
@@ -12,7 +12,7 @@
 
 # begin context for .github/workflows/workflow.yml
 # file .github/workflows/workflow.yml
-c2dee0b87cc3e8b15710e236f927bbdb:.github/workflows/workflow.yml
+fe7e0f05b1cfc12d3d6a2c4ecbff79a9:.github/workflows/workflow.yml
 # end context for .github/workflows/workflow.yml
 
 # begin context for .gitignore
@@ -37,7 +37,7 @@ db0cdb9cfc7ec8f26b6344386ca9d132:.gitignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-5cf1e14c425f51b5cc0edab24ca7c72a:CHANGES.md
+cc86fcc1f3c753754061693ec38b5b41:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -47,7 +47,7 @@ d091b81b6155e5fd5d6556fc8bba0094:LICENSE.md
 
 # begin context for Makefile
 # file Makefile
-e19197cb80be3103c7206862bf80342f:Makefile
+b297597decf076ba3724bc1785e5c4a1:Makefile
 # end context for Makefile
 
 # begin context for README.md
@@ -57,12 +57,12 @@ c47ee61031c10a27c7a4a8b7c4ede604:README.md
 
 # begin context for digodoc.opam
 # file digodoc.opam
-b144fccc1bf5c7df304473df39f54a08:digodoc.opam
+005ab68f5423e114a1d1ee9a643ea054:digodoc.opam
 # end context for digodoc.opam
 
 # begin context for digodoc_lib.opam
 # file digodoc_lib.opam
-8402ccd58dc8157fbeca05c169f11ba4:digodoc_lib.opam
+457da3342abb4e73f4d34345ec0ddbb1:digodoc_lib.opam
 # end context for digodoc_lib.opam
 
 # begin context for docs/.nojekyll
@@ -117,22 +117,22 @@ df544cfaf9078d1bba2f90ed1b5adf5f:dune
 
 # begin context for dune-project
 # file dune-project
-1909c0d3656f369780610891c36908b8:dune-project
+85216e76d08e7c1d32d9690d4aa080ad:dune-project
 # end context for dune-project
 
 # begin context for ez_html.opam
 # file ez_html.opam
-8e142d376decd4f3e3f27b6ee00ae46d:ez_html.opam
+15abdd70f41ba449b010e93390d8a5b2:ez_html.opam
 # end context for ez_html.opam
 
 # begin context for htmlize.opam
 # file htmlize.opam
-e0dc077aaff19856e16727054e221490:htmlize.opam
+78833482ced55ab1b8bbc413275b2fe8:htmlize.opam
 # end context for htmlize.opam
 
 # begin context for meta_file.opam
 # file meta_file.opam
-ac9a3f2d01a53719f507204fd43d8469:meta_file.opam
+7875e382d8fcc907750deb85d20a7073:meta_file.opam
 # end context for meta_file.opam
 
 # begin context for scripts/after.sh
@@ -212,7 +212,7 @@ fab8224b1866cef1103bca89068b73fe:src/digodoc/version.ml
 
 # begin context for src/digodoc_lib/dune
 # file src/digodoc_lib/dune
-13efef240883b5b7ecb5a3817e011cb6:src/digodoc_lib/dune
+dfe7b23c93f7964e4dbd4fd985e04e99:src/digodoc_lib/dune
 # end context for src/digodoc_lib/dune
 
 # begin context for src/digodoc_lib/index.mld
@@ -252,7 +252,7 @@ e1bd27ee36ce397a21ed05e6312d7f0d:src/ez_html/package.toml
 
 # begin context for src/htmlize/dune
 # file src/htmlize/dune
-5055f07c1c621f48054a6107d5c29344:src/htmlize/dune
+d98de0c95784c54799f0ac0509fa3d9c:src/htmlize/dune
 # end context for src/htmlize/dune
 
 # begin context for src/htmlize/index.mld

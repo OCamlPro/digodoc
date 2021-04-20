@@ -30,7 +30,7 @@ of the digodoc OCaml project
 """
 
 [project]
-skip = "src/digodoc/main.ml src/digodoc_lib/main.ml src/ez_html/main.ml"
+skip = "src/digodoc/main.ml src/digodoc_lib/main.ml src/ez_html/main.ml .github/workflows/doc-deploy.yml"
 
 # project-wide library dependencies (not for package-specific deps)
 [dependencies]
@@ -65,7 +65,10 @@ share-dirs = ["share"]
 
 # project-wide fields (depends on project skeleton)
 [fields]
-# ...
+makefile-trailer="""
+test-html:
+\tDIGODOC_CONFIG=$$(pwd)/config ./digodoc --test
+"""
 
 [[package]]
 dir = "src/digodoc"
