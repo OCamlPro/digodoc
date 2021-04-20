@@ -69,6 +69,10 @@ makefile-trailer="""
 test-html:
 \tDIGODOC_CONFIG=$$(pwd)/config ./digodoc --test
 """
+dot-gitignore-trailer="""
+/_digodoc
+/examples
+"""
 
 [[package]]
 dir = "src/digodoc"
