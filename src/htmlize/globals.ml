@@ -1,14 +1,16 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (c) 2020 OCamlPro SAS & Origin Labs SAS                     *)
+(*  Copyright (c) 2021 OCamlPro SAS & Origin Labs SAS                     *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
 (*  This file is distributed under the terms of the GNU Lesser General    *)
 (*  Public License version 2.1, with the special exception on linking     *)
 (*  described in the LICENSE.md file in the root directory.               *)
 (*                                                                        *)
+(*                                                                        *)
 (**************************************************************************)
 
-let digodoc_dir = "_digodoc"
+(* options that are modified only using digodoc *)
+let sources = ref true
 
-let htmlize_sources_dir = "_digodoc/sources"
+let with_header = ref false

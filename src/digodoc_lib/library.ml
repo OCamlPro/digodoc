@@ -10,7 +10,7 @@
 (**************************************************************************)
 
 open EzCompat
-open Types
+open Type
 open EzFile.OP
 
 let long_name ~lib_opam ~lib_name =

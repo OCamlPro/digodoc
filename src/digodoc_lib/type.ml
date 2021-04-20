@@ -10,7 +10,6 @@
 (**************************************************************************)
 
 open EzCompat
-
 type file_kind =
   | Directory
   | File
@@ -35,6 +34,8 @@ type opam_package = {
   (* libraries installed by this package *)
   mutable opam_libs : ocaml_lib StringMap.t ;
   mutable opam_mdls : ocaml_mdl StringMap.t ;
+  (*mutable opam_types_intf : Cmi_format.cmi_infos StringMap.t;
+  mutable opam_types_impl : Cmt_format.cmt_infos StringMap.t;*)
 
   (* from the opam file *)
   mutable opam_synopsis : string option ;

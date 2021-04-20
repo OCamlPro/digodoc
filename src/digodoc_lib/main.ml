@@ -24,7 +24,7 @@
 
 open EzCompat
 open EzFile.OP
-open Types
+open Type
 open Ezcmd.V2
 
 let cache_file = "_digodoc/digodoc.state"
@@ -38,6 +38,7 @@ type action =
   | CheckLinks
   | AddTrailer
   | HtmlizeSources of string
+  | Test
 
 let main () =
 
@@ -79,13 +80,12 @@ let main () =
   let cached = ref false in
   let switch = ref None in
   let continue_on_error = ref false in
-  let sources = ref true in 
   EZCMD.parse EZCMD.TYPES.[
 
       "--no-objinfo", Arg.Clear objinfo,
       " do not call ocamlobjinfo to attach modules to libraries";
 
-      "--no-sources", Arg.Clear sources,
+      "--no-sources", Arg.Clear Htmlize.Globals.sources,
       "do not generate sources for opam packages";
 
       "--cached", Arg.Set cached,
@@ -114,8 +114,11 @@ let main () =
 
       "--switch-prefix", Arg.String (fun s -> switch := Some s),
       "use SWITCH instead of the current opam switch (ignored if with --cached)";
+      
       "--sources", Arg.String (fun s -> set_action (HtmlizeSources s)),
       "DIR Htmlize sources in DIR";
+
+      "--test", arg_set_action Test, ""
     ]
     (fun arg -> set_action (Search arg))
     "digodoc [OPTIONS] MODULE";
@@ -128,7 +131,6 @@ let main () =
   let cached = !cached in
   let switch = !switch in
   let continue_on_error = !continue_on_error in
-  let sources = !sources in
   let state =
     if cached then
       let ic = open_in_bin cache_file  in
@@ -144,8 +146,9 @@ let main () =
         Printer.print state
     | GenerateHtml ->
         let state = get_state ~state ~objinfo ~switch in
-        Odoc.generate ~state ~continue_on_error ~sources;
+        Odoc.generate ~state ~continue_on_error;
         Index.generate ();
+        Html.add_header_footer ()
         (* Html.iter_html ~add_trailer:true Html.digodoc_html_dir *)
     | CheckLinks ->
         Html.iter_html ~check_links:true Html.digodoc_html_dir
@@ -189,6 +192,11 @@ let main () =
         end
     | HtmlizeSources dir ->
         Htmlize.Main.htmlize Globals.htmlize_sources_dir [dir]
+    | Test ->
+        Test.generate ();
+
+
+
   end;
 
   List.iteri  (fun i args ->

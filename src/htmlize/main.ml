@@ -16,6 +16,24 @@ open Ezcmd.V2
 (* open EZCMD.TYPES *)
 open EzFile.OP
 
+let string_of_color color =
+  let open Color in
+  match color with
+    | TEXT -> "t"
+    | COMMENT -> "c"
+    | KEYWORD -> "k"
+    | STRING -> "s"
+    | NUMBER -> "n"
+    | CHAR -> "ch"
+    | MODULE -> "m"
+    | LABEL -> "l"
+    | FUNCTION -> "f"
+    | ARGUMENT -> "a"
+    | TYPE -> "typ"
+    | SYNTAX -> "syn"
+
+let pkg_of_opam opam_name opam_version =
+  Printf.sprintf "OPAM.%s.%s"opam_name opam_version
 
 let is_directory file =
   match Unix.lstat file with
@@ -24,13 +42,12 @@ let is_directory file =
 
 let htmlize filename content =
   let b = Buffer.create 1000 in
-  Printf.bprintf b {|<div class="content-div wrap-x"><table class="content-table">
+  Printf.bprintf b {|<div class="wrap-x padding"><table class="content-table">
  <tbody>
 |};
   let lines = Color.file filename content in
 
   List.iter (fun (i, line) ->
-      let i = i + 1 in
       Printf.bprintf b {|  <tr class="line">
 |};
       Printf.bprintf b {|   <td id="L%d" class="line-num">%d</td>
@@ -41,15 +58,8 @@ let htmlize filename content =
           let s = HTML.encode s in
           match color with
           | Color.TEXT -> Buffer.add_string b s
-          | _ -> Printf.bprintf b {|<span class="sp-%c">%s</span>|}
-                   (match color with
-                    | TEXT -> 't'
-                    | COMMENT -> 'c'
-                    | KEYWORD -> 'k'
-                    | STRING -> 's'
-                    | NUMBER -> 'n'
-                    | MODULE -> 'm'
-                   ) s
+          | _ -> Printf.bprintf b {|<span class="sp-%s">%s</span>|}
+                  (string_of_color color) s
         ) line;
 
       Printf.bprintf b {|</td>|};
@@ -63,18 +73,34 @@ let htmlize filename content =
 
 let content_info content =
   let lines = EzString.split content '\n' in
-  Printf.sprintf "%d lines | %d chars"
+  Printf.sprintf {|%d lines <span class="separator">|</span> %d chars|}
     (List.length lines) (String.length content)
+
+let headerref = ref None
+
+let footerref = ref None
+
+let file_content filename =
+  match Sys.getenv "DIGODOC_CONFIG" with
+  | dir when EzFile.exists (dir // filename) -> 
+    EzFile.read_file (dir // filename)
+  | exception Not_found | _ ->
+    begin   
+      match Files.read filename with
+      | None -> ""
+      | Some file_content -> file_content
+    end
+
 
 let generate_page ~brace destdir =
   let ctxt = () in
-  let header = EZ_SUBST.string Files.html_header ~ctxt ~brace in
-  let trailer = EZ_SUBST.string Files.html_trailer ~ctxt ~brace in
-  let page = EZ_SUBST.string Files.html_file_page ~ctxt ~brace in
+  headerref:= Some (EZ_SUBST.string (file_content "header.html") ~ctxt ~brace);
+  footerref:= Some (EZ_SUBST.string (file_content "footer.html") ~ctxt ~brace);
+  let page = EZ_SUBST.string (file_content "canvas.html") ~ctxt ~brace in
 
   EzFile.make_dir ~p:true destdir;
   EzFile.write_file ( destdir // "index.html" )
-    ( Printf.sprintf "%s%s%s" header page trailer );
+    ( Printf.sprintf "%s" page );
   ()
 
 let escape_file file =
@@ -87,7 +113,8 @@ let title_info path =
   let rec iter list =
     match list with
     | [] -> assert false
-    | [ file ] -> [ HTML.encode file ]
+    | [ file ] -> [ Printf.sprintf "<b>%s</b>"
+                      (HTML.encode file) ]
     | dir :: file ->
         let s =
           Printf.sprintf "<a href='%s/index.html'>%s</a>"
@@ -96,7 +123,17 @@ let title_info path =
         in
         s :: iter file
   in
-  String.concat " / " (iter path)
+  let path_html =
+    String.concat "/"
+      (List.map (fun _s -> "..") path)
+  and opam_name,opam_version = EzFile.cut_extension (List.hd path) in
+  let pkg_link =      
+    Printf.sprintf {| <a class="digodoc-opam" href="%s/../html/%s/index.html">package</a>|}
+      path_html
+      (pkg_of_opam opam_name opam_version)
+  in
+    String.concat {| <span class="separator">/</span> |} (pkg_link::iter path)
+
 
 let htmlize_file destdir srcdir path file =
 
@@ -113,7 +150,7 @@ let htmlize_file destdir srcdir path file =
   EzFile.make_dir ~p:true rawdir;
   EzFile.write_file ( rawdir // file ) content ;
 
-  let brace () var = match var with
+  let rec brace () var = match var with
     | "content" -> htmlize file content
     | "content-info" -> content_info content
     | "title" -> String.concat "/" path
@@ -124,33 +161,66 @@ let htmlize_file destdir srcdir path file =
             (List.map (fun _s -> "..") path)
         in
         if s = "" then s else s ^ "/"
+    | "root-html" -> 
+        let s =
+          String.concat "/"
+            (List.map (fun _s -> "..") path)
+        in
+        let s = if s = "" then s else s ^ "/" in
+        s // "../html/"
+    | "header" -> begin
+      match !headerref with
+      | Some h -> h
+      | None -> ""
+    end
+    | "footer" -> begin
+      match !footerref with
+      | Some f -> f
+      | None -> ""
+    end
+    | "sources" ->
+      if !Globals.sources 
+      then 
+        Printf.sprintf {|<a id="sources-item" href="%ssources.html">Sources</a>|}
+        (brace () "root-html")
+      else ""
+    | "header_link" ->
+        if !Globals.with_header 
+        then {| | <a href="#header">To the top</a>|} 
+        else ""
     | _ ->
         Printf.kprintf failwith "Unknown var %S" var
   in
-  generate_page ~brace destdir
+  generate_page ~brace destdir 
 
 let dir_content srcdir files path =
   let b = Buffer.create 1000 in
-  Printf.bprintf b {|<div class="files-div"><table class="files-table">
- <tbody class="file">
-|};
-
-  Printf.bprintf b {|  <tr class="file">
-|};
-  Printf.bprintf b {|   <td class="file-icon">%s</td>|} Files.svg_directory;
-  let parent_directory =
+  
+  let has_parent_directory =
     match path with
     | [] -> assert false
-    | [_dir] -> "."
-    | _ -> ".."
+    | [_dir] -> false
+    | _ -> true
   in
-  Printf.bprintf b {|   <td class="file-name"><a href='%s/index.html'>&lt;PARENT DIRECTORY&gt;</a></td>
-|} parent_directory;
-  Printf.bprintf b {|   <td class="file-kind">Upper Directory</td>
-|};
-  Printf.bprintf b {|  </tr>
-|};
+  if has_parent_directory then begin
+    Printf.bprintf b {|<div class="files-div">
+  |};
 
+    Printf.bprintf b {|  <a class="file-link" href='../index.html'><div class="file">
+  |};
+    Printf.bprintf b {|   <table class="file-tab"><tbody><tr>
+  |};
+    Printf.bprintf b {|     <td class="file-icon">%s</td>
+  |} (file_content "svg_directory.html");
+  
+    Printf.bprintf b {|     <td class="file-name">..</td>
+  |};
+    Printf.bprintf b {|     <td class="file-kind">Upper Directory</td>
+  |};
+    Printf.bprintf b {|   </tr></tbody></table>
+  |};
+    Printf.bprintf b {|  </div></a>|};
+  end;
   let files = Array.to_list files in
   let files = List.map (fun file ->
       let filename = srcdir // file in
@@ -159,40 +229,55 @@ let dir_content srcdir files path =
       st.st_kind <> Unix.S_DIR, file, st) files
   in
   let files = List.sort compare files in
-  List.iter (fun (_, file, st) ->
-      Printf.bprintf b {|  <tr class="file">
-|};
+  List.iteri (fun i (_, file, st) ->
+      let style =
+        if i = 0 && not has_parent_directory
+        then "file" 
+        else if i = (List.length files) - 1 
+        then "file top-border round-border"
+        else "file top-border"
+      in
+      Printf.bprintf b {|  <a class="file-link" href='%s/index.html'><div class='%s'>
+        |} (HTML.encode (escape_file file)) style;
+      
+      Printf.bprintf b {|   <table class="file-tab"><tbody><tr>
+        |};
 
       (match st.Unix.st_kind with
        | Unix.S_DIR ->
-           Printf.bprintf b {|  <td class="file-icon">%s</td>|} Files.svg_directory
+           Printf.bprintf b {|  <td class="file-icon">%s</td>
+          |} (file_content "svg_directory.html")
        | _ ->
-           Printf.bprintf b {|  <td class="file-icon">%s</td>|} Files.svg_file
+           Printf.bprintf b {|  <td class="file-icon">%s</td>
+          |} (file_content "svg_file.html")
       );
 
       (match st.Unix.st_kind with
        | Unix.S_DIR | Unix.S_REG ->
-           Printf.bprintf b {|   <td class="file-name"><a href='%s/index.html'>%s</a></td>|} (HTML.encode (escape_file file)) (HTML.encode file);
+           Printf.bprintf b {|   <td class="file-name">%s</td>
+          |} (HTML.encode file);
        | _ ->
-           Printf.bprintf b {|   <td class="file-name">%s</td>|} (HTML.encode file);
+           Printf.bprintf b {|   <td class="file-name">%s</td>
+          |} (HTML.encode file);
       );
       Printf.bprintf b {|   <td class="file-kind">%s</td>
-|}
+      |}
         (match st.Unix.st_kind with
          | Unix.S_REG ->
              Printf.sprintf "%d bytes" st.Unix.st_size
          | Unix.S_DIR ->
              "Directory"
          | _ -> "???");
-      Printf.bprintf b {|  </tr>
-|};
+     Printf.bprintf b {|   </tr></tbody></table>
+    |};
+  Printf.bprintf b {|  </div></a>
+  |};
     ) files;
-  Printf.bprintf b {| </tbody>
-</table></div>
-|};
+  Printf.bprintf b {|</div>
+  |};
   Buffer.contents b
 
-let dir_info _files = "FILE"
+let dir_info files = Printf.sprintf {|%d files|} (Array.length files)
 
 let rec htmlize_dir destdir srcdir path basename =
   let path = path @ [ basename ] in
@@ -202,7 +287,7 @@ let rec htmlize_dir destdir srcdir path basename =
   let files = Sys.readdir srcdir in
   Array.sort compare files;
 
-  let brace () var = match var with
+  let rec brace () var = match var with
     | "content" -> dir_content srcdir files path
     | "content-info" -> dir_info files
     | "title" -> String.concat "/" path
@@ -213,6 +298,33 @@ let rec htmlize_dir destdir srcdir path basename =
             (List.map (fun _s -> "..") path)
         in
         if s = "" then s else s ^ "/"
+    | "root-html" -> 
+        let s =
+          String.concat "/"
+            (List.map (fun _s -> "..") path)
+        in
+        let s = if s = "" then s else s ^ "/" in
+        s // "../html/"  
+    | "header" -> begin
+      match !headerref with
+      | Some h -> h
+      | None -> ""
+    end
+    | "footer" -> begin
+      match !footerref with
+      | Some f -> f
+      | None -> ""
+    end
+    | "sources" ->
+      if !Globals.sources 
+      then 
+        Printf.sprintf {|<a id="sources-item" href="%ssources.html">Sources</a>|}
+            (brace () "root-html")
+      else ""
+    | "header_link" ->
+        if !Globals.with_header 
+        then {| | <a href="#header">To the top</a>|} 
+        else ""
     | _ ->
         Printf.kprintf failwith "Unknown var %S" var
   in
@@ -238,8 +350,8 @@ let htmlize target_dir dirs =
   EzFile.make_dir ~p:true target_dir;
   let static_dir = target_dir // "_static" in
   EzFile.make_dir ~p:true static_dir;
-  EzFile.write_file ( static_dir // "style.css" ) Files.style_css;
-  EzFile.write_file ( static_dir // "script.js" ) Files.script_js;
+  EzFile.write_file ( static_dir // "style_sources.css" )(file_content "style_sources.css");
+  EzFile.write_file ( static_dir // "script_sources.js" ) (file_content "script_sources.js");
 
   List.iter (htmlize_dir target_dir) dirs;
   ()

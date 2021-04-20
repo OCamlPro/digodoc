@@ -41,6 +41,8 @@ ez_cmdliner = "0.2"
 ez_file = "0.2"
 ez_subst = "0.1"
 ez_html = ">=0.1"
+lambdasoup = "0.7.2"
+crunch = ""
 
 # package tools dependencies
 [tools]
@@ -48,4 +50,9 @@ ez_html = ">=0.1"
 
 # package fields (depends on package skeleton)
 [fields]
-# ...
+dune-trailer = """
+(rule
+  (targets files.ml)
+  (action
+      (run %{bin:ocaml-crunch} -m plain -o files.ml %{env:DIGODOC_CONFIG=../../../../config/})))
+"""

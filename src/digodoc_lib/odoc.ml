@@ -12,7 +12,7 @@
 open Ez_html.V1
 open EzCompat
 open EzFile.OP
-open Types
+open Type
 
 (* Note:
    In our first version, we were computing dependencies at the module level,
@@ -50,7 +50,7 @@ let sources_of_opam opam =
   sources_dir // (fullname opam)
 
 let htmlize_sources_of_opam opam =
-  Globals.htmlize_sources_dir // fullname opam
+  "sources" // fullname opam
 
 let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"
@@ -495,15 +495,24 @@ let libraries_to_html title map =
 let infos_of_opam state pkg opam =
   let html_dir = Html.digodoc_html_dir // pkg in
 
-  let copy_file file =
+  let omd_generate_file file = 
     let basename = Filename.basename file in
-    let dstfile = html_dir // basename in
+    let name,_ = EzFile.cut_extension basename in
+    let html_file = (pkg // name ^ ".html") in
     let srcfile = ( state.opam_switch_prefix // file ) in
-    if Sys.file_exists srcfile then
-      let content = EzFile.read_file srcfile in
+    if Sys.file_exists srcfile then begin
       EzFile.make_dir ~p:true html_dir ;
-      EzFile.write_file dstfile content;
-      Printf.sprintf {|<a href="%s">%s</a>|} basename basename
+      let generate bb ~title =
+        ignore title;
+        let content = EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html in
+        Printf.bprintf bb {|%s|} content 
+      in 
+      Html.generate_page
+        ~filename:html_file
+        ~title:"basename"
+        generate ;
+      Printf.sprintf {|<a href="%s.html">%s</a>|} name basename
+    end
     else begin
       Printf.eprintf "odoc_error: missing file %s\n%!" srcfile;
       ""
@@ -552,9 +561,9 @@ let infos_of_opam state pkg opam =
   ) @
   (
     List.map (function
-        | README_md file -> [ "readme-file" ; copy_file file ]
-        | CHANGES_md file -> [ "changes-file" ; copy_file file ]
-        | LICENSE_md file -> [ "license-file" ; copy_file file ]
+        | README_md file -> [ "readme-file" ; omd_generate_file file ]
+        | CHANGES_md file -> [ "changes-file" ; omd_generate_file file ]
+        | LICENSE_md file -> [ "license-file" ; omd_generate_file file ]
         | ODOC_PAGE file -> [ "odoc-file" ; file ]
       ) opam.opam_docs
   )
@@ -644,7 +653,7 @@ let generate_library_pages state =
 
   ()
 
-let generate_opam_pages ~sources state =
+let generate_opam_pages state =
 
   StringMap.iter (fun _ opam ->
       let pkg = pkg_of_opam opam in
@@ -702,12 +711,12 @@ let generate_opam_pages ~sources state =
         Printf.bprintf b "%s\n"
           (modules_to_html opam.opam_mdls);
 
-        if sources then begin 
+        if !Htmlize.Globals.sources then begin 
           Printf.bprintf b "\n{1:sources Package sources}\n";
           
           let opam_sources = htmlize_sources_of_opam opam in
-          Printf.bprintf b {|{%%html:<a href="../../../%s/index.html">Link to the sources</a>%%}|}
-            opam_sources
+          Printf.bprintf b {|{%%html:<div><a href="../../%s/index.html">%s</a></div>%%}|}
+            opam_sources opam.opam_name
         end;
 
         Printf.bprintf b "\n{1:files Package files}\n";
@@ -869,10 +878,12 @@ let generate_meta_pages state =
 
   ()
 
-let generate ~state ~continue_on_error ~sources =
+let generate ~state ~continue_on_error  =
 
   (* Iter on modules first *)
-
+  if Sys.file_exists Html.digodoc_html_dir then begin
+    EzFile.remove_dir ~all:true Html.digodoc_html_dir
+  end;
   EzFile.make_dir ~p:true Html.digodoc_html_dir;
   Process.call [|
     "rsync"; "-auv"; "html/.";  Html.digodoc_html_dir // "." |];
@@ -905,7 +916,8 @@ let generate ~state ~continue_on_error ~sources =
       )
   end;
 
-  if sources then begin
+  if !Htmlize.Globals.sources then begin
+    Htmlize.Globals.with_header := true;
     EzFile.make_dir ~p:true sources_dir;
     StringMap.iter (fun _ opam ->
       let opam_sources = sources_of_opam opam 
@@ -922,7 +934,7 @@ let generate ~state ~continue_on_error ~sources =
     EzFile.remove_dir ~all:true sources_dir
   end;
 
-  generate_opam_pages ~sources state;
+  generate_opam_pages state;
   generate_library_pages state;
   generate_meta_pages state;
   generate_module_entries state;

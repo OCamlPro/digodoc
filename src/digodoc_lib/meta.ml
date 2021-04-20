@@ -10,7 +10,7 @@
 (**************************************************************************)
 
 open EzCompat
-open Types
+open Type
 
 open Meta_file.Types
 

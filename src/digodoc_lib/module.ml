@@ -10,7 +10,7 @@
 (**************************************************************************)
 
 open EzCompat
-open Types
+open Type
 open EzFile.OP
 
 (* Assumption: all modules in the same directory are added by the

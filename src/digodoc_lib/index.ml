@@ -40,11 +40,17 @@ module TYPES = struct
     mdl_libs : library_entry list ;
   }
 
+  type source_entry = {
+    src_opam_name: string;
+    src_opam_version: string;
+  }
+
   type entry =
       Module of module_entry
     | Library of library_entry
     | Opam of opam_entry
     | Meta of meta_entry
+    | Source of source_entry
 
 end
 
@@ -54,7 +60,7 @@ module SAVE = struct
     EzFile.make_dir ~p:true ( Filename.dirname filename );
     open_out filename
 
-  open Types
+  open Type
 
   let save_opam_entry file opam =
     let oc = open_out file in
@@ -125,6 +131,10 @@ let pkg_of_meta meta =
   Printf.sprintf "META.%s@%s.%s"
     meta.meta_name meta.meta_opam_name meta.meta_opam_version
 
+let pkg_of_src src = 
+  Printf.sprintf "%s.%s"
+    src.src_opam_name src.src_opam_version
+
 let pkg_of_mdl mdl =
   let version = mdl.mdl_opam_version in
   match mdl.mdl_libs with
@@ -185,7 +195,7 @@ let read_entry file =
 
 (*
 open Ez_html.V1
-open Types
+open Type
 
 (* Note:
    In our first version, we were computing dependencies at the module level,
@@ -443,7 +453,7 @@ let print_index bb index entity_name =
     ) index;
 
   Printf.bprintf bb {|
-    <h4>%d %s</h4>
+    <h4 id="item-number">%d %s</h4>
     <div class="by-name">
       <nav>
 |} !n entity_name;
@@ -853,7 +863,39 @@ let generate_meta_index state bb =
       | _ -> ()
     ) state ;
 
-  print_index bb !index "packages";
+  print_index bb !index "metas";
+  ()
+
+let generate_source_index state bb =
+
+  let index = ref [] in
+
+  List.iter ( function
+      | Source src ->
+          let pkg = pkg_of_src src in
+          let opam_pkg = pkg_of_opam  {
+              opam_name = src.src_opam_name ;
+              opam_version = src.src_opam_version ;
+              opam_synopsis = "" ;
+            }
+          in
+          let search_id = pkg in
+          let line =
+            Printf.sprintf
+              {|<li class="package" id="%s"><a href="../sources/%s/index.html"><code>%s</code></a> in opam <a href="%s/index.html" class="digodoc-opam">%s.%s</a></li>|}
+              search_id
+              pkg src.src_opam_name
+              opam_pkg
+              src.src_opam_name
+              src.src_opam_version
+          in
+
+          index := ( src.src_opam_name , line ) :: !index;
+
+      | _ -> ()
+    ) state ;
+
+  print_index bb !index "sources";
   ()
 
 let read_all_entries () =
@@ -865,6 +907,13 @@ let read_all_entries () =
 
           if EzString.starts_with file ~prefix:"ENTRY." then
             let entry = read_entry ( dir // file ) in
+            begin  
+              match entry with
+              | Opam {opam_name; opam_version; _ } ->
+                let src = Source {src_opam_name=opam_name;src_opam_version=opam_version} in
+                entries := src :: !entries
+              | _ -> ()
+            end;
             entries := entry :: !entries
 
         ) ( try Sys.readdir dir with _ -> [||] )
@@ -885,21 +934,6 @@ let generate () =
   let header bb ~title =
     Printf.bprintf bb
       {|
-  <header>
-   <nav>
-    <div>
-     <span><a href="index.html">Opam Index</a>
-      | <a href="metas.html">Meta Index</a>
-      | <a href="libraries.html">Libraries Index</a>
-      | <a href="modules.html">Modules Index</a>
-      <form class="form-search">
-        <span>
-          <input id="search" class="search-query" type="text" placeholder="Search packages"/>
-        </span>
-      </form>
-     </span>
-    </div>
-   </nav>
   <h1>OCaml Documentation: %s</h1>
   <h2>OCaml Distribution</h2>
   <ul>
@@ -920,6 +954,14 @@ let generate () =
   let trailer _bb =
     ()
   in
+
+  Html.generate_page
+    ~filename:"about.html"
+    ~title:"About"
+    (fun bb ~title ->
+      ignore title;
+      Printf.bprintf bb "%s" (Html.file_content "about.html"));
+
   Html.generate_page
     ~filename:"index.html"
     ~title:"Main Index"
@@ -955,6 +997,16 @@ let generate () =
        generate_module_index state bb;
        trailer bb;
     );
+  if !Htmlize.Globals.sources then begin
+    Html.generate_page
+      ~filename:"sources.html"
+      ~title:"Sources Index"
+      (fun bb ~title ->
+        header bb ~title;
+        generate_source_index state bb;
+        trailer bb;
+      )
+  end;
 
   Printf.eprintf "Index generation done.\n%!";
   ()

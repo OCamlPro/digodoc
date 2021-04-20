@@ -26,9 +26,9 @@ jobs:
       - name: setup-doc
         run: |
           sudo apt install -yqq python3-sphinx python3-sphinx-rtd-theme
-          opam install -y dune odoc
+          opam install -y dune odoc 
       - run: opam pin add . -y --no-action
-      - run: opam depext -y digodoc digodoc_lib meta_file ez_html htmlize
+      - run: opam depext -y digodoc digodoc_lib meta_file ez_html htmlize crunch omd
         if: steps.cache-opam.outputs.cache-hit != 'true'
       - run: opam install -y ./*.opam --deps-only --with-test
         if: steps.cache-opam.outputs.cache-hit != 'true'

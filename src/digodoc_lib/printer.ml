@@ -10,7 +10,7 @@
 (**************************************************************************)
 
 open EzCompat
-open Types
+open Type
 
 let print state =
   Printf.printf "OPAM_SWITCH_PREFIX=%s\n" state.opam_switch_prefix;

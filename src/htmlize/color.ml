@@ -19,12 +19,19 @@ type color =
   | COMMENT
   | STRING
   | NUMBER
+  | CHAR
   | MODULE
+  | LABEL
+  | FUNCTION
+  | ARGUMENT
+  | TYPE
+  | SYNTAX
 
 module OCAML = struct
 
   let color_of_token = function
     | Approx_tokens.AND
+    | AS
     | ASSERT
     | BEGIN
     | CLASS
@@ -36,7 +43,6 @@ module OCAML = struct
     | END
     | EXCEPTION
     | EXTERNAL
-    | FALSE
     | FOR
     | FUN
     | FUNCTION
@@ -53,6 +59,7 @@ module OCAML = struct
     | MODULE
     | MUTABLE
     | NEW
+    | NOT
     | OBJECT
     | OF
     | OPEN
@@ -63,7 +70,6 @@ module OCAML = struct
     | STRUCT
     | THEN
     | TO
-    | TRUE
     | TRY
     | TYPE
     | VAL
@@ -87,31 +93,16 @@ module OCAML = struct
     | LINE_DIRECTIVE _
       -> COMMENT
 
-    | AMPERAMPER
-    | AMPERSAND
-    | AS
-    | BACKQUOTE
-    | BANG
-    | BAR
-    | BARBAR
+    
     | BARRBRACKET
     | COLON
     | COLONCOLON
-    | COLONEQUAL
-    | COLONGREATER
     | DOT
     | DOTDOT
     | EOF
-    | EQUAL
-    | GREATER
     | GREATERRBRACE
     | GREATERRBRACKET
-    | INFIXOP0 _
-    | INFIXOP1 _
-    | INFIXOP2 _
-    | INFIXOP3 _
-    | INFIXOP4 _
-    | LABEL _
+
     | LBRACE
     | LBRACELESS
     | LBRACKET
@@ -123,30 +114,15 @@ module OCAML = struct
     | LBRACKETAT
     | LBRACKETATAT
     | LBRACKETATATAT
-    | LESS
-    | LESSMINUS
     | LIDENT _
     | LPAREN
-    | MINUS
-    | MINUSDOT
-    | MINUSGREATER
-    | OPTLABEL _
-    | PLUS
-    | PLUSDOT
     | PREFIXOP _
-    | QUESTION
-    | QUESTIONQUESTION
     | QUOTE
     | RBRACE
     | RBRACKET
     | RPAREN
     | SEMI
     | SEMISEMI
-    | SHARP
-    | STAR
-    | TILDE
-    | TYPEVAR
-    | UNDERSCORE
 
     | ESCAPED_EOL
     | EOL
@@ -165,12 +141,13 @@ module OCAML = struct
 
       -> TEXT
 
-    | CHAR _
     | STRING_OPEN
     | STRING_CONTENT
     | STRING_CLOSE
       -> STRING
 
+    | TRUE
+    | FALSE
     | FLOAT _
     | INT _
     | INT32 _
@@ -179,7 +156,63 @@ module OCAML = struct
       -> NUMBER
 
     | UIDENT _
+    | UNIT
         -> MODULE
+
+    | Approx_tokens.LABEL _ -> LABEL
+
+    | LFUNCTION _ 
+    | CONSTRUCTOR _
+    | EMPTYLIST -> FUNCTION
+    | LARGUMENT _ -> ARGUMENT
+    
+    | INTT  
+    | FLOATT 
+    | CHART   
+    | STRINGT
+    | BYTES   
+    | BOOL  
+    | ARRAY   
+    | LIST  
+    | UNITT   
+    | EXN 
+    | OPTION 
+    | REF   
+    | LTYPE _ 
+    | TYPEVAR -> TYPE
+
+    | BANG
+    | AMPERAMPER
+    | AMPERSAND
+    | BACKQUOTE
+    | BAR
+    | BARBAR
+    | COLONEQUAL
+    | COLONGREATER
+    | EQUAL
+    | GREATER
+    | INFIXOP0 _
+    | LESS
+    | LESSMINUS
+    | MINUS
+    | MINUSDOT
+    | MINUSGREATER
+    | OPTLABEL _
+    | PLUS
+    | PLUSDOT
+    | QUESTION
+    | QUESTIONQUESTION
+    | SHARP
+    | STAR
+    | TILDE
+    | UNDERSCORE
+    | INFIXOP1 _
+    | INFIXOP2 _
+    | INFIXOP3 _
+    | INFIXOP4 _
+      -> SYNTAX
+
+    | CHAR _ -> CHAR
 
   let file content =
     let len = String.length content in
@@ -187,6 +220,11 @@ module OCAML = struct
 
     let tokens = Approx_lexer.tokens_of_string content in
 
+    let tokens = 
+      try
+        Transformer.transform tokens
+      with _ -> tokens
+    in
     List.iter (fun (token, ( (lex_start, lex_end), _, _)) ->
         let lex_start = lex_start.Lexing.pos_cnum in
         let lex_end = lex_end.Lexing.pos_cnum in
@@ -195,7 +233,7 @@ module OCAML = struct
           colors.(i) <- color
         done;
       ) tokens;
-colors
+    colors
 end
 
 
@@ -232,7 +270,6 @@ let file filename content =
   in
 
   let rec iter linenum pos lines rev =
-    (*    Printf.eprintf "linenum=%d\n%!" linenum; *)
     match lines with
     | [] -> List.rev rev
     | line :: lines ->

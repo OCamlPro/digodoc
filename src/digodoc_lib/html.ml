@@ -17,6 +17,18 @@ let digodoc_html_dir = Globals.digodoc_dir // "html"
 (* generate page _digodoc/html/${filename} *)
 let generate_page ~filename ~title f =
 
+  let dirname = EzFile.dirname filename in 
+  let path_list = 
+      if String.contains filename '/'   
+      then 
+        String.split_on_char '/' dirname 
+      else [] in
+  let s =
+    String.concat "/"
+      (List.map (fun _s -> "..") 
+        path_list) in
+  let root = if s = "" then s else s ^ "/" in
+
 
   (* removed 'async' from the script line because unregnized by ez_ml parser *)
   let bb = Buffer.create 10000 in
@@ -24,15 +36,15 @@ let generate_page ~filename ~title f =
 <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
   <title>%s</title>
-  <link rel="stylesheet" href="_odoc-theme/odoc.css"/>
-  <script type="text/javascript" src="search.js" charset="utf-8"></script>
+  <link rel="stylesheet" href="%s_odoc-theme/odoc.css"/>
+  <script type="text/javascript" src="%ssearch.js" charset="utf-8"></script>
   <meta charset="utf-8"/>
   <meta name="generator" content="digodoc 0.1"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <script src="highlight.pack.js"></script>
+  <script src="%shighlight.pack.js"></script>
   <script>hljs.initHighlightingOnLoad();</script>
 </head>
-|} title;
+|} title root root root;
   Printf.bprintf bb
     {|
 <body>
@@ -50,7 +62,6 @@ let generate_page ~filename ~title f =
   ()
 
 let encode = HTML.encode
-
 
 open EzFile.OP
 open HTML.TYPES
@@ -141,6 +152,77 @@ let iter_html ?(check_links=false) ?(add_trailer=false) dir =
                 ( "<!DOCTYPE html>\n" ^ HTML.to_string ( insert_trailer xml ) )
       ) dir;
   Printf.eprintf "Scan finished.\n%!"
+
+let file_content filename =
+  match Sys.getenv "DIGODOC_CONFIG" with
+  | dir when EzFile.exists (dir // filename) -> 
+    EzFile.read_file (dir // filename)
+  | exception Not_found | _ ->
+    begin   
+      match Htmlize.Files.read filename with
+      | None -> ""
+      | Some file_content -> file_content
+    end
+
+let add_header_footer () =
+  let open Htmlize in 
+  Printf.eprintf "Adding header and footer...\n%!";
+  let html_dir = digodoc_html_dir in
+  let script = {|<script defer="defer" 
+                      type="application/javascript" 
+                      src="${root-html}headerFooter.js">
+                </script>|} in
+  
+
+  EzFile.make_select EzFile.iter_dir ~deep:true ~glob:"*.html"
+    ~f:(fun path ->
+        if EzString.starts_with ~prefix:"ENTRY" (EzFile.basename path) 
+        then ()
+        else begin
+          let file = html_dir // path in
+          let rec brace () var = 
+            match var with
+            | "root-html" ->
+              let dirname = EzFile.dirname path in 
+              let path_list = 
+                if String.contains path '/'   
+                then 
+                  String.split_on_char '/' dirname 
+                else []
+              in
+              let s =
+                String.concat "/"
+                  (List.map (fun _s -> "..") 
+                    path_list)
+              in
+              if s = "" then s else s ^ "/"
+            | "sources" -> 
+              if !Globals.sources 
+              then 
+                Printf.sprintf {|<a id="sources-item" href="%ssources.html">Sources</a>|}
+                (brace () "root-html")
+              else ""
+            | "header_link" ->
+              if !Globals.with_header 
+              then {| | <a href="#header">To the top</a>|} 
+              else ""
+            | _ -> 
+              Printf.kprintf failwith "Unknown var %S" var
+          in
+        
+          let html = EzFile.read_file file 
+          and header = Ez_subst.V1.EZ_SUBST.string (file_content "header.html") ~brace ~ctxt:()
+          and footer = Ez_subst.V1.EZ_SUBST.string (file_content "footer.html") ~brace ~ctxt:()
+          and script = Ez_subst.V1.EZ_SUBST.string script ~brace ~ctxt:() in
+
+          let html' = Patchtml.edit_html ~header ~footer ~script html in
+
+          EzFile.remove file;
+
+          EzFile.write_file file html'
+        end
+      ) html_dir
+
 
 let write_file file ~content =
   EzFile.write_file file (HTML.check content)
