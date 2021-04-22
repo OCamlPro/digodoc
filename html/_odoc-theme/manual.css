@@ -43,7 +43,7 @@ table { border-collapse: collapse; border-spacing: 0; }
    classification is sometimes a bit lacking. */
 
 /* Geometry.
-   See also media adjustements at the end of the stylesheet. */
+   See also media adjustments at the end of the stylesheet. */
 
 body { background-color: var(--color-bg);
        color: var(--color-fg);
@@ -341,7 +341,7 @@ h1#sec1 ~ ul > li > ul > li { margin-top: var(--size-half-line); }
   { position: static; width: 100%;
     margin: 0; margin-top: var(--size-line); }
 
-  /* odig.light with slight adjustements */
+  /* odig.light with slight adjustments */
   :root
   { --color-bg: white;
     --color-bg-highlight: #CAD7EF;

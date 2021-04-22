@@ -38,10 +38,10 @@ open Xml_types
 (** {6 Xml Parsing} *)
 
 (** For easily parsing an Xml data source into an xml data structure,
-	you can use theses functions. But if you want advanced parsing usage,
+	you can use these functions. But if you want advanced parsing usage,
 	please look at the {!XmlParser} module.
 	All the parsing functions can raise some exceptions, see the
-	{{:#exc}Exceptions} section for more informations. *)
+	{{:#exc}Exceptions} section for more information. *)
 
 (** Parse the named file into an Xml data structure. *)
 val parse_file : ?check:bool -> string -> xml
@@ -58,17 +58,17 @@ val parse_string : string -> xml
 
 (** Several exceptions can be raised when parsing an Xml document : {ul
 	{li {!Xml.Error} is raised when an xml parsing error occurs. the
-		{!Xml.error_msg} tells you which error occured during parsing
-		and the {!Xml.error_pos} can be used to retreive the document
-		location where the error occured at.}
-	{li {!Xml.File_not_found} is raised when and error occured while
+		{!Xml.error_msg} tells you which error occurred during parsing
+		and the {!Xml.error_pos} can be used to retrieve the document
+		location where the error occurred at.}
+	{li {!Xml.File_not_found} is raised when and error occurred while
 		opening a file with the {!Xml.parse_file} function or when a
 		DTD file declared by the Xml document is not found {i (see the
-		{!XmlParser} module for more informations on how to handle the
+		{!XmlParser} module for more information on how to handle the
 		DTD file loading)}.}
 	}
 	If the Xml document is containing a DTD, then some other exceptions
-	can be raised, see the module {!Dtd} for more informations.
+	can be raised, see the module {!Dtd} for more information.
  *)
 
 type error = error_msg * error_pos
@@ -83,13 +83,13 @@ val error : error -> string
 (** Get the Xml error message as a string. *)
 val error_msg : error_msg -> string
 
-(** Get the line the error occured at. *)
+(** Get the line the error occurred at. *)
 val line : error_pos -> int
 
-(** Get the relative character range (in current line) the error occured at.*)
+(** Get the relative character range (in current line) the error occurred at.*)
 val range : error_pos -> int * int
 
-(** Get the absolute character range the error occured at. *)
+(** Get the absolute character range the error occurred at. *)
 val abs_range : error_pos -> int * int
 
 (** {6 Xml Functions} *)
@@ -142,7 +142,7 @@ val fold : ('a -> xml -> 'a) -> 'a -> xml -> 'a
 (** {6 Xml Printing} *)
 
 (** Print the xml data structure into a compact xml string (without
- any user-readable formating ). *)
+ any user-readable formatting ). *)
 val to_string : xml -> string
 
 (** Print the xml data structure into an user-readable string with

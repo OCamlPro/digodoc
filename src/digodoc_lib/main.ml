@@ -182,7 +182,7 @@ let main () =
                                       opam_switch_prefix //
                                       ( Module.file m "ml") |]
           | list ->
-              Printf.printf "Found %d occurences of %S:\n%!"
+              Printf.printf "Found %d occurrences of %S:\n%!"
                 ( List.length list) mdl;
               List.iter (fun m ->
                   Printf.printf "* %s::%s\n%!"

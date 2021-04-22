@@ -30,7 +30,7 @@ let generate_page ~filename ~title f =
   let root = if s = "" then s else s ^ "/" in
 
 
-  (* removed 'async' from the script line because unregnized by ez_ml parser *)
+  (* removed 'async' from the script line because unrecognized by ez_ml parser *)
   let bb = Buffer.create 10000 in
   Printf.bprintf bb {|<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
