@@ -61,7 +61,7 @@ the documentation, and access to the corresponding sources.
 <div>
   <ul>
     <li>Provide full text and types of expressions global search</li>
-    <li>Fix documentation generation for some packages (ocamlgraph, ocamlfind)</li>
+    <li>Fix documentation generation for some packages (ocamlgraph, ...)</li>
     <li>Add typing information in sources</li>
     <li>Add cross-packages links in sources</li>
     <li>Link documentation and sources</li>
@@ -82,13 +82,16 @@ the documentation, and access to the corresponding sources.
 <p style="font-weight:700;">3. Why the version of package X is not the most recent one ?</p>
 <p>There are two main reasons: first, we regenerate the documentation from time to time, we don't follow closely the state of the <code>opam</code> repository; second, we try to maximize the number of packages in an <code>opam</code> switch, it sometimes requires to downgrade some package versions to increase the number of packages compatible with it.</p>
 
-<p style="font-weight:700;">4. Are there links between the documentation pages and the sources pages ?</p>
+<p style="font-weight:700;">4. Why are the modules of some packages not documented ?</p>
+<p>The most frequent reason for a missing module documentation is the lack of installation of <code>.cmt</code> files. This usually happens for packages that use <code>Makefiles</code> for example (<code>ocamlgraph</code>). We are currently working on a way to solve this issue by patching the OCaml compiler. Note that we are interested in listing all such packages, so if you notice one, notify us!</p>
+
+<p style="font-weight:700;">5. Are there links between the documentation pages and the sources pages ?</p>
 <p>Not yet. However, we plan to work on adding such a feature in the next version. We will probably need to dive deeper into <code>odoc</code> for that.</p>
 
-<p style="font-weight:700;">5. Isn't the modules index slow to load ?</p>
+<p style="font-weight:700;">6. Isn't the modules index slow to load ?</p>
 <p>Yes, it includes more than 17000 modules, and takes some time to load. We plan to create a dynamic version of the site soon, that will load the index incrementally.</p>
 
-<p style="font-weight:700;">6. Is it possible to do a text search in the documentation ?</p>
+<p style="font-weight:700;">7. Is it possible to do a text search in the documentation ?</p>
 <p>Not yet. However, we plan to add several search features when we will move to a dynamic website. For example, we will allow users to perform type-driven queries alongside standard full-text searches.</p>
 
 
