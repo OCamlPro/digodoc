@@ -2,7 +2,7 @@
 
 # hash of toml configuration files
 # used for generation of all files
-f1eaa30d2ee83c5458ef8c8e9a67fb31:.
+d6d1c1577914c8ed5192af944c4986fe:.
 # end context for .
 
 # begin context for .github/workflows/doc-deploy.yml
@@ -37,7 +37,7 @@ fe7e0f05b1cfc12d3d6a2c4ecbff79a9:.github/workflows/workflow.yml
 
 # begin context for CHANGES.md
 # file CHANGES.md
-cc86fcc1f3c753754061693ec38b5b41:CHANGES.md
+b338252ff33128f44a6d9f990d67b485:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -252,7 +252,7 @@ e1bd27ee36ce397a21ed05e6312d7f0d:src/ez_html/package.toml
 
 # begin context for src/htmlize/dune
 # file src/htmlize/dune
-d98de0c95784c54799f0ac0509fa3d9c:src/htmlize/dune
+b24b36a16ef6a534de9e6957ab8bbdf5:src/htmlize/dune
 # end context for src/htmlize/dune
 
 # begin context for src/htmlize/index.mld
