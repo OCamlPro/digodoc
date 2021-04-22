@@ -2,7 +2,7 @@
 
 # hash of toml configuration files
 # used for generation of all files
-d6d1c1577914c8ed5192af944c4986fe:.
+81aa8cff63416019b77968dbf8937d5c:.
 # end context for .
 
 # begin context for .github/workflows/doc-deploy.yml
@@ -52,17 +52,17 @@ b297597decf076ba3724bc1785e5c4a1:Makefile
 
 # begin context for README.md
 # file README.md
-c47ee61031c10a27c7a4a8b7c4ede604:README.md
+9a9129d5fa32fe17fecaabb201ed8962:README.md
 # end context for README.md
 
 # begin context for digodoc.opam
 # file digodoc.opam
-005ab68f5423e114a1d1ee9a643ea054:digodoc.opam
+1440dafa3fa24a5520f21513f3b26f7d:digodoc.opam
 # end context for digodoc.opam
 
 # begin context for digodoc_lib.opam
 # file digodoc_lib.opam
-457da3342abb4e73f4d34345ec0ddbb1:digodoc_lib.opam
+7b72b73a873806a0d5c3802b36fe009d:digodoc_lib.opam
 # end context for digodoc_lib.opam
 
 # begin context for docs/.nojekyll
@@ -87,7 +87,7 @@ c47ee61031c10a27c7a4a8b7c4ede604:README.md
 
 # begin context for docs/index.html
 # file docs/index.html
-d9aa3eabeb674e8d3c73884b5fa1aae2:docs/index.html
+cef3a30137e76cb3bd7f6d5559c390e6:docs/index.html
 # end context for docs/index.html
 
 # begin context for docs/sphinx/index.html
@@ -117,22 +117,22 @@ df544cfaf9078d1bba2f90ed1b5adf5f:dune
 
 # begin context for dune-project
 # file dune-project
-85216e76d08e7c1d32d9690d4aa080ad:dune-project
+89064374adcc2c7f2f08f3b46a023fb6:dune-project
 # end context for dune-project
 
 # begin context for ez_html.opam
 # file ez_html.opam
-15abdd70f41ba449b010e93390d8a5b2:ez_html.opam
+c32dc82891be357071ee82eb536027c6:ez_html.opam
 # end context for ez_html.opam
 
 # begin context for htmlize.opam
 # file htmlize.opam
-78833482ced55ab1b8bbc413275b2fe8:htmlize.opam
+28005ef1587adab391158b49121969ae:htmlize.opam
 # end context for htmlize.opam
 
 # begin context for meta_file.opam
 # file meta_file.opam
-7875e382d8fcc907750deb85d20a7073:meta_file.opam
+a5e495a775514b9e77ea4ad2353dadf4:meta_file.opam
 # end context for meta_file.opam
 
 # begin context for scripts/after.sh
@@ -157,7 +157,7 @@ bb3a9d286f0dc64021db4194427263ee:scripts/copy-bin.sh
 
 # begin context for sphinx/about.rst
 # file sphinx/about.rst
-e4a8d62aa994c3eb6a08cfcdac919a0d:sphinx/about.rst
+62f8e80d2ff76bed8ae90cde677457eb:sphinx/about.rst
 # end context for sphinx/about.rst
 
 # begin context for sphinx/conf.py
@@ -217,7 +217,7 @@ dfe7b23c93f7964e4dbd4fd985e04e99:src/digodoc_lib/dune
 
 # begin context for src/digodoc_lib/index.mld
 # file src/digodoc_lib/index.mld
-d6fbb43a9f645e53f6d70df20a75d4fb:src/digodoc_lib/index.mld
+359745cc02022287255ff52dd10f140a:src/digodoc_lib/index.mld
 # end context for src/digodoc_lib/index.mld
 
 # begin context for src/digodoc_lib/main.ml
@@ -242,7 +242,7 @@ a73167b84c7d267ee7c64538461bea5e:src/digodoc_lib/package.toml
 
 # begin context for src/ez_html/index.mld
 # file src/ez_html/index.mld
-b7db4a56eec421e35176e428dca7784b:src/ez_html/index.mld
+f6f9f13c572031aeaf771e6e7453e511:src/ez_html/index.mld
 # end context for src/ez_html/index.mld
 
 # begin context for src/ez_html/package.toml
@@ -257,7 +257,7 @@ b24b36a16ef6a534de9e6957ab8bbdf5:src/htmlize/dune
 
 # begin context for src/htmlize/index.mld
 # file src/htmlize/index.mld
-4e58c02d149821fa90b6edf5689a0a50:src/htmlize/index.mld
+d083009cb760f54ec7584a5d45243f48:src/htmlize/index.mld
 # end context for src/htmlize/index.mld
 
 # begin context for src/htmlize/main.ml
@@ -282,7 +282,7 @@ e5152b4b8b0489050db1e38339e55a7e:src/htmlize/version.mlt
 
 # begin context for src/meta_file/index.mld
 # file src/meta_file/index.mld
-2a74d40bdb72ec4674fb911261deac13:src/meta_file/index.mld
+8a492b152c983734cb47d5e41975d58a:src/meta_file/index.mld
 # end context for src/meta_file/index.mld
 
 # begin context for src/meta_file/main.ml

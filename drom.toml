@@ -10,7 +10,7 @@ github-organization = "ocamlpro"
 license = "LGPL2"
 min-edition = "4.10.0"
 name = "digodoc"
-synopsis = "The digodoc project"
+synopsis = "digodoc, opam switch mapper and documentation generator"
 version = "0.1.0"
 
 # keys that you could also define:
@@ -25,8 +25,7 @@ version = "0.1.0"
 
 [project]
 description = """\n
-This is the description
-of the digodoc OCaml project
+The Digodoc library scans opam switches and builds maps of them. It is used to build documentation websites, such as https://docs.ocaml.pro
 """
 
 [project]
