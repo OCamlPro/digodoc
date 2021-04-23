@@ -37,6 +37,7 @@ let generate_page ~filename ~title f =
  <head>
   <title>%s</title>
   <link rel="stylesheet" href="%s_odoc-theme/odoc.css"/>
+  <link rel="icon" href="%s_odoc-theme/favicon.png">
   <script type="text/javascript" src="%ssearch.js" charset="utf-8"></script>
   <meta charset="utf-8"/>
   <meta name="generator" content="digodoc 0.1"/>
@@ -44,7 +45,7 @@ let generate_page ~filename ~title f =
   <script src="%shighlight.pack.js"></script>
   <script>hljs.initHighlightingOnLoad();</script>
 </head>
-|} title root root root;
+|} title root root root root;
   Printf.bprintf bb
     {|
 <body>

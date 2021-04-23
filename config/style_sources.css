@@ -2,7 +2,7 @@ body {
     font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
     font-size: 14px;
     line-height: 1.5;
-    min-width: 800px;
+    min-width: 900px;
     color: var(--color-text-primary);
     margin:0px;
   }
@@ -234,10 +234,11 @@ body {
   #ocamlpro {
     padding: 0px;
     height: 53.5px;
-    width: 135px;
-}
-  
+  }
+
   #logo {
-    padding-top: 15px;
-    width: 120px;  
+    height: inherit;
+    margin: 0px;
+    margin-left: 15px;
+    margin-right: 15px;
   }

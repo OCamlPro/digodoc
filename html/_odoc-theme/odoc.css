@@ -46,7 +46,7 @@ table { border-collapse: collapse; border-spacing: 0; width: inherit; height: in
    See also media adjustements at the end of the stylesheet. */
 
 body { 
-      min-width: 800px;
+      min-width: 900px;
       background-color: var(--color-bg);
        color: var(--color-fg); }
 
@@ -421,12 +421,13 @@ i {
 }
 
 #ocamlpro {
-  align-items: center;
-  padding:5px;
+  padding: 0px;
   height: 53.5px;
-  width: 135px;
 }
 
 #logo {
-  width: 120px; 
+  height: inherit;
+  margin: 0px;
+  margin-left: 15px;
+  margin-right: 15px;
 }

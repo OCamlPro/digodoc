@@ -504,7 +504,7 @@ let infos_of_opam state pkg opam =
       EzFile.make_dir ~p:true html_dir ;
       let generate bb ~title =
         ignore title;
-        let content = EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html in
+        let content = try EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html with _ -> "" in
         Printf.bprintf bb {|%s|} content 
       in 
       Html.generate_page
@@ -879,7 +879,6 @@ let generate_meta_pages state =
   ()
 
 let generate ~state ~continue_on_error  =
-
   (* Iter on modules first *)
   if Sys.file_exists Html.digodoc_html_dir then begin
     EzFile.remove_dir ~all:true Html.digodoc_html_dir
