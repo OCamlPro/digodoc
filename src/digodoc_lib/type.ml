@@ -43,6 +43,7 @@ type opam_package = {
   mutable opam_authors : string list option;
   mutable opam_homepage : string option;
   mutable opam_license : string option;
+  mutable opam_source_archive: string option;
 
   mutable opam_deps : opam_package StringMap.t ;
   mutable opam_revdeps : opam_package StringMap.t ;

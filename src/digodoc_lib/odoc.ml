@@ -559,6 +559,13 @@ let infos_of_opam state pkg opam =
     | Some license ->
         [  [ "license" ; license ] ]
   ) @
+  ( match opam.opam_source_archive with
+    | None -> []
+    | Some archive ->
+        [  [ "source-archive" ; 
+              Printf.sprintf {|<a href="%s">%s</a>|}
+               archive archive ] ]
+  ) @
   (
     List.map (function
         | README_md file -> [ "readme-file" ; omd_generate_file file ]

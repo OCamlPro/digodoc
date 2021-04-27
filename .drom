@@ -12,12 +12,12 @@
 
 # begin context for .github/workflows/workflow.yml
 # file .github/workflows/workflow.yml
-fe7e0f05b1cfc12d3d6a2c4ecbff79a9:.github/workflows/workflow.yml
+c2dee0b87cc3e8b15710e236f927bbdb:.github/workflows/workflow.yml
 # end context for .github/workflows/workflow.yml
 
 # begin context for .gitignore
 # file .gitignore
-11d204f79f13b2bce897815a561b87ea:.gitignore
+db0cdb9cfc7ec8f26b6344386ca9d132:.gitignore
 # end context for .gitignore
 
 # begin context for .ocamlformat
@@ -37,7 +37,7 @@ fe7e0f05b1cfc12d3d6a2c4ecbff79a9:.github/workflows/workflow.yml
 
 # begin context for CHANGES.md
 # file CHANGES.md
-b338252ff33128f44a6d9f990d67b485:CHANGES.md
+5b9e8f0b41415ff7532b42dc30de2af9:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -47,7 +47,7 @@ d091b81b6155e5fd5d6556fc8bba0094:LICENSE.md
 
 # begin context for Makefile
 # file Makefile
-b297597decf076ba3724bc1785e5c4a1:Makefile
+e19197cb80be3103c7206862bf80342f:Makefile
 # end context for Makefile
 
 # begin context for README.md
@@ -57,12 +57,12 @@ b297597decf076ba3724bc1785e5c4a1:Makefile
 
 # begin context for digodoc.opam
 # file digodoc.opam
-1440dafa3fa24a5520f21513f3b26f7d:digodoc.opam
+5a6fd5088796b7f4ea0e35b94ffe0ca3:digodoc.opam
 # end context for digodoc.opam
 
 # begin context for digodoc_lib.opam
 # file digodoc_lib.opam
-7b72b73a873806a0d5c3802b36fe009d:digodoc_lib.opam
+61304ddcd63bbe57807bebf9d720c508:digodoc_lib.opam
 # end context for digodoc_lib.opam
 
 # begin context for docs/.nojekyll
@@ -122,17 +122,17 @@ df544cfaf9078d1bba2f90ed1b5adf5f:dune
 
 # begin context for ez_html.opam
 # file ez_html.opam
-c32dc82891be357071ee82eb536027c6:ez_html.opam
+f345f6ec3e5d6fcb17227d97233af7cb:ez_html.opam
 # end context for ez_html.opam
 
 # begin context for htmlize.opam
 # file htmlize.opam
-28005ef1587adab391158b49121969ae:htmlize.opam
+2ff63d883e90e76a6650307b678d7e2d:htmlize.opam
 # end context for htmlize.opam
 
 # begin context for meta_file.opam
 # file meta_file.opam
-a5e495a775514b9e77ea4ad2353dadf4:meta_file.opam
+d19e7a622f04aafee498af0ac024ccac:meta_file.opam
 # end context for meta_file.opam
 
 # begin context for scripts/after.sh
