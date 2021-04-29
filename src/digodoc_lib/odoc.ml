@@ -697,6 +697,11 @@ let generate_opam_pages state =
           (* TODO, generate the doc and put in a link *)
         end;
 
+        Printf.bprintf b "\n{1:modules Documentation on Modules}\n";
+
+        Printf.bprintf b "%s\n"
+          (modules_to_html opam.opam_mdls);
+
         Printf.bprintf b "{1:info Package info}\n";
 
         let dir = digodoc_odoc_dir // pkg in
@@ -712,11 +717,6 @@ let generate_opam_pages state =
           ]
         in
         print_package_info b infos;
-
-        Printf.bprintf b "\n{1:modules Package modules}\n";
-
-        Printf.bprintf b "%s\n"
-          (modules_to_html opam.opam_mdls);
 
         if !Htmlize.Globals.sources then begin 
           Printf.bprintf b "\n{1:sources Package sources}\n";
