@@ -56,6 +56,10 @@ let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"
     opam.opam_name opam.opam_version
 
+let pkg_of_pages opam file =
+  Printf.sprintf "PAGES.%s.%s.%s"
+    opam.opam_name opam.opam_version Filename.(dirname file |> dirname |> basename)
+
 let pkg_of_lib lib =
   Printf.sprintf "LIBRARY.%s@%s.%s"
     lib.lib_name lib.lib_opam.opam_name lib.lib_opam.opam_version
@@ -653,7 +657,7 @@ let generate_library_pages state =
 
   ()
 
-let generate_opam_pages state =
+let generate_opam_pages ~continue_on_error state =
 
   StringMap.iter (fun _ opam ->
       let pkg = pkg_of_opam opam in
@@ -682,11 +686,17 @@ let generate_opam_pages state =
         if mldfiles <> []
         then begin
           Printf.bprintf b "{1:pages Package documentation pages}\n";
-          Printf.bprintf b "{!pages:\n";
+          Printf.bprintf b "{%%html:\n";
+          Printf.bprintf b {|<ul class="pages">|};
           List.iter (fun mld ->
-              Printf.bprintf b "  %s\n" mld;
+              let pkg = pkg_of_pages opam mld in
+              call_odoc_mld ~continue_on_error state pkg mld ~pkgs:[pkg];
+              let name = Filename.(chop_extension @@ basename mld) in
+              Printf.bprintf b {|<li><a href="../%s/%s.html">%s</a></li>|}
+                pkg name (String.capitalize_ascii name);
             ) mldfiles;
-          Printf.bprintf b "}\n";
+          Printf.bprintf b "</ul>\n";
+          Printf.bprintf b "%%}\n";
           (* TODO, generate the doc and put in a link *)
         end;
 
@@ -934,7 +944,7 @@ let generate ~state ~continue_on_error  =
     EzFile.remove_dir ~all:true sources_dir
   end;
 
-  generate_opam_pages state;
+  generate_opam_pages ~continue_on_error state;
   generate_library_pages state;
   generate_meta_pages state;
   generate_module_entries state;
