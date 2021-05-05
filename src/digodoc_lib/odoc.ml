@@ -499,7 +499,7 @@ let libraries_to_html title map =
 let infos_of_opam state pkg opam =
   let html_dir = Html.digodoc_html_dir // pkg in
 
-  let omd_generate_file file = 
+  let omd_generate_file file =
     let basename = Filename.basename file in
     let name,_ = EzFile.cut_extension basename in
     let html_file = (pkg // name ^ ".html") in
@@ -509,8 +509,8 @@ let infos_of_opam state pkg opam =
       let generate bb ~title =
         ignore title;
         let content = EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html in
-        Printf.bprintf bb {|%s|} content 
-      in 
+        Printf.bprintf bb {|%s|} content
+      in
       Html.generate_page
         ~filename:html_file
         ~title:"basename"
@@ -657,6 +657,16 @@ let generate_library_pages state =
 
   ()
 
+let get_recursive_deps opam =
+  let rec get_rec opam res =
+    StringMap.fold (fun n o res ->
+        if StringMap.mem n res
+        then res
+        else StringMap.add n o res |> get_rec o)
+      opam.opam_deps res
+  in
+  get_rec opam (StringMap.singleton opam.opam_name opam)
+
 let generate_opam_pages ~continue_on_error state =
 
   StringMap.iter (fun _ opam ->
@@ -689,11 +699,17 @@ let generate_opam_pages ~continue_on_error state =
           Printf.bprintf b "{%%html:\n";
           Printf.bprintf b {|<ul class="pages">|};
           List.iter (fun mld ->
-              let pkg = pkg_of_pages opam mld in
-              call_odoc_mld ~continue_on_error state pkg mld ~pkgs:[pkg];
+              let ppkg = pkg_of_pages opam mld in
+              let odeps = get_recursive_deps opam in
+              call_odoc_mld ~continue_on_error state ppkg mld
+                ~pkgs:( ppkg :: pkg :: []
+                        |> StringMap.fold (fun _ o acc ->
+                            StringMap.fold (fun _ l acc -> pkg_of_lib l :: acc)
+                              o.opam_libs acc) odeps
+                      );
               let name = Filename.(chop_extension @@ basename mld) in
               Printf.bprintf b {|<li><a href="../%s/%s.html">%s</a></li>|}
-                pkg name (String.capitalize_ascii name);
+                ppkg name (String.capitalize_ascii name);
             ) mldfiles;
           Printf.bprintf b "</ul>\n";
           Printf.bprintf b "%%}\n";
@@ -721,9 +737,9 @@ let generate_opam_pages ~continue_on_error state =
         Printf.bprintf b "%s\n"
           (modules_to_html opam.opam_mdls);
 
-        if !Htmlize.Globals.sources then begin 
+        if !Htmlize.Globals.sources then begin
           Printf.bprintf b "\n{1:sources Package sources}\n";
-          
+
           let opam_sources = htmlize_sources_of_opam opam in
           Printf.bprintf b {|{%%html:<div><a href="../../%s/index.html">%s</a></div>%%}|}
             opam_sources opam.opam_name
@@ -930,11 +946,11 @@ let generate ~state ~continue_on_error  =
     Htmlize.Globals.with_header := true;
     EzFile.make_dir ~p:true sources_dir;
     StringMap.iter (fun _ opam ->
-      let opam_sources = sources_of_opam opam 
+      let opam_sources = sources_of_opam opam
       and opam_htmlize_sources = htmlize_sources_of_opam opam in
       if not (Sys.file_exists opam_htmlize_sources) then begin
         get_opam_sources ~continue_on_error opam;
-        if not (Sys.file_exists Globals.htmlize_sources_dir) then 
+        if not (Sys.file_exists Globals.htmlize_sources_dir) then
           Htmlize.Main.htmlize Globals.htmlize_sources_dir [opam_sources]
         else
           Htmlize.Main.htmlize_dir Globals.htmlize_sources_dir opam_sources;
