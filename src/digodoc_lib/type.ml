@@ -97,6 +97,9 @@ and ocaml_lib = {
   (* TODO: not filled for now *)
   mutable lib_mdls : ocaml_mdl StringMap.t ; (* NAME -> ocaml_mdl *)
   mutable lib_units : comp_unit list ;
+
+  (* mld files identified as part of this library *)
+  mutable lib_mld_files : string list ;
 }
 
 and ocaml_mdl = {

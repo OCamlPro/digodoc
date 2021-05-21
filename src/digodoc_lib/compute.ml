@@ -51,10 +51,10 @@ let check_file state ~objinfo opam_package file =
   let basename = Filename.basename file in
   let dir = Directory.get state dirname in
   if basename = "META" || dirname = "metas" then
-    let filename, meta_name = 
-      if dirname = "metas" 
+    let filename, meta_name =
+      if dirname = "metas"
       then Sys.getcwd() // file, opam_package.opam_name
-      else state.opam_switch_prefix // file, Meta_file.Parser.name_of_META file 
+      else state.opam_switch_prefix // file, Meta_file.Parser.name_of_META file
     in
     (*    Printf.eprintf "opam package %S DEFINES ocamlfind package %S\n%!"
           opam_package.opam_name meta_name ; *)
@@ -242,6 +242,18 @@ let compute ~opam_switch_prefix ?(objinfo=false) () =
                   StringMap.add lib.lib_name lib opam_mdl.mdl_libs
               ) filtered_libs
         ) opam.opam_mdls
+    ) state.opam_packages;
+
+  (* Associating mld files to libraries *)
+
+  StringMap.iter (fun _ opam ->
+      List.iter (function
+          | README_md _ | CHANGES_md _ | LICENSE_md _ -> ()
+          | ODOC_PAGE mld ->
+              let docdir = Filename.( mld |> dirname |> dirname |> basename ) in
+              StringMap.find_opt docdir opam.opam_libs
+              |> Option.iter (fun lib -> lib.lib_mld_files <- mld :: lib.lib_mld_files)
+        ) opam.opam_docs
     ) state.opam_packages;
 
     (* TODO : 1) For all files in state find their crc_cmis inside their .cma,.cmx,.cmxa etc and save it

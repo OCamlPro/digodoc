@@ -36,6 +36,7 @@ let find_or_create ~lib_dir state lib_opam ~lib_name ~lib_ext ~objinfo =
           lib_mdls = StringMap.empty;
           lib_exts = StringSet.empty;
           lib_units = [];
+          lib_mld_files = [];
         } in
         Hashtbl.add state.ocaml_libs_by_name
           (long_name ~lib_opam ~lib_name) lib;

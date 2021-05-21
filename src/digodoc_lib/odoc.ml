@@ -595,12 +595,31 @@ let generate_library_pages state =
       if not skip_packages then
         let b = Buffer.create 10000 in
 
-        Printf.bprintf b "{0:library-%s Library %s\n"
-          lib.lib_name lib.lib_name ;
-        Printf.bprintf b
-          {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
-          opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
-        Printf.bprintf b "}\n";
+        begin match
+            List.find_opt
+              (fun mld -> Filename.basename mld = "index.mld")
+              lib.lib_mld_files
+          with
+          | None ->
+              Printf.bprintf b "{0:library-%s Library %s\n"
+                lib.lib_name lib.lib_name ;
+              Printf.bprintf b
+                {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+                opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
+              Printf.bprintf b "}\n";
+          | Some mld ->
+              let in_chan = open_in @@ state.opam_switch_prefix // mld in
+              let in_buffer = Bytes.create 1024 in
+              let rec loop () =
+                let l = input in_chan in_buffer 0 1024 in
+                if l <> 0
+                then ( Buffer.add_subbytes b in_buffer 0 l; loop () )
+                else ()
+              in loop ();
+              Printf.bprintf b
+                {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+                opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
+        end ;
 
         Printf.bprintf b "{1:info Library info}\n";
         Printf.bprintf b {|{%%html:<table class="package info">|};
@@ -657,15 +676,31 @@ let generate_library_pages state =
 
   ()
 
-let get_recursive_deps opam =
-  let rec get_rec opam res =
-    StringMap.fold (fun n o res ->
-        if StringMap.mem n res
-        then res
-        else StringMap.add n o res |> get_rec o)
-      opam.opam_deps res
-  in
-  get_rec opam (StringMap.singleton opam.opam_name opam)
+let recursive_deps_memo : opam_package StringMap.t StringMap.t ref = ref StringMap.empty
+
+let get_recursive_deps opam = (* TODO: fix cycles due to post *)
+  let rec aux grey opam =
+    if StringSet.mem opam.opam_name grey
+    then StringMap.empty
+    else begin
+      let grey = StringSet.add opam.opam_name grey in
+      match StringMap.find_opt opam.opam_name !recursive_deps_memo with
+      | None ->
+          Printf.printf "descending into %s\n%!" opam.opam_name;
+          let result =
+            StringMap.fold (fun n o res ->
+                if StringMap.mem n res
+                then res
+                else
+                  let rdeps = aux grey o in
+                  StringMap.union (fun _ a _ -> Some a) res rdeps)
+              opam.opam_deps StringMap.empty
+          in
+          recursive_deps_memo := StringMap.add opam.opam_name result !recursive_deps_memo;
+          result
+      | Some res -> res
+    end
+  in aux StringSet.empty opam
 
 let generate_opam_pages ~continue_on_error state =
 
@@ -679,16 +714,44 @@ let generate_opam_pages ~continue_on_error state =
       if not skip_packages then
         let b = Buffer.create 10000 in
 
-        Printf.bprintf b "{0:opam-%s.%s Opam Package %s.%s\n"
-          opam.opam_name opam.opam_version
-          opam.opam_name opam.opam_version;
+        let get_rec_deps = ref false in
+        begin match
+            List.find_map
+              (function
+                | ODOC_PAGE mld when Filename.basename mld = "index.mld" ->
+                    if Filename.( mld |> dirname |> dirname |> basename ) = opam.opam_name
+                    then Some mld
+                    else None
+                | README_md _ | CHANGES_md _ | LICENSE_md _ | ODOC_PAGE _ -> None )
+              opam.opam_docs
+          with
+          | None ->
+              Printf.bprintf b "{0:opam-%s.%s Opam Package %s.%s\n"
+                opam.opam_name opam.opam_version
+                opam.opam_name opam.opam_version;
       (*
       Printf.bprintf b
         {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
         opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
 *)
-        Printf.bprintf b "}\n";
+              Printf.bprintf b "}\n";
 
+          | Some mld ->
+              get_rec_deps := true;
+              let in_chan = open_in @@ state.opam_switch_prefix // mld in
+              let in_buffer = Bytes.create 1024 in
+              let rec loop () =
+                let l = input in_chan in_buffer 0 1024 in
+                if l <> 0
+                then ( Buffer.add_subbytes b in_buffer 0 l; loop () )
+                else ()
+              in loop ();
+              (*Printf.bprintf b
+                {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+                opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;*)
+        end ;
+
+        let pages_pkgs = ref StringSet.empty in
         let mldfiles = List.filter_map (function
             | README_md _ | CHANGES_md _ | LICENSE_md _ -> None
             | ODOC_PAGE mld -> Some mld
@@ -700,6 +763,7 @@ let generate_opam_pages ~continue_on_error state =
           Printf.bprintf b {|<ul class="pages">|};
           List.iter (fun mld ->
               let ppkg = pkg_of_pages opam mld in
+              pages_pkgs := StringSet.add ppkg !pages_pkgs;
               let odeps = get_recursive_deps opam in
               call_odoc_mld ~continue_on_error state ppkg mld
                 ~pkgs:( ppkg :: pkg :: []
@@ -776,7 +840,16 @@ let generate_opam_pages ~continue_on_error state =
         ] @
           List.flatten (List.map (fun (_,lib) ->
               [ "-I" ; digodoc_odoc_dir // pkg_of_lib lib ]
-            ) (StringMap.to_list opam.opam_libs))
+            ) (StringMap.to_list opam.opam_libs)) @
+          (if !get_rec_deps then
+             List.concat_map (fun (_,opam) ->
+                 List.concat_map (fun (_,lib) ->
+                     ["-I"; digodoc_odoc_dir // pkg_of_lib lib]
+                   ) (StringMap.to_list opam.opam_libs))
+               (StringMap.to_list (get_recursive_deps opam))
+           else [] ) @
+          List.concat_map (fun pkg -> ["-I"; digodoc_odoc_dir // pkg])
+            (StringSet.to_list !pages_pkgs)
         in
 
         Process.call ( Array.of_list cmd );
