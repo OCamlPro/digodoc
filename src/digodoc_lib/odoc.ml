@@ -508,10 +508,6 @@ let infos_of_opam state pkg opam =
       EzFile.make_dir ~p:true html_dir ;
       let generate bb ~title =
         ignore title;
-        let content = EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html in
-        Printf.bprintf bb {|%s|} content
-      in
-
         let content = try EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html with _ -> "" in
         Printf.bprintf bb {|%s|} content 
       in 
