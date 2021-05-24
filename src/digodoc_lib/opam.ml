@@ -30,6 +30,7 @@ let create state opam_name opam_files =
     opam_authors = None ;
     opam_homepage = None ;
     opam_license = None ;
+    opam_source_archive = None ;
     opam_deps = StringMap.empty ;
     opam_revdeps = StringMap.empty ;
     opam_mdls = StringMap.empty ;
@@ -227,6 +228,23 @@ let find_versions state =
                           Printf.eprintf "%s: discarding unknown field %S\n%!"
                             filename field.pelem;
                     end
-                  | _ -> ()
+                  | Section { section_kind ; section_items; _ } -> begin 
+                      match section_kind.pelem with
+                      | "url" -> 
+                        List.iter (fun v -> 
+                            match v.pelem with
+                            | Variable (field, value) when field.pelem = "src" -> begin
+                                match value.pelem with
+                                | String s ->
+                                  opam_package.opam_source_archive <- Some s
+                                | _ -> ()
+                              end
+                            | _ -> ()
+                          )
+                          section_items.pelem
+                      | _ -> 
+                        Printf.eprintf "%s: discarding unknown section %S\n%!"
+                          filename section_kind.pelem; 
+                    end  
                 ) opam.file_contents
     ) files

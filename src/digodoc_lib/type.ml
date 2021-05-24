@@ -43,6 +43,7 @@ type opam_package = {
   mutable opam_authors : string list option;
   mutable opam_homepage : string option;
   mutable opam_license : string option;
+  mutable opam_source_archive: string option;
 
   mutable opam_deps : opam_package StringMap.t ;
   mutable opam_revdeps : opam_package StringMap.t ;
@@ -112,7 +113,7 @@ and ocaml_mdl = {
   mutable mdl_exts : StringSet.t ;
   mutable mdl_libs : ocaml_lib StringMap.t ; (* OPAM::NAME -> ocaml_lib *)
 
-  (* meta_packages where this module appears EXPLICITELY *)
+  (* meta_packages where this module appears EXPLICITLY *)
   mutable mdl_metas : meta_package StringMap.t; (* NAME -> meta_package *)
 
   mutable mdl_intf : comp_unit option ;

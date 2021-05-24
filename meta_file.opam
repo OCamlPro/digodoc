@@ -7,7 +7,6 @@ license: "LGPL-2.1-only with OCaml-LGPL-linking-exception"
 synopsis: "digodoc, opam switch mapper and documentation generator"
 description: """
 
-
 The Digodoc library scans opam switches and builds maps of them. It is used to build documentation websites, such as https://docs.ocaml.pro
 """
 authors: ["Fabrice Le Fessant <fabrice.le_fessant@origin-labs.com>"]

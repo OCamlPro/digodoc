@@ -39,7 +39,7 @@
 
 	While parsing Xml, PCDATA is always parsed and
 	the Xml entities &amp; &gt; &lt; &apos; &quot; are replaced by their
-	corresponding ASCII characters. For Xml attributes, theses can be
+	corresponding ASCII characters. For Xml attributes, these can be
 	put between either double or simple quotes, and the backslash character
 	can be used to escape inner quotes. There is no support for CDATA Xml
 	nodes or PCDATA attributes declarations in DTD, and no support for
@@ -53,7 +53,7 @@ type checked
 (** {6 The DTD Functions} *)
 
 (** Parse the named file into a Dtd data structure. Raise
-	{!Xml_types.File_not_found} if an error occured while opening the file.
+	{!Xml_types.File_not_found} if an error occurred while opening the file.
 	Raise {!Dtd.Parse_error} if parsing failed. *)
 val parse_file : string -> dtd
 
@@ -86,13 +86,13 @@ val to_string : dtd_item -> string
 
 (** {6 The DTD Exceptions} *)
 
-(** There is three types of DTD excecptions : {ul
-	{li {!Dtd.Parse_error} is raised when an error occured while
+(** There is three types of DTD exceptions : {ul
+	{li {!Dtd.Parse_error} is raised when an error occurred while
 	parsing a DTD document into a DTD data structure.}
-	{li {!Dtd.Check_error} is raised when an error occured while
+	{li {!Dtd.Check_error} is raised when an error occurred while
 	checking a DTD data structure for completeness, or when the
 	prove entry point is not found when calling {!Dtd.prove}.}
-	{li {!Dtd.Prove_error} is raised when an error occured while
+	{li {!Dtd.Prove_error} is raised when an error occurred while
 	proving an Xml document.}
 	}
 

@@ -30,13 +30,14 @@ let generate_page ~filename ~title f =
   let root = if s = "" then s else s ^ "/" in
 
 
-  (* removed 'async' from the script line because unregnized by ez_ml parser *)
+  (* removed 'async' from the script line because unrecognized by ez_ml parser *)
   let bb = Buffer.create 10000 in
   Printf.bprintf bb {|<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
   <title>%s</title>
   <link rel="stylesheet" href="%s_odoc-theme/odoc.css"/>
+  <link rel="icon" href="%s_odoc-theme/favicon.png">
   <script type="text/javascript" src="%ssearch.js" charset="utf-8"></script>
   <meta charset="utf-8"/>
   <meta name="generator" content="digodoc 0.1"/>
@@ -44,7 +45,7 @@ let generate_page ~filename ~title f =
   <script src="%shighlight.pack.js"></script>
   <script>hljs.initHighlightingOnLoad();</script>
 </head>
-|} title root root root;
+|} title root root root root;
   Printf.bprintf bb
     {|
 <body>
