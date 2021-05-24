@@ -504,7 +504,7 @@ let infos_of_opam state pkg opam =
       EzFile.make_dir ~p:true html_dir ;
       let generate bb ~title =
         ignore title;
-        let content = EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html in
+        let content = try EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html with _ -> "" in
         Printf.bprintf bb {|%s|} content 
       in 
       Html.generate_page
@@ -558,6 +558,13 @@ let infos_of_opam state pkg opam =
     | None -> []
     | Some license ->
         [  [ "license" ; license ] ]
+  ) @
+  ( match opam.opam_source_archive with
+    | None -> []
+    | Some archive ->
+        [  [ "source-archive" ; 
+              Printf.sprintf {|<a href="%s">%s</a>|}
+               archive archive ] ]
   ) @
   (
     List.map (function
@@ -690,6 +697,11 @@ let generate_opam_pages state =
           (* TODO, generate the doc and put in a link *)
         end;
 
+        Printf.bprintf b "\n{1:modules Documentation on Modules}\n";
+
+        Printf.bprintf b "%s\n"
+          (modules_to_html opam.opam_mdls);
+
         Printf.bprintf b "{1:info Package info}\n";
 
         let dir = digodoc_odoc_dir // pkg in
@@ -705,11 +717,6 @@ let generate_opam_pages state =
           ]
         in
         print_package_info b infos;
-
-        Printf.bprintf b "\n{1:modules Package modules}\n";
-
-        Printf.bprintf b "%s\n"
-          (modules_to_html opam.opam_mdls);
 
         if !Htmlize.Globals.sources then begin 
           Printf.bprintf b "\n{1:sources Package sources}\n";
@@ -879,7 +886,6 @@ let generate_meta_pages state =
   ()
 
 let generate ~state ~continue_on_error  =
-
   (* Iter on modules first *)
   if Sys.file_exists Html.digodoc_html_dir then begin
     EzFile.remove_dir ~all:true Html.digodoc_html_dir

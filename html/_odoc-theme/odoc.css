@@ -46,7 +46,7 @@ table { border-collapse: collapse; border-spacing: 0; width: inherit; height: in
    See also media adjustments at the end of the stylesheet. */
 
 body { 
-      min-width: 800px;
+      min-width: 900px;
       background-color: var(--color-bg);
        color: var(--color-fg); }
 
@@ -418,4 +418,16 @@ button#search-button {
 
 i {
   font-style: italic;
+}
+
+#ocamlpro {
+  padding: 0px;
+  height: 53.5px;
+}
+
+#logo {
+  height: inherit;
+  margin: 0px;
+  margin-left: 15px;
+  margin-right: 15px;
 }
