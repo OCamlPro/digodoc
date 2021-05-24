@@ -50,7 +50,7 @@ val prove : t -> bool -> unit
 (** When parsing an Xml document from a file using the {!Xml.parse_file}
  function, the DTD file if declared by the Xml document has to be in the
  same directory as the xml file. When using other parsing functions,
- such as on a string or on a channel, the parser will raise everytime
+ such as on a string or on a channel, the parser will raise every time
  {!Xml.File_not_found} if a DTD file is needed and prove enabled. To enable
  the DTD loading of the file, the user have to configure the Xml parser
  with a [resolve] function which is taking as argument the DTD filename and
@@ -70,9 +70,9 @@ val check_eof : t -> bool -> unit
  of xml document source to parse its contents into an Xml data structure. *)
 val parse :  t -> source -> Xml_types.xml
 
-(** When several PCData elements are separed by a \n (or \r\n), you can
+(** When several PCData elements are separated by a \n (or \r\n), you can
  either split the PCData in two distincts PCData or merge them with \n
- as seperator into one PCData. The default behavior is to concat the
+ as separator into one PCData. The default behavior is to concat the
  PCData, but this can be changed for a given parser with this flag. *)
 val concat_pcdata : t -> bool -> unit
 

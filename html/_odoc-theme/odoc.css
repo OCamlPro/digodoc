@@ -43,7 +43,7 @@ table { border-collapse: collapse; border-spacing: 0; width: inherit; height: in
    the desired geometry on responses.
    https://github.com/ocaml/odoc/issues/327
 
-   See also media adjustements at the end of the stylesheet. */
+   See also media adjustments at the end of the stylesheet. */
 
 body { 
       min-width: 800px;
@@ -289,7 +289,7 @@ h1 nav { display: inline-block;
  .toc { position: static; width: 100%;
         margin: 0; margin-top: var(--size-line); }
 
- /* odig.light with slight adjustements */
+ /* odig.light with slight adjustments */
  :root
  { --color-bg: white;
    --color-bg-highlight: #CAD7EF;
