@@ -56,6 +56,10 @@ let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"
     opam.opam_name opam.opam_version
 
+let pkg_of_pages opam file =
+  Printf.sprintf "PAGES.%s.%s.%s"
+    opam.opam_name opam.opam_version Filename.(dirname file |> dirname |> basename)
+
 let pkg_of_lib lib =
   Printf.sprintf "LIBRARY.%s@%s.%s"
     lib.lib_name lib.lib_opam.opam_name lib.lib_opam.opam_version
@@ -495,7 +499,7 @@ let libraries_to_html title map =
 let infos_of_opam state pkg opam =
   let html_dir = Html.digodoc_html_dir // pkg in
 
-  let omd_generate_file file = 
+  let omd_generate_file file =
     let basename = Filename.basename file in
     let name,_ = EzFile.cut_extension basename in
     let html_file = (pkg // name ^ ".html") in
@@ -504,6 +508,10 @@ let infos_of_opam state pkg opam =
       EzFile.make_dir ~p:true html_dir ;
       let generate bb ~title =
         ignore title;
+        let content = EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html in
+        Printf.bprintf bb {|%s|} content
+      in
+
         let content = try EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html with _ -> "" in
         Printf.bprintf bb {|%s|} content 
       in 
@@ -598,12 +606,31 @@ let generate_library_pages state =
       if not skip_packages then
         let b = Buffer.create 10000 in
 
-        Printf.bprintf b "{0:library-%s Library %s\n"
-          lib.lib_name lib.lib_name ;
-        Printf.bprintf b
-          {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
-          opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
-        Printf.bprintf b "}\n";
+        begin match
+            List.find_opt
+              (fun mld -> Filename.basename mld = "index.mld")
+              lib.lib_mld_files
+          with
+          | None ->
+              Printf.bprintf b "{0:library-%s Library %s\n"
+                lib.lib_name lib.lib_name ;
+              Printf.bprintf b
+                {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+                opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
+              Printf.bprintf b "}\n";
+          | Some mld ->
+              let in_chan = open_in @@ state.opam_switch_prefix // mld in
+              let in_buffer = Bytes.create 1024 in
+              let rec loop () =
+                let l = input in_chan in_buffer 0 1024 in
+                if l <> 0
+                then ( Buffer.add_subbytes b in_buffer 0 l; loop () )
+                else ()
+              in loop ();
+              Printf.bprintf b
+                {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+                opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
+        end ;
 
         Printf.bprintf b "{1:info Library info}\n";
         Printf.bprintf b {|{%%html:<table class="package info">|};
@@ -660,7 +687,33 @@ let generate_library_pages state =
 
   ()
 
-let generate_opam_pages state =
+let recursive_deps_memo : opam_package StringMap.t StringMap.t ref = ref StringMap.empty
+
+let get_recursive_deps opam = (* TODO: fix cycles due to post *)
+  let rec aux grey opam =
+    if StringSet.mem opam.opam_name grey
+    then StringMap.empty
+    else begin
+      let grey = StringSet.add opam.opam_name grey in
+      match StringMap.find_opt opam.opam_name !recursive_deps_memo with
+      | None ->
+          Printf.printf "descending into %s\n%!" opam.opam_name;
+          let result =
+            StringMap.fold (fun n o res ->
+                if StringMap.mem n res
+                then res
+                else
+                  let rdeps = aux grey o in
+                  StringMap.union (fun _ a _ -> Some a) res rdeps)
+              opam.opam_deps StringMap.empty
+          in
+          recursive_deps_memo := StringMap.add opam.opam_name result !recursive_deps_memo;
+          result
+      | Some res -> res
+    end
+  in aux StringSet.empty opam
+
+let generate_opam_pages ~continue_on_error state =
 
   StringMap.iter (fun _ opam ->
       let pkg = pkg_of_opam opam in
@@ -672,16 +725,44 @@ let generate_opam_pages state =
       if not skip_packages then
         let b = Buffer.create 10000 in
 
-        Printf.bprintf b "{0:opam-%s.%s Opam Package %s.%s\n"
-          opam.opam_name opam.opam_version
-          opam.opam_name opam.opam_version;
+        let get_rec_deps = ref false in
+        begin match
+            List.find_map
+              (function
+                | ODOC_PAGE mld when Filename.basename mld = "index.mld" ->
+                    if Filename.( mld |> dirname |> dirname |> basename ) = opam.opam_name
+                    then Some mld
+                    else None
+                | README_md _ | CHANGES_md _ | LICENSE_md _ | ODOC_PAGE _ -> None )
+              opam.opam_docs
+          with
+          | None ->
+              Printf.bprintf b "{0:opam-%s.%s Opam Package %s.%s\n"
+                opam.opam_name opam.opam_version
+                opam.opam_name opam.opam_version;
       (*
       Printf.bprintf b
         {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
         opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
 *)
-        Printf.bprintf b "}\n";
+              Printf.bprintf b "}\n";
 
+          | Some mld ->
+              get_rec_deps := true;
+              let in_chan = open_in @@ state.opam_switch_prefix // mld in
+              let in_buffer = Bytes.create 1024 in
+              let rec loop () =
+                let l = input in_chan in_buffer 0 1024 in
+                if l <> 0
+                then ( Buffer.add_subbytes b in_buffer 0 l; loop () )
+                else ()
+              in loop ();
+              (*Printf.bprintf b
+                {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+                opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;*)
+        end ;
+
+        let pages_pkgs = ref StringSet.empty in
         let mldfiles = List.filter_map (function
             | README_md _ | CHANGES_md _ | LICENSE_md _ -> None
             | ODOC_PAGE mld -> Some mld
@@ -689,11 +770,24 @@ let generate_opam_pages state =
         if mldfiles <> []
         then begin
           Printf.bprintf b "{1:pages Package documentation pages}\n";
-          Printf.bprintf b "{!pages:\n";
+          Printf.bprintf b "{%%html:\n";
+          Printf.bprintf b {|<ul class="pages">|};
           List.iter (fun mld ->
-              Printf.bprintf b "  %s\n" mld;
+              let ppkg = pkg_of_pages opam mld in
+              pages_pkgs := StringSet.add ppkg !pages_pkgs;
+              let odeps = get_recursive_deps opam in
+              call_odoc_mld ~continue_on_error state ppkg mld
+                ~pkgs:( ppkg :: pkg :: []
+                        |> StringMap.fold (fun _ o acc ->
+                            StringMap.fold (fun _ l acc -> pkg_of_lib l :: acc)
+                              o.opam_libs acc) odeps
+                      );
+              let name = Filename.(chop_extension @@ basename mld) in
+              Printf.bprintf b {|<li><a href="../%s/%s.html">%s</a></li>|}
+                ppkg name (String.capitalize_ascii name);
             ) mldfiles;
-          Printf.bprintf b "}\n";
+          Printf.bprintf b "</ul>\n";
+          Printf.bprintf b "%%}\n";
           (* TODO, generate the doc and put in a link *)
         end;
 
@@ -719,8 +813,9 @@ let generate_opam_pages state =
         print_package_info b infos;
 
         if !Htmlize.Globals.sources then begin 
+
           Printf.bprintf b "\n{1:sources Package sources}\n";
-          
+
           let opam_sources = htmlize_sources_of_opam opam in
           Printf.bprintf b {|{%%html:<div><a href="../../%s/index.html">%s</a></div>%%}|}
             opam_sources opam.opam_name
@@ -757,7 +852,16 @@ let generate_opam_pages state =
         ] @
           List.flatten (List.map (fun (_,lib) ->
               [ "-I" ; digodoc_odoc_dir // pkg_of_lib lib ]
-            ) (StringMap.to_list opam.opam_libs))
+            ) (StringMap.to_list opam.opam_libs)) @
+          (if !get_rec_deps then
+             List.concat_map (fun (_,opam) ->
+                 List.concat_map (fun (_,lib) ->
+                     ["-I"; digodoc_odoc_dir // pkg_of_lib lib]
+                   ) (StringMap.to_list opam.opam_libs))
+               (StringMap.to_list (get_recursive_deps opam))
+           else [] ) @
+          List.concat_map (fun pkg -> ["-I"; digodoc_odoc_dir // pkg])
+            (StringSet.to_list !pages_pkgs)
         in
 
         Process.call ( Array.of_list cmd );
@@ -926,11 +1030,11 @@ let generate ~state ~continue_on_error  =
     Htmlize.Globals.with_header := true;
     EzFile.make_dir ~p:true sources_dir;
     StringMap.iter (fun _ opam ->
-      let opam_sources = sources_of_opam opam 
+      let opam_sources = sources_of_opam opam
       and opam_htmlize_sources = htmlize_sources_of_opam opam in
       if not (Sys.file_exists opam_htmlize_sources) then begin
         get_opam_sources ~continue_on_error opam;
-        if not (Sys.file_exists Globals.htmlize_sources_dir) then 
+        if not (Sys.file_exists Globals.htmlize_sources_dir) then
           Htmlize.Main.htmlize Globals.htmlize_sources_dir [opam_sources]
         else
           Htmlize.Main.htmlize_dir Globals.htmlize_sources_dir opam_sources;
@@ -940,7 +1044,7 @@ let generate ~state ~continue_on_error  =
     EzFile.remove_dir ~all:true sources_dir
   end;
 
-  generate_opam_pages state;
+  generate_opam_pages ~continue_on_error state;
   generate_library_pages state;
   generate_meta_pages state;
   generate_module_entries state;
