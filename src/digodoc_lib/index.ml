@@ -454,7 +454,7 @@ let print_index bb index entity_name =
 
   Printf.bprintf bb {|
     <h4 id="item-number">%d %s</h4>
-    <div class="by-name">
+    <div id="by-name" class="by-name">
       <nav>
 |} !n entity_name;
   StringMap.iter (fun i _ ->
@@ -464,18 +464,20 @@ let print_index bb index entity_name =
   Printf.bprintf bb {|
       </nav>
 |};
-  StringMap.iter (fun i r ->
+  StringMap.iter (fun i _ ->
       Printf.bprintf bb {|
-     <div class="packages-set">
+     <div id="packages-set-%s" class="packages-set">
       <h3 id="name-%s">
         <a href="#name-%s" aria-hidden="true" class="anchor">
         </a>%s
       </h3>
-      <ol class="packages">
-|} i i i ;
-      List.iter (fun ( _entry, line ) ->
-          Printf.bprintf bb "%s\n" line;
-        ) ( List.sort compare !r ) ;
+      <ol id="packages-%s" class="packages">
+|} i i i i i;
+      (*if entity_name <> "modules" then begin
+        List.iter (fun ( _entry, line ) ->
+            Printf.bprintf bb "%s\n" line;
+          ) ( List.sort compare !r ) 
+      end;*)
 
       Printf.bprintf bb {|
       </ol>
@@ -768,9 +770,9 @@ let generate_opam_index state bb =
 
 
 let generate_module_index state bb =
-
+  
   let index = ref [] in
-
+  
   let add_module pack alias mdl =
     let pkg = pkg_of_mdl mdl in
     let opam_pkg = pkg_of_opam {
