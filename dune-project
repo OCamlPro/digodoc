@@ -27,10 +27,13 @@
    (ocaml (>= 4.10.0))
    (omd ( >= 1.3.1 ))
    (meta_file (= version))
+   (lwt ( >= 5.4.0 ))
    (htmlize (= version))
    (ez_opam_file ( >= 0.1 ))
    (ez_html ( >= 0.1 ))
    (ez_file (and (>= 0.1.0) (< 1.0.0)))
+   (cohttp-lwt-unix ( >= 2.5.4 ))
+   (cohttp-lwt ( >= 2.5.4 ))
    odoc
    ppx_inline_test
    ppx_expect

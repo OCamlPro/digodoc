@@ -50,7 +50,7 @@ let sources_of_opam opam =
   sources_dir // (fullname opam)
 
 let htmlize_sources_of_opam opam =
-  "sources" // fullname opam
+  "_digodoc/sources" // fullname opam
 
 let pkg_of_opam opam =
   Printf.sprintf "OPAM.%s.%s"

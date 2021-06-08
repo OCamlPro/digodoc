@@ -12,3 +12,7 @@
 let digodoc_dir = "_digodoc"
 
 let htmlize_sources_dir = "_digodoc/sources"
+
+let db_update_index = ref false
+
+let dynamic_index = ref false

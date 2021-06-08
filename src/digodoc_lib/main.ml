@@ -90,6 +90,14 @@ let main () =
 
       "--cached", Arg.Set cached,
       " read cached state";
+
+      "--api-index", Arg.Set Globals.dynamic_index,
+      "call api for generate dynamic index pages";
+
+      "--db-update", Arg.Set Globals.db_update_index,
+      "update database of index";
+
+
       "--html", arg_set_action GenerateHtml,
       "build html documentation";
 
@@ -131,6 +139,7 @@ let main () =
   let cached = !cached in
   let switch = !switch in
   let continue_on_error = !continue_on_error in
+  
   let state =
     if cached then
       let ic = open_in_bin cache_file  in

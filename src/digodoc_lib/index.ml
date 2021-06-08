@@ -454,7 +454,7 @@ let print_index bb index entity_name =
 
   Printf.bprintf bb {|
     <h4 id="item-number">%d %s</h4>
-    <div class="by-name">
+    <div id="by-name" class="by-name">
       <nav>
 |} !n entity_name;
   StringMap.iter (fun i _ ->
@@ -466,16 +466,18 @@ let print_index bb index entity_name =
 |};
   StringMap.iter (fun i r ->
       Printf.bprintf bb {|
-     <div class="packages-set">
+     <div id="packages-set-%s" class="packages-set">
       <h3 id="name-%s">
         <a href="#name-%s" aria-hidden="true" class="anchor">
         </a>%s
       </h3>
-      <ol class="packages">
-|} i i i ;
-      List.iter (fun ( _entry, line ) ->
-          Printf.bprintf bb "%s\n" line;
-        ) ( List.sort compare !r ) ;
+      <ol id="packages-%s" class="packages">
+|} i i i i i;
+      if not !Globals.dynamic_index then begin
+        List.iter (fun ( _entry, line ) ->
+            Printf.bprintf bb "%s\n" line;
+          ) ( List.sort compare !r ) 
+      end;
 
       Printf.bprintf bb {|
       </ol>
@@ -768,9 +770,9 @@ let generate_opam_index state bb =
 
 
 let generate_module_index state bb =
-
+  
   let index = ref [] in
-
+  
   let add_module pack alias mdl =
     let pkg = pkg_of_mdl mdl in
     let opam_pkg = pkg_of_opam {
@@ -924,7 +926,14 @@ let read_all_entries () =
 
 let generate () =
   Printf.eprintf "Generating index...\n%!";
-
+  if !Globals.db_update_index then begin
+    Printf.eprintf "Updating DB index...\n%!";
+    let promis =
+      Lwt.bind 
+        (Cohttp_lwt_unix.Client.get (Uri.of_string "http://localhost:49002/generate"))
+        (fun _ -> Lwt_io.eprintf "Done...\n%!") 
+    in Lwt_main.run promis
+  end;
   let state = read_all_entries () in
 
   let stdlib_version = Option.value ~default:"4.10.0" @@ List.find_map (function
