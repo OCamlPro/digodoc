@@ -29,6 +29,7 @@ var observer = new IntersectionObserver(function(entries) {
 
 const insert_packages = packages => {
     var first_letter = packages[0].name[0].toLowerCase();
+    console.log(first_letter);
     document.getElementById("name-"+first_letter).style.display= "";
         
     for(i in packages){
@@ -200,23 +201,50 @@ const insert_sources = sources => {
     }
 }
 
+const getEntriesNumber = async () => {
+    var entry;
+    switch (filename) {
+        case "index.html":
+            entry = "packages";
+            break;
+        case "modules.html":
+            entry = "modules";
+            break;
+        case "libraries.html":
+            entry = "libraries";
+            break;
+        case "metas.html":
+            entry = "metas";
+            break;
+        case "sources.html":
+            entry = "sources";
+            break;
+        default:
+            break;
+    }
+    const response = await fetch('http://localhost:49001/command/count+' + entry + "/" + last_id + '+' + pattern);
+    const results = await response.json();
+    var indicator = document.getElementById("item-number");
+    indicator.innerHTML = results.result + " " + entry;
+}
+
 const sendRequest = async () => {
     var response;
     switch (filename) {
         case "index.html":
-            response = await fetch('http://localhost:49001/packages/'+ last_id + '/' + pattern);
+            response = await fetch('http://localhost:49001/packages/'+ last_id + '+' + pattern);
             break;
         case "modules.html":
-            response = await fetch('http://localhost:49001/modules/'+ last_id + '/' + pattern);
+            response = await fetch('http://localhost:49001/modules/'+ last_id + '+' + pattern);
             break;
         case "libraries.html":
-            response = await fetch('http://localhost:49001/libraries/'+ last_id + '/' + pattern);
+            response = await fetch('http://localhost:49001/libraries/'+ last_id + '+' + pattern);
             break;
         case "metas.html":
-            response = await fetch('http://localhost:49001/metas/'+ last_id + '/' + pattern);
+            response = await fetch('http://localhost:49001/metas/'+ last_id + '+' + pattern);
             break;
         case "sources.html":
-            response = await fetch('http://localhost:49001/sources/'+ last_id + '/' + pattern);
+            response = await fetch('http://localhost:49001/sources/'+ last_id + '+' + pattern);
             break;
         default:
             break;
@@ -273,6 +301,7 @@ window.onload = () => {
         }
 
         sendRequest().then(function(_){ 
+            getEntriesNumber();
             last_id = last_id + 50;
             main_div.appendChild(load_div);
             observer.observe(document.querySelector("#load_div"));
@@ -312,6 +341,7 @@ window.onload = () => {
                     last_id = last_id + 50;
                     main_div.appendChild(load_div);
                 }
+                getEntriesNumber();
                 footerHandler();
             });
         } 

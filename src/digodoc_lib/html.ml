@@ -28,7 +28,8 @@ let generate_page ~filename ~title f =
       (List.map (fun _s -> "..") 
         path_list) in
   let root = if s = "" then s else s ^ "/" in
-
+  
+  let script = if !Globals.dynamic_index then "search_api.js" else "search.js" in
 
   (* removed 'async' from the script line because unrecognized by ez_ml parser *)
   let bb = Buffer.create 10000 in
@@ -38,14 +39,14 @@ let generate_page ~filename ~title f =
   <title>%s</title>
   <link rel="stylesheet" href="%s_odoc-theme/odoc.css"/>
   <link rel="icon" href="%s_odoc-theme/favicon.png">
-  <script type="text/javascript" src="%ssearch.js" charset="utf-8"></script>
+  <script type="text/javascript" src="%s%s" charset="utf-8"></script>
   <meta charset="utf-8"/>
   <meta name="generator" content="digodoc 0.1"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <script src="%shighlight.pack.js"></script>
   <script>hljs.initHighlightingOnLoad();</script>
 </head>
-|} title root root root root;
+|} title root root root script root;
   Printf.bprintf bb
     {|
 <body>

@@ -29,7 +29,7 @@ The Digodoc library scans opam switches and builds maps of them. It is used to b
 """
 
 [project]
-skip = "src/digodoc/main.ml src/digodoc_lib/main.ml src/ez_html/main.ml .github/workflows/doc-deploy.yml"
+skip = "src/digodoc/main.ml src/digodoc_lib/main.ml src/ez_html/main.ml src/htmlize/main.ml .github/workflows/doc-deploy.yml"
 
 # project-wide library dependencies (not for package-specific deps)
 [dependencies]

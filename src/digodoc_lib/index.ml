@@ -464,7 +464,7 @@ let print_index bb index entity_name =
   Printf.bprintf bb {|
       </nav>
 |};
-  StringMap.iter (fun i _ ->
+  StringMap.iter (fun i r ->
       Printf.bprintf bb {|
      <div id="packages-set-%s" class="packages-set">
       <h3 id="name-%s">
@@ -473,11 +473,11 @@ let print_index bb index entity_name =
       </h3>
       <ol id="packages-%s" class="packages">
 |} i i i i i;
-      (*if entity_name <> "modules" then begin
+      if not !Globals.dynamic_index then begin
         List.iter (fun ( _entry, line ) ->
             Printf.bprintf bb "%s\n" line;
           ) ( List.sort compare !r ) 
-      end;*)
+      end;
 
       Printf.bprintf bb {|
       </ol>
@@ -926,7 +926,14 @@ let read_all_entries () =
 
 let generate () =
   Printf.eprintf "Generating index...\n%!";
-
+  if !Globals.db_update_index then begin
+    Printf.eprintf "Updating DB index...\n%!";
+    let promis =
+      Lwt.bind 
+        (Cohttp_lwt_unix.Client.get (Uri.of_string "http://localhost:49002/generate"))
+        (fun _ -> Lwt_io.eprintf "Done...\n%!") 
+    in Lwt_main.run promis
+  end;
   let state = read_all_entries () in
 
   let stdlib_version = Option.value ~default:"4.10.0" @@ List.find_map (function
