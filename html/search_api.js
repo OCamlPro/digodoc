@@ -29,7 +29,6 @@ var observer = new IntersectionObserver(function(entries) {
 
 const insert_packages = packages => {
     var first_letter = packages[0].name[0].toLowerCase();
-    console.log(first_letter);
     document.getElementById("name-"+first_letter).style.display= "";
         
     for(i in packages){
@@ -114,7 +113,10 @@ const insert_modules = modules => {
         mod_opam.innerHTML = modules[i].opam;
 
         mod.appendChild(mod_opam);
-        mod.innerHTML += ' in libs ';
+        if(modules[i].libs.length > 0){
+            mod.innerHTML += ' in libs ';
+        }
+            
         for(j in modules[i].libs){
             var mod_libs = document.createElement("a");
             mod_libs.setAttribute("class", "digodoc-lib");
@@ -222,7 +224,7 @@ const getEntriesNumber = async () => {
         default:
             break;
     }
-    const response = await fetch('http://localhost:49001/command/count+' + entry + "/" + last_id + '+' + pattern);
+    const response = await fetch('https://docs-api.ocaml.pro/command/count+'+ entry + "/" + last_id + '+' + pattern);
     const results = await response.json();
     var indicator = document.getElementById("item-number");
     indicator.innerHTML = results.result + " " + entry;
@@ -232,19 +234,19 @@ const sendRequest = async () => {
     var response;
     switch (filename) {
         case "index.html":
-            response = await fetch('http://localhost:49001/packages/'+ last_id + '+' + pattern);
+            response = await fetch('https://docs-api.ocaml.pro/packages/'+ last_id + '+' + pattern);
             break;
         case "modules.html":
-            response = await fetch('http://localhost:49001/modules/'+ last_id + '+' + pattern);
+            response = await fetch('https://docs-api.ocaml.pro/modules/'+ last_id + '+' + pattern);
             break;
         case "libraries.html":
-            response = await fetch('http://localhost:49001/libraries/'+ last_id + '+' + pattern);
+            response = await fetch('https://docs-api.ocaml.pro/libraries/'+ last_id + '+' + pattern);
             break;
         case "metas.html":
-            response = await fetch('http://localhost:49001/metas/'+ last_id + '+' + pattern);
+            response = await fetch('https://docs-api.ocaml.pro/metas/'+ last_id + '+' + pattern);
             break;
         case "sources.html":
-            response = await fetch('http://localhost:49001/sources/'+ last_id + '+' + pattern);
+            response = await fetch('https://docs-api.ocaml.pro/sources/'+ last_id + '+' + pattern);
             break;
         default:
             break;
@@ -292,8 +294,14 @@ This code assumes that:
 window.onload = () => {
     footerHandler();
 
-    if (reversed_path[1] == 'html') {
+    if (reversed_path[1] == 'html' && filename != 'about.html') {
         main_div = document.getElementById("by-name");
+        
+        for (let index = 48; index < 58; index++) {
+            var title = document.getElementById("name-"+String.fromCharCode(index));
+            if(title) title.style.display= "none";
+        }
+            
 
         for (let index = 97; index < 123; index++) {
             var title = document.getElementById("name-"+String.fromCharCode(index));
@@ -314,9 +322,17 @@ window.onload = () => {
     name.onkeyup = () => {
         let re = name.value;
 
-        if (reversed_path[1] == 'html') {
+        if (reversed_path[1] == 'html'  && filename != 'about.html') {
             if(document.getElementById("load_div")){
                 main_div.removeChild(load_div);
+            }
+            for (let index = 48; index < 58; index++) {
+                var set = document.getElementById("packages-"+String.fromCharCode(index));
+                if(set){
+                    set.innerHTML="";
+                    var title = document.getElementById("name-"+String.fromCharCode(index));
+                    title.style.display= "none";
+                }
             }
             for (let index = 97; index < 123; index++) {
                 var set = document.getElementById("packages-"+String.fromCharCode(index));

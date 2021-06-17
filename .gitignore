@@ -8,6 +8,4 @@ _build
 /_opam
 /_build
 /_digodoc
-
-
-
+/examples
