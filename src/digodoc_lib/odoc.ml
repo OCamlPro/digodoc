@@ -744,6 +744,10 @@ let generate_opam_pages ~continue_on_error state =
               Printf.bprintf b "}\n";
 
           | Some mld ->
+              let assets_dir = state.opam_switch_prefix // "doc" // opam.opam_name // "odoc-assets" in
+              if Sys.file_exists assets_dir
+              then Process.call [|
+                  "rsync"; "-auv"; assets_dir // ""; Html.digodoc_html_dir // pkg // "_assets"|];
               get_rec_deps := true;
               let in_chan = open_in @@ state.opam_switch_prefix // mld in
               let in_buffer = Bytes.create 1024 in
