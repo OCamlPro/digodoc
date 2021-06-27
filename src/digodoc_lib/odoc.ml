@@ -509,8 +509,8 @@ let infos_of_opam state pkg opam =
       let generate bb ~title =
         ignore title;
         let content = try EzFile.read_file srcfile |> Omd.of_string |> Omd.to_html with _ -> "" in
-        Printf.bprintf bb {|%s|} content 
-      in 
+        Printf.bprintf bb {|%s|} content
+      in
       Html.generate_page
         ~filename:html_file
         ~title:"basename"
@@ -566,7 +566,7 @@ let infos_of_opam state pkg opam =
   ( match opam.opam_source_archive with
     | None -> []
     | Some archive ->
-        [  [ "source-archive" ; 
+        [  [ "source-archive" ;
               Printf.sprintf {|<a href="%s">%s</a>|}
                archive archive ] ]
   ) @
@@ -615,6 +615,10 @@ let generate_library_pages state =
                 opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
               Printf.bprintf b "}\n";
           | Some mld ->
+              let assets_dir = state.opam_switch_prefix // "doc" // lib.lib_name // "odoc-assets" in
+              if Sys.file_exists assets_dir
+              then Process.call [|
+                  "rsync"; "-auv"; assets_dir // ""; Html.digodoc_html_dir // pkg // "_assets"|];
               let in_chan = open_in @@ state.opam_switch_prefix // mld in
               let in_buffer = Bytes.create 1024 in
               let rec loop () =
@@ -744,6 +748,10 @@ let generate_opam_pages ~continue_on_error state =
               Printf.bprintf b "}\n";
 
           | Some mld ->
+              let assets_dir = state.opam_switch_prefix // "doc" // opam.opam_name // "odoc-assets" in
+              if Sys.file_exists assets_dir
+              then Process.call [|
+                  "rsync"; "-auv"; assets_dir // ""; Html.digodoc_html_dir // pkg // "_assets"|];
               get_rec_deps := true;
               let in_chan = open_in @@ state.opam_switch_prefix // mld in
               let in_buffer = Bytes.create 1024 in
@@ -770,6 +778,7 @@ let generate_opam_pages ~continue_on_error state =
           Printf.bprintf b {|<ul class="pages">|};
           List.iter (fun mld ->
               let ppkg = pkg_of_pages opam mld in
+              let plib = Filename.(dirname mld |> dirname |> basename) in
               pages_pkgs := StringSet.add ppkg !pages_pkgs;
               let odeps = get_recursive_deps opam in
               call_odoc_mld ~continue_on_error state ppkg mld
@@ -778,6 +787,10 @@ let generate_opam_pages ~continue_on_error state =
                             StringMap.fold (fun _ l acc -> pkg_of_lib l :: acc)
                               o.opam_libs acc) odeps
                       );
+              let assets_dir = state.opam_switch_prefix // "doc" // plib // "odoc-assets" in
+              if Sys.file_exists assets_dir
+              then Process.call [|
+                  "rsync"; "-auv"; assets_dir // ""; Html.digodoc_html_dir // ppkg // "_assets"|];
               let name = Filename.(chop_extension @@ basename mld) in
               Printf.bprintf b {|<li><a href="../%s/%s.html">%s</a></li>|}
                 ppkg name (String.capitalize_ascii name);
@@ -808,7 +821,7 @@ let generate_opam_pages ~continue_on_error state =
         in
         print_package_info b infos;
 
-        if !Htmlize.Globals.sources then begin 
+        if !Htmlize.Globals.sources then begin
 
           Printf.bprintf b "\n{1:sources Package sources}\n";
 
