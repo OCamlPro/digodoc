@@ -457,8 +457,10 @@ let print_index bb index entity_name =
     <div id="by-name" class="by-name">
       <nav>
 |} !n entity_name;
+
+  Printf.bprintf bb {|<a href="#" onclick="set_start_letter('.');return false;">.</a>|};
   StringMap.iter (fun i _ ->
-      Printf.bprintf bb {|<a href="#name-%s">%s</a>
+      Printf.bprintf bb {|<a href="#" onclick="set_start_letter('%s');return false;">%s</a>
 |} i i) !map;
 
   Printf.bprintf bb {|
