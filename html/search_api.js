@@ -1,7 +1,11 @@
 /* Arguments for API requests */
 var last_id = 0;
+var starts_with = ".";
 var pattern = "~";
 
+const createApiArgument = () => {
+    return last_id + "+" + starts_with + "+" + pattern;
+}
 
 /* Variables */
 var main_div;
@@ -224,7 +228,7 @@ const getEntriesNumber = async () => {
         default:
             break;
     }
-    const response = await fetch('https://docs-api.ocaml.pro/command/count+'+ entry + "/" + last_id + '+' + pattern);
+    const response = await fetch('http://localhost:11001/command/count+'+ entry + "/" + createApiArgument());
     const results = await response.json();
     var indicator = document.getElementById("item-number");
     indicator.innerHTML = results.result + " " + entry;
@@ -234,19 +238,19 @@ const sendRequest = async () => {
     var response;
     switch (filename) {
         case "index.html":
-            response = await fetch('https://docs-api.ocaml.pro/packages/'+ last_id + '+' + pattern);
+            response = await fetch('http://localhost:11001/packages/'+ createApiArgument());
             break;
         case "modules.html":
-            response = await fetch('https://docs-api.ocaml.pro/modules/'+ last_id + '+' + pattern);
+            response = await fetch('http://localhost:11001/modules/'+ createApiArgument());
             break;
         case "libraries.html":
-            response = await fetch('https://docs-api.ocaml.pro/libraries/'+ last_id + '+' + pattern);
+            response = await fetch('http://localhost:11001/libraries/'+ createApiArgument());
             break;
         case "metas.html":
-            response = await fetch('https://docs-api.ocaml.pro/metas/'+ last_id + '+' + pattern);
+            response = await fetch('http://localhost:11001/metas/'+ createApiArgument());
             break;
         case "sources.html":
-            response = await fetch('https://docs-api.ocaml.pro/sources/'+ last_id + '+' + pattern);
+            response = await fetch('http://localhost:11001/sources/'+ createApiArgument());
             break;
         default:
             break;
@@ -281,6 +285,38 @@ const sendRequest = async () => {
 }
 
 
+const clear_index_page = () => {
+    if(document.getElementById("load_div")){
+        main_div.removeChild(load_div);
+    }
+    for (let index = 48; index < 58; index++) {
+        var set = document.getElementById("packages-"+String.fromCharCode(index));
+        if(set){
+            set.innerHTML="";
+            var title = document.getElementById("name-"+String.fromCharCode(index));
+            title.style.display= "none";
+        }
+    }
+    for (let index = 97; index < 123; index++) {
+        var set = document.getElementById("packages-"+String.fromCharCode(index));
+        if(set){
+            set.innerHTML="";
+            var title = document.getElementById("name-"+String.fromCharCode(index));
+            title.style.display= "none";
+        }
+    }
+}
+
+const update_index_page = () => {
+    sendRequest().then(function(added){
+        if(added){
+            last_id = last_id + 50;
+            main_div.appendChild(load_div);
+        }
+        getEntriesNumber();
+        footerHandler();
+    });
+}
 
 /*
 This code assumes that:
@@ -317,31 +353,13 @@ window.onload = () => {
     }
 
     
-    let name = document.getElementById("search")
+    var search = document.getElementById("search")
 
-    name.onkeyup = () => {
-        let re = name.value;
+    search.onkeyup = () => {
+        let re = search.value;
 
         if (reversed_path[1] == 'html'  && filename != 'about.html') {
-            if(document.getElementById("load_div")){
-                main_div.removeChild(load_div);
-            }
-            for (let index = 48; index < 58; index++) {
-                var set = document.getElementById("packages-"+String.fromCharCode(index));
-                if(set){
-                    set.innerHTML="";
-                    var title = document.getElementById("name-"+String.fromCharCode(index));
-                    title.style.display= "none";
-                }
-            }
-            for (let index = 97; index < 123; index++) {
-                var set = document.getElementById("packages-"+String.fromCharCode(index));
-                if(set){
-                    set.innerHTML="";
-                    var title = document.getElementById("name-"+String.fromCharCode(index));
-                    title.style.display= "none";
-                }
-            }
+            clear_index_page();
     
             const input = re.trim();
             if(input.length > 0){
@@ -351,15 +369,17 @@ window.onload = () => {
                 pattern = "~";
             }
             last_id = 0;
-        
-            sendRequest().then(function(added){
-                if(added){
-                    last_id = last_id + 50;
-                    main_div.appendChild(load_div);
-                }
-                getEntriesNumber();
-                footerHandler();
-            });
+            
+            update_index_page ();
         } 
     }
+}
+
+const set_start_letter = letter => {
+    starts_with = letter;
+    document.getElementById("search").value = "";
+    last_id = 0;
+    pattern = "~";
+    clear_index_page ();
+    update_index_page ();
 }
