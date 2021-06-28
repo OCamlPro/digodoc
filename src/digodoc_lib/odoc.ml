@@ -588,7 +588,6 @@ let save_line ~dir_name ~line_name line =
     line;
   ()
 
-
 let generate_library_pages state =
 
   List.iter (fun  ( _, lib ) ->
@@ -605,7 +604,13 @@ let generate_library_pages state =
         begin match
             List.find_opt
               (fun mld -> Filename.basename mld = "index.mld")
-              lib.lib_mld_files
+              (if StringMap.cardinal lib.lib_opam.opam_libs > 1
+               then lib.lib_mld_files
+               else List.filter_map
+                      (function
+                       | README_md _ | CHANGES_md _ | LICENSE_md _ -> None
+                       | ODOC_PAGE mld -> Some mld)
+                   lib.lib_opam.opam_docs)
           with
           | None ->
               Printf.bprintf b "{0:library-%s Library %s\n"
@@ -615,7 +620,8 @@ let generate_library_pages state =
                 opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
               Printf.bprintf b "}\n";
           | Some mld ->
-              let assets_dir = state.opam_switch_prefix // "doc" // lib.lib_name // "odoc-assets" in
+              let mld_dir = Filename.( mld |> dirname |> dirname |> basename) in
+              let assets_dir = state.opam_switch_prefix // "doc" // mld_dir // "odoc-assets" in
               if Sys.file_exists assets_dir
               then Process.call [|
                   "rsync"; "-auv"; assets_dir // ""; Html.digodoc_html_dir // pkg // "_assets"|];
@@ -629,7 +635,7 @@ let generate_library_pages state =
               in loop ();
               Printf.bprintf b
                 {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
-                opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
+                opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version
         end ;
 
         Printf.bprintf b "{1:info Library info}\n";
