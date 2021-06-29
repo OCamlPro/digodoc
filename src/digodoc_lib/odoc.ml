@@ -588,6 +588,32 @@ let save_line ~dir_name ~line_name line =
     line;
   ()
 
+let recursive_deps_memo : opam_package StringMap.t StringMap.t ref = ref StringMap.empty
+
+let get_recursive_deps opam = (* TODO: fix cycles due to post *)
+  let rec aux grey opam =
+    if StringSet.mem opam.opam_name grey
+    then StringMap.empty
+    else begin
+      let grey = StringSet.add opam.opam_name grey in
+      match StringMap.find_opt opam.opam_name !recursive_deps_memo with
+      | None ->
+          Printf.printf "descending into %s\n%!" opam.opam_name;
+          let result =
+            StringMap.fold (fun n o res ->
+                if StringMap.mem n res
+                then res
+                else
+                  let rdeps = aux grey o in
+                  StringMap.union (fun _ a _ -> Some a) res rdeps)
+              opam.opam_deps StringMap.empty
+          in
+          recursive_deps_memo := StringMap.add opam.opam_name result !recursive_deps_memo;
+          result
+      | Some res -> res
+    end
+  in aux StringSet.empty opam
+
 let generate_library_pages state =
 
   List.iter (fun  ( _, lib ) ->
@@ -600,6 +626,16 @@ let generate_library_pages state =
 
       if not skip_packages then
         let b = Buffer.create 10000 in
+
+        let get_rec_deps = ref false in
+        let pages_pkgs =
+          List.fold_left
+            (fun set -> function
+               | README_md _ | CHANGES_md _ | LICENSE_md _ -> set
+               | ODOC_PAGE mld -> StringSet.add (pkg_of_pages lib.lib_opam mld) set)
+            StringSet.empty lib.lib_opam.opam_docs
+
+        in
 
         begin match
             List.find_opt
@@ -620,6 +656,7 @@ let generate_library_pages state =
                 opam_pkg lib.lib_opam.opam_name lib.lib_opam.opam_version;
               Printf.bprintf b "}\n";
           | Some mld ->
+              get_rec_deps := true;
               let mld_dir = Filename.( mld |> dirname |> dirname |> basename) in
               let assets_dir = state.opam_switch_prefix // "doc" // mld_dir // "odoc-assets" in
               if Sys.file_exists assets_dir
@@ -682,7 +719,16 @@ let generate_library_pages state =
           "-o" ; Html.digodoc_html_dir ;
           "-I" ; digodoc_odoc_dir // pkg ;
           odoc_target
-        ]
+        ] @
+          (if !get_rec_deps then
+             List.concat_map (fun (_,opam) ->
+                 List.concat_map (fun (_,lib) ->
+                     ["-I"; digodoc_odoc_dir // pkg_of_lib lib]
+                   ) (StringMap.to_list opam.opam_libs))
+               (StringMap.to_list (get_recursive_deps lib.lib_opam))
+           else [] ) @
+          List.concat_map (fun pkg -> ["-I"; digodoc_odoc_dir // pkg])
+            (StringSet.to_list pages_pkgs)
         in
 
         Process.call ( Array.of_list cmd );
@@ -692,32 +738,6 @@ let generate_library_pages state =
     ( List.sort compare state.ocaml_libs );
 
   ()
-
-let recursive_deps_memo : opam_package StringMap.t StringMap.t ref = ref StringMap.empty
-
-let get_recursive_deps opam = (* TODO: fix cycles due to post *)
-  let rec aux grey opam =
-    if StringSet.mem opam.opam_name grey
-    then StringMap.empty
-    else begin
-      let grey = StringSet.add opam.opam_name grey in
-      match StringMap.find_opt opam.opam_name !recursive_deps_memo with
-      | None ->
-          Printf.printf "descending into %s\n%!" opam.opam_name;
-          let result =
-            StringMap.fold (fun n o res ->
-                if StringMap.mem n res
-                then res
-                else
-                  let rdeps = aux grey o in
-                  StringMap.union (fun _ a _ -> Some a) res rdeps)
-              opam.opam_deps StringMap.empty
-          in
-          recursive_deps_memo := StringMap.add opam.opam_name result !recursive_deps_memo;
-          result
-      | Some res -> res
-    end
-  in aux StringSet.empty opam
 
 let generate_opam_pages ~continue_on_error state =
 
