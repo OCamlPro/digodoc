@@ -228,7 +228,7 @@ const getEntriesNumber = async () => {
         default:
             break;
     }
-    const response = await fetch('http://localhost:11001/command/count+'+ entry + "/" + createApiArgument());
+    const response = await fetch('https://docs-api.ocaml.pro/command/count+'+ entry + "/" + createApiArgument());
     const results = await response.json();
     var indicator = document.getElementById("item-number");
     indicator.innerHTML = results.result + " " + entry;
@@ -238,19 +238,19 @@ const sendRequest = async () => {
     var response;
     switch (filename) {
         case "index.html":
-            response = await fetch('http://localhost:11001/packages/'+ createApiArgument());
+            response = await fetch('https://docs-api.ocaml.pro/packages/'+ createApiArgument());
             break;
         case "modules.html":
-            response = await fetch('http://localhost:11001/modules/'+ createApiArgument());
+            response = await fetch('https://docs-api.ocaml.pro/modules/'+ createApiArgument());
             break;
         case "libraries.html":
-            response = await fetch('http://localhost:11001/libraries/'+ createApiArgument());
+            response = await fetch('https://docs-api.ocaml.pro/libraries/'+ createApiArgument());
             break;
         case "metas.html":
-            response = await fetch('http://localhost:11001/metas/'+ createApiArgument());
+            response = await fetch('https://docs-api.ocaml.pro/metas/'+ createApiArgument());
             break;
         case "sources.html":
-            response = await fetch('http://localhost:11001/sources/'+ createApiArgument());
+            response = await fetch('https://docs-api.ocaml.pro/sources/'+ createApiArgument());
             break;
         default:
             break;
@@ -377,9 +377,7 @@ window.onload = () => {
 
 const set_start_letter = letter => {
     starts_with = letter;
-    document.getElementById("search").value = "";
     last_id = 0;
-    pattern = "~";
     clear_index_page ();
     update_index_page ();
 }
