@@ -170,10 +170,11 @@ let add_header_footer () =
   let open Htmlize in 
   Printf.eprintf "Adding header and footer...\n%!";
   let html_dir = digodoc_html_dir in
-  let script = {|<script defer="defer" 
-                      type="application/javascript" 
-                      src="${root-html}headerFooter.js">
-                </script>|} in
+  let head_childs = [("link", {|<link rel="icon" href="${root-html}_odoc-theme/favicon.png">|});
+                     ("script", {|<script defer="defer" 
+                        type="application/javascript" 
+                        src="${root-html}headerFooter.js">
+                        </script>|})] in
   
 
   EzFile.make_select EzFile.iter_dir ~deep:true ~glob:"*.html"
@@ -215,9 +216,9 @@ let add_header_footer () =
           let html = EzFile.read_file file 
           and header = Ez_subst.V1.EZ_SUBST.string (file_content "header.html") ~brace ~ctxt:()
           and footer = Ez_subst.V1.EZ_SUBST.string (file_content "footer.html") ~brace ~ctxt:()
-          and script = Ez_subst.V1.EZ_SUBST.string script ~brace ~ctxt:() in
+          and head_childs = List.map (fun (id,child) -> id, Ez_subst.V1.EZ_SUBST.string child ~brace ~ctxt:()) head_childs in
 
-          let html' = Patchtml.edit_html ~header ~footer ~script html in
+          let html' = Patchtml.edit_html ~header ~footer ~head_childs html in
 
           EzFile.remove file;
 

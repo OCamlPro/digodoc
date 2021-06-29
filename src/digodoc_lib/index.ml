@@ -458,7 +458,7 @@ let print_index bb index entity_name =
       <nav>
 |} !n entity_name;
 
-  Printf.bprintf bb {|<a href="#" onclick="set_start_letter('.');return false;">.</a>|};
+  Printf.bprintf bb {|<a href="#" onclick="set_start_letter('.');return false;">ALL</a>|};
   StringMap.iter (fun i _ ->
       Printf.bprintf bb {|<a href="#" onclick="set_start_letter('%s');return false;">%s</a>
 |} i i) !map;
