@@ -851,7 +851,7 @@ let generate_opam_pages ~continue_on_error state =
 
           Printf.bprintf b "\n{1:sources Package sources}\n";
 
-          let opam_sources = htmlize_sources_of_opam opam in
+          let opam_sources = "sources" // fullname opam in
           Printf.bprintf b {|{%%html:<div><a href="../../%s/index.html">%s</a></div>%%}|}
             opam_sources opam.opam_name
         end;
