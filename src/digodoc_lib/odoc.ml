@@ -93,6 +93,23 @@ let mdl_is_alone mdl =
 let id_of_pkg pkg =
   snd (EzString.cut_at pkg '.')
 
+let get_mld_index ?name opam =
+  List.find_opt
+    (fun mld ->
+       let open Filename in
+       basename mld = "index.mld" &&
+       Option.fold ~none:true (* if a name is provided we check that it matches *)
+         ~some:(fun name ->
+             String.equal (mld |> dirname |> dirname |> basename) name)
+         name
+    )
+    (List.filter_map
+       (function
+         | README_md _ | CHANGES_md _ | LICENSE_md _ -> None
+         | ODOC_PAGE mld -> Some mld
+       ) opam.opam_docs)
+
+
 let force_rebuild = match Sys.getenv "FORCE_REBUILD" with
   | exception Not_found -> false
   | _ -> true
@@ -933,12 +950,43 @@ let generate_meta_pages state =
       if not skip_packages then
         let b = Buffer.create 10000 in
 
-        Printf.bprintf b "{0:opam-%s Meta Package %s\n"
-          meta.meta_name meta.meta_name;
-        Printf.bprintf b
-          {|{%%html:<nav><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></nav>%%}|}
-          opam_pkg opam.opam_name opam.opam_version;
-        Printf.bprintf b "}\n";
+        let get_rec_deps = ref false in
+        begin match
+            get_mld_index
+              ?name:(if List.length opam.opam_metas > 1
+                     then Some meta.meta_name
+                     else None)
+              opam
+          with
+          | None -> begin
+              Printf.bprintf b "{0:opam-%s Meta Package %s\n"
+                meta.meta_name meta.meta_name;
+              Printf.bprintf b
+                {|{%%html:<nav><a href="../%s/index.html" class="digodoc-opam">%s.%s</a></nav>%%}|}
+                opam_pkg opam.opam_name opam.opam_version;
+              Printf.bprintf b "}\n"
+            end
+          | Some mld -> begin
+              get_rec_deps := true;
+              let mld_dir = Filename.( mld |> dirname |> dirname |> basename) in
+              let assets_dir = state.opam_switch_prefix // "doc" // mld_dir // "odoc-assets" in
+              if Sys.file_exists assets_dir
+              then Process.call [|
+                  "rsync"; "-auv"; assets_dir // ""; Html.digodoc_html_dir // pkg // "_assets"|];
+              let in_chan = open_in @@ state.opam_switch_prefix // mld in
+              let in_buffer = Bytes.create 1024 in
+              let rec loop () =
+                let l = input in_chan in_buffer 0 1024 in
+                if l <> 0
+                then ( Buffer.add_subbytes b in_buffer 0 l; loop () )
+                else ()
+              in loop ();
+              Printf.bprintf b
+                {|{%%html:<nav><a href="../%s/index.html">%s.%s</a></nav>%%}|}
+                opam_pkg opam.opam_name opam.opam_version
+
+            end
+        end;
         Printf.bprintf b
           "Meta packages are used by ocamlfind and in the libraries statement of dune.\n";
 
@@ -1014,7 +1062,23 @@ let generate_meta_pages state =
           "-o" ; Html.digodoc_html_dir ;
           "-I" ; digodoc_odoc_dir // pkg ;
           odoc_target
-        ]
+        ] @
+          (if !get_rec_deps then
+             List.concat_map (fun (_,opam) ->
+                 List.concat_map (fun (_,lib) ->
+                     ["-I"; digodoc_odoc_dir // pkg_of_lib lib]
+                   ) (StringMap.to_list opam.opam_libs))
+               (StringMap.to_list (get_recursive_deps opam))
+           else [] ) @
+          List.concat_map (fun pkg -> ["-I"; digodoc_odoc_dir // pkg])
+            (let pages_pkgs =
+               List.fold_left
+                 (fun set -> function
+                    | README_md _ | CHANGES_md _ | LICENSE_md _ -> set
+                    | ODOC_PAGE mld -> StringSet.add (pkg_of_pages opam mld) set)
+                 StringSet.empty opam.opam_docs
+             in
+             StringSet.to_list pages_pkgs)
         in
 
         Process.call ( Array.of_list cmd );
