@@ -82,11 +82,11 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'doc_gen']
 pygments_style = 'lovelace'
 
 # Deactivate syntax highlighting
-# - http://www.sphinx-doc.org/en/stable/markup/code.html#code-examples
-# - http://www.sphinx-doc.org/en/stable/config.html#confval-highlight_language
+# - https://www.sphinx-doc.org/en/stable/markup/code.html#code-examples
+# - https://www.sphinx-doc.org/en/stable/config.html#confval-highlight_language
 highlight_language = 'ocaml'
 # TODO write a Pygments lexer for Michelson
-# cf. http://pygments.org/docs/lexerdevelopment/ and http://pygments.org/docs/lexers/
+# cf. https://pygments.org/docs/lexerdevelopment/ and https://pygments.org/docs/lexers/
 
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
@@ -115,7 +115,7 @@ html_static_path = ['_static']
 # to template names.
 #
 # This is required for the alabaster theme
-# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
+# refs: https://alabaster.readthedocs.io/en/latest/installation.html#sidebars
 # html_sidebars = {
 #     '**': [
 #         'relations.html',  # needs 'show_related': True theme option to display
