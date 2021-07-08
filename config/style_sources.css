@@ -6,21 +6,21 @@ body {
     color: var(--color-text-primary);
     margin:0px;
   }
-  
+
   /************ Links *****************/
-  
+
   /* Style the links inside the navigation bar */
-  
+
   .content a {
       color: #0366d6;
       text-decoration: none;
   }
-  
+
   #footer a {
     color:#e1e4e8;
     text-decoration: none;
   }
-  
+
   .topnav a {
     float: left;
     color: #f2f2f2;
@@ -29,72 +29,72 @@ body {
     text-decoration: none;
     font-size: 17px;
   }
-  
+
   .file-info a:hover{
     text-decoration: underline;
   }
-  
+
   .file-link:hover{
     background-color: #f1f1f1;
     color:black;
   }
-  
+
   /* Change the color of links on hover */
   .topnav a:hover {
     background-color: #ddd;
     color: #659CD6;
   }
-  
+
   /* Add a color to the active/current link */
   .topnav a.active {
     background-color: #4CAF50;
     color: white;
   }
-  
+
   a.digodoc-opam { color: green; }
-  
+
   /**************** Divs *****************/
-  
+
   .file{
     background-color: inherit;
     min-height: 30px;
     border: 0px;
   }
-  
+
   .content-div, .round-border{
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
   }
-  
+
   .file.top-border {
     border-top: 1px solid #e1e4e8;
   }
-  
+
   .content {
       font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace !important;
       width: 100%;
   }
-  
+
   .border {
     box-sizing: border-box;
     margin: -1px -1px 0;
     border: 1px solid #e1e4e8;
   }
-  
+
   .padding {
     padding: 10px;
   }
-  
+
   .position-relative {
     position: relative;
   }
-  
+
   .wrap-x {
     overflow-x: auto;
     overflow-y: hidden;
     overflow-wrap: break-word;
   }
-  
+
   .file-info {
     margin-top: 20px;
     font-size: 14px;
@@ -104,27 +104,27 @@ body {
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
   }
-  
+
   .content-info {
     margin-top: 20px;
     background-color: #f6f8fa;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
   }
-  
+
   /* Add a black background color to the top navigation */
   .topnav {
       background-color: #659CD6;
       overflow: hidden;
       border-bottom: 1px solid grey;
   }
-  
+
   .search {
       float: left;
       margin-top:10px;
       margin-right:20px;
   }
-  
+
   #footer{
     background-color: #659CD6;
     text-align:center;
@@ -135,51 +135,51 @@ body {
     margin-top: 30px;
     border-top: 1px solid grey;
   }
-  
+
   .container{
     margin-left: 10px;
     margin-right: 10px;
   }
-  
+
   /************** Tables, rows, cells ***************/
-  
+
   table{
     width: inherit;
     height: inherit;
-  } 
-  
+  }
+
   .file-name{
     padding-left:15px;
   }
-  
+
   .file-icon {
     width: 2%;
     min-width: 25px;
   }
-  
+
   .file-kind {
     font-size:12px;
     min-width: 120px;
     width: 20%;
   }
-  
+
   /* Right-aligned section inside the top navigation */
   .topnav-right {
     float: right;
   }
-  
+
   .content-table {
     border-color: grey;
   }
-  
-  
+
+
   .line {
     font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
     font-size: 12px;
     line-height: 15px;
     vertical-align: top;
   }
-  
+
   .line-num {
       min-width: 20px;
       padding-right: 15px;
@@ -192,7 +192,7 @@ body {
       -ms-user-select: none;
       user-select: none;
   }
-  
+
   .line-code {
     white-space: pre;
     padding-right: 10px;
@@ -200,10 +200,10 @@ body {
     position: relative;
     vertical-align: top;
   }
-  
-  
+
+
   /******** Spans ***********/
-  
+
   .sp-k { color: rgb(220,3,3); }
   .sp-c { color: rgb(100, 120, 140); }
   .sp-s { color: rgb(3, 50, 100); font-style: italic }
@@ -215,19 +215,19 @@ body {
   .sp-typ { color: #32a190; }
   .sp-syn { color: #ff6666; }
   .sp-ch { color: #0000ff; }
-  
+
   .separator {
     font-size: 16px;
     color: #dcdcdc;
   }
-  
+
   /************ Inputs ***************/
-  
+
   .search-query{
     text-align: center;
     width:200px;
     height:25px;
-    border-radius: 20px; 
+    border-radius: 20px;
     outline: none;
   }
 
