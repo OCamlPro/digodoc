@@ -42,6 +42,17 @@ let is_directory file =
 
 let htmlize filename content =
   let b = Buffer.create 1000 in
+
+  let basename = Filename.basename filename in
+  let _, ext = EzString.rcut_at basename '.' in
+  let ext = String.lowercase_ascii ext in
+  match ext with
+  | "md" ->
+  let content = try Omd.of_string content |> Omd.to_html with _ -> content in
+  Printf.bprintf b {|%s|} content;
+  Buffer.contents b
+
+| "" | _ ->
   Printf.bprintf b {|<div class="wrap-x padding"><table class="content-table">
  <tbody>
 |};
@@ -82,10 +93,10 @@ let footerref = ref None
 
 let file_content filename =
   match Sys.getenv "DIGODOC_CONFIG" with
-  | dir when EzFile.exists (dir // filename) -> 
+  | dir when EzFile.exists (dir // filename) ->
     EzFile.read_file (dir // filename)
   | exception Not_found | _ ->
-    begin   
+    begin
       match Files.read filename with
       | None -> ""
       | Some file_content -> file_content
@@ -127,7 +138,7 @@ let title_info path =
     String.concat "/"
       (List.map (fun _s -> "..") path)
   and opam_name,opam_version = EzFile.cut_extension (List.hd path) in
-  let pkg_link =      
+  let pkg_link =
     Printf.sprintf {| <a class="digodoc-opam" href="%s/../html/%s/index.html">package</a>|}
       path_html
       (pkg_of_opam opam_name opam_version)
@@ -161,7 +172,7 @@ let htmlize_file destdir srcdir path file =
             (List.map (fun _s -> "..") path)
         in
         if s = "" then s else s ^ "/"
-    | "root-html" -> 
+    | "root-html" ->
         let s =
           String.concat "/"
             (List.map (fun _s -> "..") path)
@@ -179,23 +190,23 @@ let htmlize_file destdir srcdir path file =
       | None -> ""
     end
     | "sources" ->
-      if !Globals.sources 
-      then 
+      if !Globals.sources
+      then
         Printf.sprintf {|<a id="sources-item" href="%ssources.html">Sources</a>|}
         (brace () "root-html")
       else ""
     | "header_link" ->
-        if !Globals.with_header 
-        then {| | <a href="#header">To the top</a>|} 
+        if !Globals.with_header
+        then {| | <a href="#header">To the top</a>|}
         else ""
     | _ ->
         Printf.kprintf failwith "Unknown var %S" var
   in
-  generate_page ~brace destdir 
+  generate_page ~brace destdir
 
 let dir_content srcdir files path =
   let b = Buffer.create 1000 in
-  
+
   let has_parent_directory =
     match path with
     | [] -> assert false
@@ -212,7 +223,7 @@ let dir_content srcdir files path =
   |};
     Printf.bprintf b {|     <td class="file-icon">%s</td>
   |} (file_content "svg_directory.html");
-  
+
     Printf.bprintf b {|     <td class="file-name">..</td>
   |};
     Printf.bprintf b {|     <td class="file-kind">Upper Directory</td>
@@ -232,14 +243,14 @@ let dir_content srcdir files path =
   List.iteri (fun i (_, file, st) ->
       let style =
         if i = 0 && not has_parent_directory
-        then "file" 
-        else if i = (List.length files) - 1 
+        then "file"
+        else if i = (List.length files) - 1
         then "file top-border round-border"
         else "file top-border"
       in
       Printf.bprintf b {|  <a class="file-link" href='%s/index.html'><div class='%s'>
         |} (HTML.encode (escape_file file)) style;
-      
+
       Printf.bprintf b {|   <table class="file-tab"><tbody><tr>
         |};
 
@@ -298,13 +309,13 @@ let rec htmlize_dir destdir srcdir path basename =
             (List.map (fun _s -> "..") path)
         in
         if s = "" then s else s ^ "/"
-    | "root-html" -> 
+    | "root-html" ->
         let s =
           String.concat "/"
             (List.map (fun _s -> "..") path)
         in
         let s = if s = "" then s else s ^ "/" in
-        s // "../html/"  
+        s // "../html/"
     | "header" -> begin
       match !headerref with
       | Some h -> h
@@ -316,14 +327,14 @@ let rec htmlize_dir destdir srcdir path basename =
       | None -> ""
     end
     | "sources" ->
-      if !Globals.sources 
-      then 
+      if !Globals.sources
+      then
         Printf.sprintf {|<a id="sources-item" href="%ssources.html">Sources</a>|}
             (brace () "root-html")
       else ""
     | "header_link" ->
-        if !Globals.with_header 
-        then {| | <a href="#header">To the top</a>|} 
+        if !Globals.with_header
+        then {| | <a href="#header">To the top</a>|}
         else ""
     | _ ->
         Printf.kprintf failwith "Unknown var %S" var

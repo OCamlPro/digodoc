@@ -9,8 +9,8 @@
   
   )
 
-(ocamlyacc xml_parser)
 (ocamllex xml_lexer)
+(ocamlyacc xml_parser)
 
 (documentation
   (package ez_html))

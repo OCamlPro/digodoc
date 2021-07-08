@@ -73,6 +73,7 @@
  (description "\n\nThe Digodoc library scans opam switches and builds maps of them. It is used to build documentation websites, such as https://docs.ocaml.pro\n")
  (depends
    (ocaml (>= 4.10.0))
+   omd
    (lambdasoup (and (>= 0.7.2) (< 1.0.0)))
    (ez_subst ( >= 0.1 ))
    (ez_html ( >= 0.1 ))
