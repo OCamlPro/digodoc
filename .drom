@@ -27,7 +27,7 @@ db0cdb9cfc7ec8f26b6344386ca9d132:.gitignore
 
 # begin context for .ocamlformat-ignore
 # file .ocamlformat-ignore
-597fd0f0e8af60c3142054781798e82d:.ocamlformat-ignore
+a8d1bcd6f62c6b813b77d3ff8959d8d2:.ocamlformat-ignore
 # end context for .ocamlformat-ignore
 
 # begin context for .ocp-indent
@@ -99,11 +99,6 @@ ec7bd7c977bb925908818597d08eb061:docs/sphinx/index.html
 # file docs/style.css
 1eb62145308aed80e0f86b959d6f7fd0:docs/style.css
 # end context for docs/style.css
-
-# begin context for dot_gitignore
-# file dot_gitignore
-dcd2ae395f9bbc486289c33f6f528c97:dot_gitignore
-# end context for dot_gitignore
 
 # begin context for drom.toml
 # file drom.toml
@@ -237,7 +232,7 @@ a73167b84c7d267ee7c64538461bea5e:src/digodoc_lib/package.toml
 
 # begin context for src/ez_html/dune
 # file src/ez_html/dune
-2f64757a8934c6e550f88a7638d272a2:src/ez_html/dune
+8b4343935c05c9a0301dd12bf2e21d8c:src/ez_html/dune
 # end context for src/ez_html/dune
 
 # begin context for src/ez_html/index.mld
